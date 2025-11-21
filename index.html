@@ -1337,8 +1337,12 @@
                 meanArea,
                 sdArea,
                 n: dataArray.length,
-                individualData: normalizedData.map(d => ({
-                    normalizedContour: d.normalizedContour,
+                // Store both normalized contour and avgRadius for drawing
+                individualData: dataArray.map(d => ({
+                    normalizedContour: d.contour.map(p => ({
+                        x: p.x - d.centroid.x,
+                        y: p.y - d.centroid.y
+                    })),
                     avgRadius: d.avgRadius
                 }))
             };
@@ -1439,9 +1443,9 @@
             if (normalizedContour.length === 0) return;
             
             ctx.save();
-            ctx.strokeStyle = color;
-            ctx.lineWidth = lineWidth;
-            ctx.globalAlpha = 0.15; // More transparent for layering
+            ctx.strokeStyle = '#d1d5db'; // Light gray for all individual shapes
+            ctx.lineWidth = 1; // Thin lines for individual shapes
+            ctx.globalAlpha = 0.5; // Semi-transparent
             
             // Calculate scaling factor to normalize shape size relative to average
             const scaleFactor = individualRadius > 0 ? avgRadius / individualRadius : 1.0;
@@ -1565,32 +1569,55 @@
             drawReferenceCircle(ctx, size);
             
             if (redAvg) {
-                // Draw individual shapes scaled and centered at average centroid
+                // Draw individual shapes scaled and centered at average centroid (light gray)
                 redAvg.individualData.forEach(d => {
-                    drawIndividualShape(ctx, d.normalizedContour, redAvg.centroid, redAvg.meanRadius, d.avgRadius, '#ef4444', 1.5, size);
+                    drawIndividualShape(ctx, d.normalizedContour, redAvg.centroid, redAvg.meanRadius, d.avgRadius, '#ef4444', 1, size);
                 });
-                // Draw average shape with averaged centroid
-                drawAverageShape(ctx, redAvg.contour, redAvg.centroid, '#dc2626', 4, size);
+                // Draw average shape with averaged centroid (bold red)
+                drawAverageShape(ctx, redAvg.contour, redAvg.centroid, '#dc2626', 3, size);
                 drawCentroid(ctx, redAvg.centroid, '#dc2626', size);
             }
             
             if (blueAvg) {
-                // Draw individual shapes scaled and centered at average centroid
+                // Draw individual shapes scaled and centered at average centroid (light gray)
                 blueAvg.individualData.forEach(d => {
-                    drawIndividualShape(ctx, d.normalizedContour, blueAvg.centroid, blueAvg.meanRadius, d.avgRadius, '#3b82f6', 1.5, size);
+                    drawIndividualShape(ctx, d.normalizedContour, blueAvg.centroid, blueAvg.meanRadius, d.avgRadius, '#3b82f6', 1, size);
                 });
-                // Draw average shape with averaged centroid
-                drawAverageShape(ctx, blueAvg.contour, blueAvg.centroid, '#2563eb', 4, size);
+                // Draw average shape with averaged centroid (bold blue)
+                drawAverageShape(ctx, blueAvg.contour, blueAvg.centroid, '#2563eb', 3, size);
                 drawCentroid(ctx, blueAvg.centroid, '#2563eb', size);
             }
             
             drawLegend(ctx, redAvg?.n, blueAvg?.n, size);
             
+            // Draw title with N and mean radius info
             ctx.save();
-            ctx.font = 'bold 24px sans-serif';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillStyle = '#1f2937';
+            ctx.textAlign = 'left';
+            
+            // Determine which data to show (prefer combined if both exist)
+            let titleText = '';
+            if (redAvg && blueAvg) {
+                // Show combined N
+                const totalN = redAvg.n + blueAvg.n;
+                // Use red mean radius as primary (you can adjust this logic)
+                titleText = `N=${totalN}, mean r=${redAvg.meanRadius.toFixed(2)} (centroid avg)`;
+            } else if (redAvg) {
+                titleText = `N=${redAvg.n}, mean r=${redAvg.meanRadius.toFixed(2)} (centroid avg)`;
+            } else if (blueAvg) {
+                titleText = `N=${blueAvg.n}, mean r=${blueAvg.meanRadius.toFixed(2)} (centroid avg)`;
+            }
+            
+            ctx.fillText(titleText, 20, 35);
+            ctx.restore();
+            
+            // Draw frequency label
+            ctx.save();
+            ctx.font = 'bold 28px sans-serif';
             ctx.fillStyle = '#1e40af';
             ctx.textAlign = 'center';
-            ctx.fillText(`${frequency} Hz`, size / 2, 40);
+            ctx.fillText(`${frequency} Hz`, size / 2, 35);
             ctx.restore();
             
             return canvas;
