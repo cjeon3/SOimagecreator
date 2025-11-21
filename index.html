@@ -155,30 +155,45 @@
             </h2>
             <p class="text-sm text-gray-700 mb-4">
                 Enable continuous validation against your Google Sheets data containing participant ID, frequency, color, centroid coordinates, and area measurements.
+                <strong class="text-green-700">✅ COMPLETELY FREE</strong> - Choose either method below.
             </p>
+            
+            <div class="mb-3 p-3 bg-blue-50 border-l-4 border-blue-400 rounded">
+                <p class="text-xs font-semibold text-blue-800">📌 Two Methods (Both Free):</p>
+                <p class="text-xs text-gray-700 mt-1">
+                    <strong>Option 1 (Easiest):</strong> Deploy your Apps Script → Paste web app URL below (no API key needed!)
+                    <a href="#" onclick="showAppsScriptGuide(); return false;" class="text-blue-600 hover:underline ml-1">Setup guide →</a>
+                </p>
+                <p class="text-xs text-gray-700 mt-1">
+                    <strong>Option 2:</strong> Use Google Sheets API → Need both URL and API key
+                    <a href="#" onclick="showSheetsInstructions(); return false;" class="text-blue-600 hover:underline ml-1">Instructions →</a>
+                </p>
+            </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                     <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                        Google Sheets URL
+                        Google Sheets URL or Apps Script URL
                     </label>
                     <input 
                         type="text" 
                         id="sheets-url" 
-                        placeholder="https://docs.google.com/spreadsheets/d/..."
+                        placeholder="https://docs.google.com/spreadsheets/... OR https://script.google.com/macros/..."
                         class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-green-400 focus:outline-none"
                     >
+                    <p class="text-xs text-gray-500 mt-1">Paste either your Sheet URL or Apps Script web app URL</p>
                 </div>
                 <div>
                     <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                        Google API Key
+                        Google API Key <span class="text-xs font-normal text-gray-500">(only if using Option 2)</span>
                     </label>
                     <input 
                         type="password" 
                         id="api-key" 
-                        placeholder="Your Google Sheets API key"
+                        placeholder="Leave blank if using Apps Script"
                         class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-green-400 focus:outline-none"
                     >
+                    <p class="text-xs text-gray-500 mt-1">Not needed for Apps Script web app</p>
                 </div>
             </div>
             
@@ -442,50 +457,98 @@
         // ============================================
         
         async function connectToGoogleSheets() {
-            const sheetsUrl = document.getElementById('sheets-url').value.trim();
+            const url = document.getElementById('sheets-url').value.trim();
             const apiKey = document.getElementById('api-key').value.trim();
             
-            if (!sheetsUrl || !apiKey) {
-                showSheetsStatus('error', 'Please enter both Google Sheets URL and API key');
+            if (!url) {
+                showSheetsStatus('error', 'Please enter a Google Sheets URL or Apps Script URL');
                 return false;
             }
             
             try {
-                // Extract spreadsheet ID from URL
-                const spreadsheetId = extractSpreadsheetId(sheetsUrl);
-                if (!spreadsheetId) {
-                    throw new Error('Invalid Google Sheets URL');
+                // Detect which method: Apps Script or Direct API
+                const isAppsScript = url.includes('script.google.com');
+                
+                if (isAppsScript) {
+                    // **METHOD 1: Apps Script (No API Key Needed)** ✅ FREE
+                    console.log('[Sheets] Using Apps Script web app (no API key needed)');
+                    showSheetsStatus('loading', 'Connecting via Apps Script...');
+                    
+                    const response = await fetch(`${url}?action=getAllData`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`Apps Script request failed: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
+                    if (!data.success || !data.shapes || data.shapes.length === 0) {
+                        throw new Error('No data found in Apps Script response');
+                    }
+                    
+                    // Convert Apps Script format to our internal format
+                    googleSheetsData = data.shapes.map(shape => ({
+                        participantId: String(shape.participant).trim(),
+                        frequency: parseFloat(shape.frequency),
+                        color: String(shape.color).toLowerCase(),
+                        trial: parseInt(shape.trial),
+                        centroidX: parseFloat(shape.centroid.x),
+                        centroidY: parseFloat(shape.centroid.y),
+                        area: parseFloat(shape.area)
+                    }));
+                    
+                    sheetsValidationEnabled = true;
+                    showSheetsStatus('success', `✅ Connected via Apps Script! Loaded ${googleSheetsData.length} records (FREE - no API key)`);
+                    console.log('[Sheets] Loaded', googleSheetsData.length, 'records from Apps Script');
+                    return true;
+                    
+                } else {
+                    // **METHOD 2: Direct Google Sheets API** ✅ Also FREE (within generous limits)
+                    if (!apiKey) {
+                        showSheetsStatus('error', 'API key required for direct API access (or use Apps Script URL)');
+                        return false;
+                    }
+                    
+                    console.log('[Sheets] Using Google Sheets API (with API key)');
+                    showSheetsStatus('loading', 'Connecting via Google Sheets API...');
+                    
+                    // Extract spreadsheet ID
+                    const spreadsheetId = extractSpreadsheetId(url);
+                    if (!spreadsheetId) {
+                        throw new Error('Invalid Google Sheets URL');
+                    }
+                    
+                    // Fetch from "Data" tab
+                    const range = 'Data!A:I';
+                    const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
+                    
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) {
+                        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (!data.values || data.values.length === 0) {
+                        throw new Error('No data found in "Data" tab');
+                    }
+                    
+                    // Parse sheet data (existing function)
+                    googleSheetsData = parseGoogleSheetsData(data.values);
+                    sheetsValidationEnabled = true;
+                    
+                    showSheetsStatus('success', `✅ Connected via API! Loaded ${googleSheetsData.length} records (FREE - within quota)`);
+                    console.log('[Sheets] Loaded', googleSheetsData.length, 'records from API');
+                    return true;
                 }
-                
-                // Fetch data using Google Sheets API v4 (READ-ONLY, no Apps Script)
-                const range = 'Sheet1!A:I'; // Adjust range as needed
-                const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
-                
-                showSheetsStatus('loading', 'Connecting to Google Sheets...');
-                
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                
-                if (!data.values || data.values.length === 0) {
-                    throw new Error('No data found in spreadsheet');
-                }
-                
-                // Parse the sheet data
-                googleSheetsData = parseGoogleSheetsData(data.values);
-                sheetsValidationEnabled = true;
-                
-                showSheetsStatus('success', `✓ Connected! Loaded ${googleSheetsData.length} records for validation`);
-                
-                console.log('[Sheets] Successfully loaded:', googleSheetsData.length, 'records');
-                return true;
                 
             } catch (error) {
                 showSheetsStatus('error', `Connection failed: ${error.message}`);
-                console.error('[Sheets] Connection error:', error);
+                console.error('[Sheets] Error:', error);
                 return false;
             }
         }
@@ -629,32 +692,58 @@
         // ============================================
         
         function normalizeTrialNumbers(participantFiles) {
-            // Group files by participant and frequency
+            // Group files by participant and frequency (NOT color, since each file has both colors)
             const grouped = {};
             
             participantFiles.forEach(file => {
-                const key = `${file.participant}_${file.frequency}_${file.color}`;
+                const key = `${file.participant}_${file.frequency}`;
                 if (!grouped[key]) {
                     grouped[key] = [];
                 }
                 grouped[key].push(file);
             });
             
-            // For each group, re-map trial numbers
+            // For each group, re-map trial numbers based on ZIP order
             Object.keys(grouped).forEach(key => {
                 const files = grouped[key];
                 
-                // Sort by trial number
-                files.sort((a, b) => a.trialNumber - b.trialNumber);
+                // Check if files have ZIP order numbers
+                const hasZipOrder = files.some(f => f.zipOrderNumber !== null && f.zipOrderNumber !== undefined);
                 
-                // Re-map: lowest → 1, middle → 2, highest → 3
+                if (hasZipOrder) {
+                    // Sort by ZIP order number (lowest first)
+                    files.sort((a, b) => {
+                        const orderA = a.zipOrderNumber !== null ? a.zipOrderNumber : 999;
+                        const orderB = b.zipOrderNumber !== null ? b.zipOrderNumber : 999;
+                        return orderA - orderB;
+                    });
+                    
+                    console.log(`[Trial] ${key}: Sorting by ZIP order numbers`);
+                } else {
+                    // Fallback: Sort alphabetically by filename
+                    files.sort((a, b) => a.filename.localeCompare(b.filename));
+                    console.log(`[Trial] ${key}: No ZIP order found, sorting alphabetically`);
+                }
+                
+                // Re-map: lowest → 1, second-lowest → 2, highest → 3
                 if (files.length >= 1) files[0].normalizedTrial = 1;
                 if (files.length >= 2) files[1].normalizedTrial = 2;
                 if (files.length >= 3) files[2].normalizedTrial = 3;
                 
+                // Handle cases with more than 3 files (use only first 3)
+                for (let i = 3; i < files.length; i++) {
+                    files[i].normalizedTrial = null; // Mark as extra/invalid
+                    const zipInfo = files[i].sourceZip ? ` from ${files[i].sourceZip}` : '';
+                    console.warn(`[Trial] ${key}: File ${files[i].filename}${zipInfo} is position #${i+1} (>3), will be ignored`);
+                }
+                
                 // Log the mapping for transparency
-                if (files.length > 0 && files[0].trialNumber !== 1) {
-                    console.log(`[Trial Mapping] ${key}: Original trials [${files.map(f => f.trialNumber).join(', ')}] → Normalized [${files.map(f => f.normalizedTrial).join(', ')}]`);
+                if (files.length > 0 && files.length <= 3) {
+                    console.log(`[Trial] ${key}: Assigned trials:`);
+                    files.forEach((f, idx) => {
+                        const zipInfo = f.sourceZip ? ` (from ${f.sourceZip}, ZIP order=${f.zipOrderNumber})` : ' (direct PNG)';
+                        console.log(`[Trial]   → Trial ${idx + 1}: ${f.filename}${zipInfo}`);
+                    });
                 }
             });
             
@@ -1216,14 +1305,33 @@ self.onmessage = async function(e) {
         
         async function loadImagesFromZip(file) {
             console.log(`[ZIP] Extracting from: ${file.name}`);
+            
+            // Extract ordering number from ZIP name (e.g., "Michael D_07_Drawings.zip" → 7)
+            const zipOrderMatch = file.name.match(/_(\d+)_/);
+            const zipOrderNumber = zipOrderMatch ? parseInt(zipOrderMatch[1]) : null;
+            
+            // Extract participant name from ZIP name (before first underscore+number pattern)
+            const nameWithoutExt = file.name.replace(/\.zip$/i, '');
+            const zipParticipantMatch = nameWithoutExt.match(/^(.+?)_\d+/);
+            const zipParticipant = zipParticipantMatch ? zipParticipantMatch[1].trim() : null;
+            
+            if (zipOrderNumber !== null && zipParticipant !== null) {
+                console.log(`[ZIP]   ✓ Participant="${zipParticipant}", Order=${zipOrderNumber}`);
+            } else {
+                console.warn(`[ZIP]   ⚠ Could not extract order/participant from: ${file.name}`);
+            }
+            
             const zip = await JSZip.loadAsync(file);
             const images = [];
+            let pngCount = 0;
+            let nestedZipCount = 0;
             
             for (const [path, zipEntry] of Object.entries(zip.files)) {
                 if (zipEntry.dir) continue;
                 
                 if (path.toLowerCase().endsWith('.zip')) {
                     try {
+                        nestedZipCount++;
                         const nestedZipBlob = await zipEntry.async('blob');
                         const nestedZipFile = new File([nestedZipBlob], path.split('/').pop());
                         const nestedImages = await loadImagesFromZip(nestedZipFile);
@@ -1236,6 +1344,7 @@ self.onmessage = async function(e) {
                 
                 if (path.toLowerCase().endsWith('.png')) {
                     try {
+                        pngCount++;
                         const blobData = await zipEntry.async('blob');
                         const pngBlob = new Blob([blobData], { type: 'image/png' });
                         const filename = path.split('/').pop();
@@ -1243,12 +1352,26 @@ self.onmessage = async function(e) {
                         images.push({
                             name: filename,
                             blob: pngBlob,
-                            fullPath: `${file.name}/${path}`
+                            fullPath: `${file.name}/${path}`,
+                            sourceZip: file.name,
+                            zipOrderNumber: zipOrderNumber,
+                            zipParticipant: zipParticipant
                         });
                     } catch (err) {
                         console.error(`[ZIP] Error extracting ${path}:`, err);
                     }
                 }
+            }
+            
+            // Log summary for this ZIP
+            if (pngCount > 0) {
+                console.log(`[ZIP]   → Found ${pngCount} PNG file(s) in ${file.name}`);
+            }
+            if (nestedZipCount > 0) {
+                console.log(`[ZIP]   → Found ${nestedZipCount} nested ZIP(s) in ${file.name}`);
+            }
+            if (pngCount === 0 && nestedZipCount === 0) {
+                console.warn(`[ZIP]   ⚠ No PNG or ZIP files found in ${file.name}`);
             }
             
             return images;
@@ -1339,6 +1462,9 @@ self.onmessage = async function(e) {
                         resolve({
                             filename: file.name,
                             imageData,
+                            sourceZip: file.sourceZip,
+                            zipOrderNumber: file.zipOrderNumber,
+                            zipParticipant: file.zipParticipant,
                             ...e.data
                         });
                     } else {
@@ -1638,7 +1764,10 @@ self.onmessage = async function(e) {
                         allImages.push({
                             name: file.name,
                             blob: file,
-                            fullPath: file.name
+                            fullPath: file.name,
+                            sourceZip: null,
+                            zipOrderNumber: null,
+                            zipParticipant: null
                         });
                     }
                 }
@@ -1646,6 +1775,9 @@ self.onmessage = async function(e) {
                 if (allImages.length === 0) {
                     throw new Error('No valid PNG images found');
                 }
+                
+                console.log(`[Main] ✓ Total PNGs extracted: ${allImages.length}`);
+                console.log(`[Main] Sample file:`, allImages[0]);
                 
                 processingStats.totalCount = allImages.length;
                 updateProgress(10, `Found ${allImages.length} images...`);
@@ -1656,6 +1788,8 @@ self.onmessage = async function(e) {
                 
                 clearInterval(metricsInterval);
                 
+                console.log(`[Main] ✓ Processed ${processedData.length} images with workers`);
+                
                 if (processedData.length === 0) {
                     throw new Error('No valid data extracted');
                 }
@@ -1664,10 +1798,15 @@ self.onmessage = async function(e) {
                 
                 // Parse filenames and normalize trial numbers
                 const parsedData = [];
+                let parseFailures = 0;
                 
                 for (const data of processedData) {
                     const parsed = parseFilename(data.filename);
-                    if (!parsed) continue;
+                    if (!parsed) {
+                        parseFailures++;
+                        console.warn(`[Parse] ⚠ Failed to parse filename: ${data.filename}`);
+                        continue;
+                    }
                     
                     parsedData.push({
                         ...data,
@@ -1675,8 +1814,15 @@ self.onmessage = async function(e) {
                     });
                 }
                 
+                console.log(`[Parse] ✓ Successfully parsed ${parsedData.length} filenames`);
+                if (parseFailures > 0) {
+                    console.warn(`[Parse] ⚠ Failed to parse ${parseFailures} filenames`);
+                }
+                
                 // Normalize trial numbers
+                console.log('[Trial] Starting trial number normalization...');
                 normalizeTrialNumbers(parsedData);
+                console.log('[Trial] ✓ Trial normalization complete');
                 
                 // Group by participant, frequency, and extract contours
                 const participantShapes = {};
@@ -1747,6 +1893,16 @@ self.onmessage = async function(e) {
                         }
                     }
                 }
+                
+                // Log shape extraction results
+                console.log('[Shapes] Extraction complete. Summary by frequency:');
+                FREQUENCIES.forEach(freq => {
+                    const redCount = participantShapes[freq].red.length;
+                    const blueCount = participantShapes[freq].blue.length;
+                    if (redCount > 0 || blueCount > 0) {
+                        console.log(`[Shapes]   ${freq}: ${redCount} red, ${blueCount} blue`);
+                    }
+                });
                 
                 updateProgress(70, 'Calculating averaged shapes...');
                 
