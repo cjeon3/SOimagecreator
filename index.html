@@ -10,6 +10,11 @@
         body {
             font-family: ui-sans-serif, system-ui, sans-serif;
             background-color: #f3f4f6;
+            zoom: 0.75;
+            -moz-transform: scale(0.75);
+            -moz-transform-origin: 0 0;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
         
         .canvas-container {
@@ -24,9 +29,74 @@
             gap: 1.5rem;
         }
         
+        /* Mobile optimizations - Full screen width */
         @media (max-width: 768px) {
+            body {
+                zoom: 1;
+                -moz-transform: scale(1);
+                padding: 0.75rem;
+                width: 100vw;
+            }
+            
             .analysis-grid {
                 grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .max-w-7xl {
+                max-width: 100%;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+            
+            /* Make all containers full width on mobile */
+            .bg-white, .bg-gradient-to-r {
+                width: 100%;
+                box-sizing: border-box;
+            }
+            
+            /* Larger touch targets */
+            button {
+                min-height: 44px;
+                touch-action: manipulation;
+            }
+            
+            /* File input touch-friendly */
+            input[type="file"] {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+        }
+        
+        /* Tablet optimizations - Full screen width */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            body {
+                zoom: 0.9;
+                -moz-transform: scale(0.9);
+                -moz-transform-origin: 0 0;
+                width: 100vw;
+                padding: 1rem;
+            }
+            
+            .analysis-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .max-w-7xl {
+                max-width: 100%;
+                width: 100%;
+            }
+            
+            button {
+                min-height: 40px;
+            }
+        }
+        
+        /* Large desktop */
+        @media (min-width: 1920px) {
+            body {
+                zoom: 0.8;
+                -moz-transform: scale(0.8);
             }
         }
         
@@ -46,6 +116,15 @@
         .progress-bar-fill {
             transition: width 0.2s ease-out;
         }
+        
+        /* Prevent horizontal scroll */
+        * {
+            box-sizing: border-box;
+        }
+        
+        html {
+            overflow-x: hidden;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -53,68 +132,68 @@
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <header class="text-center mb-8">
-            <h1 class="text-4xl font-extrabold text-blue-800 mb-2">
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-blue-800 mb-2">
                 Sound Object Average Shape Analyzer
                 <span class="inline-block ml-2 px-3 py-1 text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full shadow-lg animate-pulse">⚡ ULTRA OPTIMIZED</span>
             </h1>
-            <p class="text-xl font-semibold text-gray-600">UCI Hearing & Speech Lab</p>
-            <p class="text-sm text-gray-500 mt-2">Import participant drawings and generate averaged visualizations</p>
-            <div class="mt-3 flex justify-center gap-2 text-xs flex-wrap">
-                <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full border border-purple-300">🚀 Web Workers</span>
-                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full border border-blue-300">⚡ Parallel Processing</span>
-                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full border border-green-300">💾 Memory Optimized</span>
-                <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full border border-amber-300">📊 Real-time Monitoring</span>
-                <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full border border-indigo-300">🎯 Exact Calculations</span>
+            <p class="text-lg sm:text-xl font-semibold text-gray-600">UCI Hearing & Speech Lab</p>
+            <p class="text-xs sm:text-sm text-gray-500 mt-2">Import participant drawings and generate averaged visualizations</p>
+            <div class="mt-3 flex justify-center gap-2 text-xs flex-wrap px-2">
+                <span class="px-2 sm:px-3 py-1 bg-purple-100 text-purple-700 rounded-full border border-purple-300">🚀 Web Workers</span>
+                <span class="px-2 sm:px-3 py-1 bg-blue-100 text-blue-700 rounded-full border border-blue-300">⚡ Parallel Processing</span>
+                <span class="px-2 sm:px-3 py-1 bg-green-100 text-green-700 rounded-full border border-green-300">💾 Memory Optimized</span>
+                <span class="px-2 sm:px-3 py-1 bg-amber-100 text-amber-700 rounded-full border border-amber-300">📊 Real-time Monitoring</span>
+                <span class="px-2 sm:px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full border border-indigo-300">🎯 Exact Calculations</span>
             </div>
         </header>
         
         <!-- Performance Dashboard -->
-        <div id="performance-dashboard" class="hidden bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl shadow-lg mb-6 border-2 border-purple-200">
-            <h2 class="text-xl font-bold text-purple-800 mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div id="performance-dashboard" class="hidden bg-gradient-to-r from-purple-50 to-pink-50 p-4 sm:p-6 rounded-xl shadow-lg mb-6 border-2 border-purple-200">
+            <h2 class="text-lg sm:text-xl font-bold text-purple-800 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                 </svg>
                 Real-Time Performance Metrics
             </h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-white p-4 rounded-lg shadow">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
                     <div class="text-xs text-gray-500 font-semibold mb-1">Processing Speed</div>
-                    <div id="speed-metric" class="text-2xl font-bold text-purple-600 performance-metric">0 img/s</div>
+                    <div id="speed-metric" class="text-xl sm:text-2xl font-bold text-purple-600 performance-metric">0 img/s</div>
                 </div>
-                <div class="bg-white p-4 rounded-lg shadow">
+                <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
                     <div class="text-xs text-gray-500 font-semibold mb-1">Time Remaining</div>
-                    <div id="eta-metric" class="text-2xl font-bold text-blue-600 performance-metric">--</div>
+                    <div id="eta-metric" class="text-xl sm:text-2xl font-bold text-blue-600 performance-metric">--</div>
                 </div>
-                <div class="bg-white p-4 rounded-lg shadow">
+                <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
                     <div class="text-xs text-gray-500 font-semibold mb-1">Workers Active</div>
-                    <div id="workers-metric" class="text-2xl font-bold text-green-600 performance-metric">0</div>
+                    <div id="workers-metric" class="text-xl sm:text-2xl font-bold text-green-600 performance-metric">0</div>
                 </div>
-                <div class="bg-white p-4 rounded-lg shadow">
+                <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
                     <div class="text-xs text-gray-500 font-semibold mb-1">Memory Usage</div>
-                    <div id="memory-metric" class="text-2xl font-bold text-amber-600 performance-metric">--</div>
+                    <div id="memory-metric" class="text-xl sm:text-2xl font-bold text-amber-600 performance-metric">--</div>
                 </div>
             </div>
         </div>
         
         <!-- Instructions -->
-        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl shadow-lg mb-6 border-2 border-blue-200">
-            <h2 class="text-xl font-bold text-blue-800 mb-3 flex items-center gap-2">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:p-6 rounded-xl shadow-lg mb-6 border-2 border-blue-200">
+            <h2 class="text-lg sm:text-xl font-bold text-blue-800 mb-3 flex items-center gap-2">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 How to Use
             </h2>
-            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+            <ol class="list-decimal list-inside space-y-2 text-sm sm:text-base text-gray-700">
                 <li><strong>Upload Files:</strong> Select PNG files OR ZIP files (even nested ZIPs!) from the Sound Object tool</li>
                 <li><strong>Automatic Extraction:</strong> ZIP files are automatically unpacked to find all PNG images inside</li>
                 <li><strong>Automatic Detection:</strong> Frequency, phase (Red/Blue), and participant are detected from filenames</li>
                 <li><strong>Process Data:</strong> Click "Analyze & Generate Visualizations" - now with parallel processing!</li>
                 <li><strong>View & Export:</strong> See averaged shapes with statistics, download publication-ready figures</li>
             </ol>
-            <p class="mt-4 text-sm text-blue-700 font-semibold">
+            <p class="mt-4 text-xs sm:text-sm text-blue-700 font-semibold">
                 📝 Expected filename format: ParticipantID_FrequencyHz_dBdB.png (e.g., P-001_125Hz_90dB.png)
             </p>
-            <p class="mt-2 text-sm text-green-700 font-semibold bg-green-50 p-3 rounded-lg border border-green-200">
+            <p class="mt-2 text-xs sm:text-sm text-green-700 font-semibold bg-green-50 p-3 rounded-lg border border-green-200">
                 📦 <strong>ZIP Support:</strong> Upload one big ZIP file containing multiple participant folders (each as their own ZIP). The tool will automatically extract all nested ZIPs and find every PNG file!
             </p>
             <p class="mt-2 text-xs text-purple-700 font-semibold bg-purple-50 p-2 rounded">
@@ -126,16 +205,16 @@
         </div>
         
         <!-- File Upload Section -->
-        <div class="bg-white p-6 rounded-xl shadow-lg mb-6 border border-gray-100">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg mb-6 border border-gray-100">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 sm:w-7 sm:h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
                 Upload Participant Images
             </h2>
             
             <div class="mb-4">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
                     Select PNG files OR ZIP files containing PNGs (multiple files/folders allowed)
                 </label>
                 <input 
@@ -143,25 +222,25 @@
                     id="image-upload" 
                     accept="image/png,.zip,application/zip" 
                     multiple
-                    class="block w-full text-sm text-gray-700
-                        file:mr-4 file:py-3 file:px-6
+                    class="block w-full text-xs sm:text-sm text-gray-700
+                        file:mr-4 file:py-2 sm:file:py-3 file:px-4 sm:file:px-6
                         file:rounded-xl file:border-0
-                        file:text-sm file:font-bold
+                        file:text-xs sm:file:text-sm file:font-bold
                         file:bg-gradient-to-r file:from-blue-500 file:to-indigo-600
                         file:text-white file:cursor-pointer
                         hover:file:from-blue-600 hover:file:to-indigo-700
                         border-2 border-gray-200 rounded-xl
-                        hover:border-blue-300 transition-all p-3 bg-gray-50"
+                        hover:border-blue-300 transition-all p-2 sm:p-3 bg-gray-50"
                 >
             </div>
             
-            <div id="file-list" class="mt-4 text-sm text-gray-600"></div>
+            <div id="file-list" class="mt-4 text-xs sm:text-sm text-gray-600"></div>
             
-            <div class="mt-6 flex gap-3">
+            <div class="mt-6 flex flex-col sm:flex-row gap-3">
                 <button 
                     id="analyze-btn" 
                     disabled
-                    class="flex-1 px-6 py-3 rounded-xl font-bold text-white 
+                    class="flex-1 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold text-sm sm:text-base text-white 
                         bg-gradient-to-r from-purple-500 to-pink-600 
                         hover:from-purple-600 hover:to-pink-700 
                         disabled:from-gray-300 disabled:to-gray-400 
@@ -173,7 +252,7 @@
                 
                 <button 
                     id="cancel-btn" 
-                    class="hidden flex-1 px-6 py-3 rounded-xl font-bold text-white 
+                    class="hidden flex-1 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold text-sm sm:text-base text-white 
                         bg-gradient-to-r from-red-500 to-red-600 
                         hover:from-red-600 hover:to-red-700 
                         disabled:from-gray-400 disabled:to-gray-500 
@@ -264,7 +343,7 @@
         const CANVAS_SIZE = 1000;
         const UNIT_RANGE = 10;
         const SCALE_FACTOR = CANVAS_SIZE / (2 * UNIT_RANGE);
-        const BACKGROUND_CIRCLE_RADIUS_UNITS = 8.66;
+        const BACKGROUND_CIRCLE_RADIUS_UNITS = 3;
         const FREQUENCIES = [31, 62.5, 125, 250, 500, 1000, 2000, 4000, 8000, 12000, 16000];
         
         // Detect CPU cores for optimal parallelization
@@ -339,7 +418,7 @@
                 const centerY = CANVAS_SIZE / 2;
                 return {
                     x: (canvasX - centerX) / SCALE_FACTOR,
-                    y: -(canvasY - centerY) / SCALE_FACTOR
+                    y: (centerY - canvasY) / SCALE_FACTOR
                 };
             }
             
@@ -627,7 +706,8 @@
                         
                         if (radius > bins[binIndex].maxRadius) {
                             bins[binIndex].maxRadius = radius;
-                            bins[binIndex].point = point;
+                            // Store point RELATIVE to centroid
+                            bins[binIndex].point = { x: dx, y: dy };
                         }
                     });
                     
@@ -668,7 +748,8 @@
                         
                         if (radius > bins[binIndex].maxRadius) {
                             bins[binIndex].maxRadius = radius;
-                            bins[binIndex].point = point;
+                            // Store point RELATIVE to centroid
+                            bins[binIndex].point = { x: dx, y: dy };
                         }
                     });
                     
@@ -815,7 +896,7 @@
             const centerY = CANVAS_SIZE / 2;
             return {
                 x: (canvasX - centerX) / SCALE_FACTOR,
-                y: -(canvasY - centerY) / SCALE_FACTOR
+                y: (centerY - canvasY) / SCALE_FACTOR
             };
         }
         
@@ -1256,7 +1337,10 @@
                 meanArea,
                 sdArea,
                 n: dataArray.length,
-                individualData: dataArray
+                individualData: normalizedData.map(d => ({
+                    normalizedContour: d.normalizedContour,
+                    avgRadius: d.avgRadius
+                }))
             };
         }
         
@@ -1351,24 +1435,39 @@
             ctx.restore();
         }
         
-        function drawIndividualShape(ctx, contour, centroid, color, lineWidth, size) {
-            if (contour.length === 0) return;
+        function drawIndividualShape(ctx, normalizedContour, avgCentroid, avgRadius, individualRadius, color, lineWidth, size) {
+            if (normalizedContour.length === 0) return;
             
             ctx.save();
             ctx.strokeStyle = color;
             ctx.lineWidth = lineWidth;
-            ctx.globalAlpha = 0.3;
+            ctx.globalAlpha = 0.15; // More transparent for layering
             
+            // Calculate scaling factor to normalize shape size relative to average
+            const scaleFactor = individualRadius > 0 ? avgRadius / individualRadius : 1.0;
+            
+            // Draw as continuous path, scaled and centered at average centroid
             ctx.beginPath();
-            const firstPoint = unitToCanvas(contour[0].x + centroid.x, contour[0].y + centroid.y, size);
+            
+            // Normalize to origin, scale, then place at average centroid
+            const firstPointNorm = {
+                x: (normalizedContour[0].x) * scaleFactor,
+                y: (normalizedContour[0].y) * scaleFactor
+            };
+            const firstPoint = unitToCanvas(firstPointNorm.x + avgCentroid.x, firstPointNorm.y + avgCentroid.y, size);
             ctx.moveTo(firstPoint.x, firstPoint.y);
             
-            for (let i = 1; i < contour.length; i++) {
-                const point = unitToCanvas(contour[i].x + centroid.x, contour[i].y + centroid.y, size);
+            for (let i = 1; i < normalizedContour.length; i++) {
+                const pointNorm = {
+                    x: (normalizedContour[i].x) * scaleFactor,
+                    y: (normalizedContour[i].y) * scaleFactor
+                };
+                const point = unitToCanvas(pointNorm.x + avgCentroid.x, pointNorm.y + avgCentroid.y, size);
                 ctx.lineTo(point.x, point.y);
             }
             
-            ctx.closePath();
+            // Close back to start for smooth closed shape
+            ctx.lineTo(firstPoint.x, firstPoint.y);
             ctx.stroke();
             ctx.restore();
         }
@@ -1381,6 +1480,7 @@
             ctx.lineWidth = lineWidth;
             ctx.globalAlpha = 1.0;
             
+            // Draw as continuous path
             ctx.beginPath();
             const firstPoint = unitToCanvas(contour[0].x + centroid.x, contour[0].y + centroid.y, size);
             ctx.moveTo(firstPoint.x, firstPoint.y);
@@ -1390,7 +1490,8 @@
                 ctx.lineTo(point.x, point.y);
             }
             
-            ctx.closePath();
+            // Close back to start for smooth closed shape
+            ctx.lineTo(firstPoint.x, firstPoint.y);
             ctx.stroke();
             ctx.restore();
         }
@@ -1464,9 +1565,9 @@
             drawReferenceCircle(ctx, size);
             
             if (redAvg) {
-                // Draw individual shapes using their OWN centroids
+                // Draw individual shapes scaled and centered at average centroid
                 redAvg.individualData.forEach(d => {
-                    drawIndividualShape(ctx, d.contour, d.centroid, '#ef4444', 2, size);
+                    drawIndividualShape(ctx, d.normalizedContour, redAvg.centroid, redAvg.meanRadius, d.avgRadius, '#ef4444', 1.5, size);
                 });
                 // Draw average shape with averaged centroid
                 drawAverageShape(ctx, redAvg.contour, redAvg.centroid, '#dc2626', 4, size);
@@ -1474,9 +1575,9 @@
             }
             
             if (blueAvg) {
-                // Draw individual shapes using their OWN centroids
+                // Draw individual shapes scaled and centered at average centroid
                 blueAvg.individualData.forEach(d => {
-                    drawIndividualShape(ctx, d.contour, d.centroid, '#3b82f6', 2, size);
+                    drawIndividualShape(ctx, d.normalizedContour, blueAvg.centroid, blueAvg.meanRadius, d.avgRadius, '#3b82f6', 1.5, size);
                 });
                 // Draw average shape with averaged centroid
                 drawAverageShape(ctx, blueAvg.contour, blueAvg.centroid, '#2563eb', 4, size);
