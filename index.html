@@ -1098,11 +1098,6 @@
                 
                 // Minimal delay between batches
                 await new Promise(resolve => setTimeout(resolve, 50));
-                
-                // Trigger garbage collection hint
-                if (i % (actualBatchSize * 3) === 0 && global.gc) {
-                    global.gc();
-                }
             }
             
             return results;
