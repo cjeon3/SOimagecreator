@@ -849,12 +849,13 @@ self.onmessage = async function(e) {
             return new Promise(async (resolve, reject) => {
                 let worker = null;
                 let timeout = null;
+                let imageData = null;
                 
                 try {
                     updateBatchItem(batchIndex, 'processing', 0);
                     
                     console.log(`[Main] Loading image: ${file.name}`);
-                    const imageData = await loadImageToCanvas(file);
+                    imageData = await loadImageToCanvas(file);
                     console.log(`[Main] Loaded image: ${file.name}, size: ${imageData.width}x${imageData.height}`);
                     
                     worker = new Worker(workerBlobUrl);
@@ -884,7 +885,8 @@ self.onmessage = async function(e) {
                             updateBatchItem(batchIndex, 'completed', 100);
                             resolve({
                                 filename: file.name,
-                                colors: e.data.colors
+                                colors: e.data.colors,
+                                imageData: imageData  // Store ImageData with the result
                             });
                         } else {
                             console.error(`Worker reported error for ${file.name}:`, e.data.error);
@@ -1160,9 +1162,8 @@ self.onmessage = async function(e) {
                     const parsed = parseFilename(data.filename);
                     if (!parsed) continue;
                     
-                    const imageData = await loadImageToCanvas(
-                        allImages.find(img => img.name === data.filename)
-                    );
+                    // Use the imageData that was already loaded during processing
+                    const imageData = data.imageData;
                     
                     const redColor = data.colors.find(c => c.color.includes('255, 0, 0') || c.color.includes('254, 0, 0'));
                     const blueColor = data.colors.find(c => c.color.includes('0, 0, 255') || c.color.includes('0, 0, 254'));
