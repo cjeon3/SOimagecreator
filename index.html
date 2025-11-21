@@ -1108,13 +1108,14 @@
             const radius = BACKGROUND_CIRCLE_RADIUS_UNITS * SCALE_FACTOR * (size / CANVAS_SIZE);
             
             ctx.save();
-            // CRITICAL: Only draw outline, no fill
-            ctx.strokeStyle = '#d1d5db';
-            ctx.lineWidth = 2;
+            // Draw thin black outline for 3-unit reference circle (UNFILLED)
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([]);
             ctx.beginPath();
             ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI);
+            // CRITICAL: ONLY stroke, NEVER fill
             ctx.stroke();
-            // NO ctx.fill() call here - keeps it unfilled
             ctx.restore();
         }
         
@@ -1122,29 +1123,46 @@
             if (!dataArray || dataArray.length === 0) return;
             
             ctx.save();
+            
+            // Set styles for individual shapes - gray outline ONLY
+            ctx.strokeStyle = '#999999';  // Darker gray for visibility
+            ctx.lineWidth = 1;
+            ctx.globalAlpha = 0.5;
+            ctx.setLineDash([]);
+            
             dataArray.forEach(data => {
-                const contourCanvas = data.contour.map(p => {
+                if (!data.contour || data.contour.length < 3) return;
+                
+                ctx.beginPath();
+                data.contour.forEach((point, i) => {
                     const shifted = {
-                        x: p.x + data.centroid.x,
-                        y: p.y + data.centroid.y
+                        x: point.x + data.centroid.x,
+                        y: point.y + data.centroid.y
                     };
-                    return unitToCanvas(shifted.x, shifted.y, size);
+                    const canvasPoint = unitToCanvas(shifted.x, shifted.y, size);
+                    
+                    if (i === 0) {
+                        ctx.moveTo(canvasPoint.x, canvasPoint.y);
+                    } else {
+                        ctx.lineTo(canvasPoint.x, canvasPoint.y);
+                    }
                 });
                 
-                if (contourCanvas.length < 3) return;
-                
-                // CRITICAL: Only draw gray outline, no fill
-                ctx.strokeStyle = 'rgba(156, 163, 175, 0.5)';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(contourCanvas[0].x, contourCanvas[0].y);
-                for (let i = 1; i < contourCanvas.length; i++) {
-                    ctx.lineTo(contourCanvas[i].x, contourCanvas[i].y);
+                // Close path if first and last points are close
+                const first = data.contour[0];
+                const last = data.contour[data.contour.length - 1];
+                const dx = last.x - first.x;
+                const dy = last.y - first.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 0.5) {
+                    ctx.closePath();
                 }
-                ctx.closePath();
+                
+                // CRITICAL: ONLY stroke, NEVER fill
                 ctx.stroke();
-                // NO ctx.fill() call here - keeps it unfilled with just outline
             });
+            
+            ctx.globalAlpha = 1.0;
             ctx.restore();
         }
         
@@ -1162,9 +1180,18 @@
             if (contourCanvas.length < 3) return;
             
             ctx.save();
-            ctx.fillStyle = color === 'red' ? 'rgba(239, 68, 68, 0.6)' : 'rgba(59, 130, 246, 0.6)';
-            ctx.strokeStyle = color === 'red' ? 'rgb(220, 38, 38)' : 'rgb(37, 99, 235)';
+            
+            // Set color based on phase - UNFILLED, just colored outline
+            ctx.strokeStyle = color === 'red' ? '#ff0000' : '#0000ff';
             ctx.lineWidth = 3;
+            ctx.globalAlpha = 1.0;
+            
+            // Blue is dashed, red is solid
+            if (color === 'blue') {
+                ctx.setLineDash([8, 5]);
+            } else {
+                ctx.setLineDash([]);
+            }
             
             ctx.beginPath();
             ctx.moveTo(contourCanvas[0].x, contourCanvas[0].y);
@@ -1172,8 +1199,11 @@
                 ctx.lineTo(contourCanvas[i].x, contourCanvas[i].y);
             }
             ctx.closePath();
-            ctx.fill();
+            
+            // CRITICAL: ONLY stroke, NEVER fill - averaged shapes are UNFILLED
             ctx.stroke();
+            
+            ctx.setLineDash([]);
             ctx.restore();
         }
         
