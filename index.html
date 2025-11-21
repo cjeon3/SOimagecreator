@@ -1257,7 +1257,10 @@
                         worker.onmessage = (e) => {
                             terminateWorker(worker);
                             
+                            console.log('Worker response for', file.name, ':', e.data);
+                            
                             if (e.data.error) {
+                                console.error('Worker error for', file.name, ':', e.data.error);
                                 reject(new Error(e.data.error));
                             } else {
                                 // Now returns array of shapes (red and blue)
@@ -1266,6 +1269,7 @@
                         };
                         
                         worker.onerror = (err) => {
+                            console.error('Worker crashed for', file.name, ':', err);
                             terminateWorker(worker);
                             reject(err);
                         };
