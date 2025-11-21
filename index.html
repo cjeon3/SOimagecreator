@@ -1842,6 +1842,25 @@ self.onmessage = function(e) {
                 
                 console.log(`[Main] ✓ Processed ${processedData.length} images with workers`);
                 
+                // Diagnostic: Check how many have colors detected
+                const hasRedCount = processedData.filter(d => d.hasRed).length;
+                const hasBlueCount = processedData.filter(d => d.hasBlue).length;
+                const hasBothCount = processedData.filter(d => d.hasRed && d.hasBlue).length;
+                const hasNeitherCount = processedData.filter(d => !d.hasRed && !d.hasBlue).length;
+                console.log(`[Workers] Color detection results:`);
+                console.log(`[Workers]   Files with RED detected: ${hasRedCount}`);
+                console.log(`[Workers]   Files with BLUE detected: ${hasBlueCount}`);
+                console.log(`[Workers]   Files with BOTH colors: ${hasBothCount}`);
+                console.log(`[Workers]   Files with NO colors: ${hasNeitherCount}`);
+                
+                if (hasNeitherCount > 0) {
+                    console.warn(`[Workers] ⚠ ${hasNeitherCount} files have no colors detected!`);
+                    console.warn(`[Workers] This could mean:`);
+                    console.warn(`[Workers]   - Color thresholds too strict (r>240, g<20, b<20)`);
+                    console.warn(`[Workers]   - Images are grayscale or wrong format`);
+                    console.warn(`[Workers]   - Images need different color detection`);
+                }
+                
                 if (processedData.length === 0) {
                     throw new Error('No valid data extracted');
                 }
@@ -1883,13 +1902,30 @@ self.onmessage = function(e) {
                     participantShapes[freq] = { red: [], blue: [] };
                 });
                 
+                console.log(`[Shapes] Starting contour extraction for ${parsedData.length} files...`);
+                let skippedExtraTrials = 0;
+                let processedFiles = 0;
+                let redContoursFound = 0;
+                let blueContoursFound = 0;
+                let redContoursEmpty = 0;
+                let blueContoursEmpty = 0;
+                
                 for (const data of parsedData) {
                     if (processingCancelled) throw new Error('Processing cancelled');
+                    
+                    // Skip files marked as extra trials (>3)
+                    if (data.normalizedTrial === null) {
+                        skippedExtraTrials++;
+                        continue;
+                    }
+                    
+                    processedFiles++;
                     
                     // Extract red shape
                     if (data.hasRed) {
                         const redContour = extractCompleteShapeContour(data.imageData, '255,0,0');
                         if (redContour.length > 0) {
+                            redContoursFound++;
                             const radialData = contourToRadialData(redContour);
                             const centroid = calculateCentroid(redContour);
                             const area = calculateAreaFromContour(redContour);
@@ -1913,6 +1949,8 @@ self.onmessage = function(e) {
                                 validation,
                                 contour: redContour
                             });
+                        } else {
+                            redContoursEmpty++;
                         }
                     }
                     
@@ -1920,6 +1958,7 @@ self.onmessage = function(e) {
                     if (data.hasBlue) {
                         const blueContour = extractCompleteShapeContour(data.imageData, '0,0,255');
                         if (blueContour.length > 0) {
+                            blueContoursFound++;
                             const radialData = contourToRadialData(blueContour);
                             const centroid = calculateCentroid(blueContour);
                             const area = calculateAreaFromContour(blueContour);
@@ -1942,19 +1981,39 @@ self.onmessage = function(e) {
                                 validation,
                                 contour: blueContour
                             });
+                        } else {
+                            blueContoursEmpty++;
                         }
                     }
                 }
                 
+                console.log(`[Shapes] Contour extraction diagnostics:`);
+                console.log(`[Shapes]   Files with shapes to process: ${processedFiles}`);
+                console.log(`[Shapes]   Skipped (extra trials): ${skippedExtraTrials}`);
+                console.log(`[Shapes]   Red contours found: ${redContoursFound}`);
+                console.log(`[Shapes]   Red contours empty: ${redContoursEmpty}`);
+                console.log(`[Shapes]   Blue contours found: ${blueContoursFound}`);
+                console.log(`[Shapes]   Blue contours empty: ${blueContoursEmpty}`);
+                
                 // Log shape extraction results
                 console.log('[Shapes] Extraction complete. Summary by frequency:');
+                let totalShapesExtracted = 0;
                 FREQUENCIES.forEach(freq => {
                     const redCount = participantShapes[freq].red.length;
                     const blueCount = participantShapes[freq].blue.length;
-                    if (redCount > 0 || blueCount > 0) {
-                        console.log(`[Shapes]   ${freq}: ${redCount} red, ${blueCount} blue`);
-                    }
+                    totalShapesExtracted += redCount + blueCount;
+                    console.log(`[Shapes]   ${freq}: ${redCount} red, ${blueCount} blue`);
                 });
+                console.log(`[Shapes] ✓ Total shapes extracted: ${totalShapesExtracted}`);
+                
+                if (totalShapesExtracted === 0) {
+                    console.error('[Shapes] ✖✖✖ NO SHAPES EXTRACTED! This is a problem.');
+                    console.error('[Shapes] Possible causes:');
+                    console.error('[Shapes]   1. Contour extraction failing');
+                    console.error('[Shapes]   2. Color detection thresholds too strict');
+                    console.error('[Shapes]   3. Images not in expected format');
+                    throw new Error('No shapes were extracted from any images. Check console for details.');
+                }
                 
                 updateProgress(70, 'Calculating averaged shapes...');
                 
@@ -2214,6 +2273,7 @@ self.onmessage = function(e) {
         });
         
         console.log('%c🎵 Sound Object Analyzer v5.0 Complete', 'color: #8B5CF6; font-size: 16px; font-weight: bold');
+        console.log('%c📅 Last Updated: 2024-11-21 01:50 PST', 'color: #6B7280; font-size: 12px; font-style: italic');
         console.log(`%c✓ ${CPU_CORES} cores, ${MAX_PARALLEL_WORKERS} workers`, 'color: #10B981');
         console.log('%c✓ Advanced contour detection', 'color: #10B981');
         console.log('%c✓ MAD outlier filtering', 'color: #10B981');
