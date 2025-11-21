@@ -3,12 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sound Object Sheets Viewer</title>
+    <title>Sound Object Average Shape Analyzer - Ultra Optimized v2.1.1</title>
+    <meta name="version" content="2.1.1">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         body {
             font-family: ui-sans-serif, system-ui, sans-serif;
             background-color: #f3f4f6;
+            zoom: 0.75;
+            -moz-transform: scale(0.75);
+            -moz-transform-origin: 0 0;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
         
         .canvas-container {
@@ -22,6 +29,120 @@
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
         }
+        
+        /* Mobile optimizations - Full screen width */
+        @media (max-width: 768px) {
+            body {
+                zoom: 1;
+                -moz-transform: scale(1);
+                padding: 0.75rem;
+                width: 100vw;
+            }
+            
+            .analysis-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .max-w-7xl {
+                max-width: 100%;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+            
+            /* Make all containers full width on mobile */
+            .bg-white, .bg-gradient-to-r {
+                width: 100%;
+                box-sizing: border-box;
+            }
+            
+            /* Larger touch targets */
+            button {
+                min-height: 44px;
+                touch-action: manipulation;
+            }
+            
+            /* File input touch-friendly */
+            input[type="file"] {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+        }
+        
+        /* Tablet optimizations - Full screen width */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            body {
+                zoom: 0.9;
+                -moz-transform: scale(0.9);
+                -moz-transform-origin: 0 0;
+                width: 100vw;
+                padding: 1rem;
+            }
+            
+            .analysis-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .max-w-7xl {
+                max-width: 100%;
+                width: 100%;
+            }
+            
+            button {
+                min-height: 40px;
+            }
+        }
+        
+        /* Large desktop */
+        @media (min-width: 1920px) {
+            body {
+                zoom: 0.8;
+                -moz-transform: scale(0.8);
+            }
+        }
+        
+        .performance-metric {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .batch-item {
+            transition: all 0.3s ease;
+        }
+        
+        .progress-bar-fill {
+            transition: width 0.2s ease-out;
+        }
+        
+        .mini-progress-bar {
+            transition: width 0.3s ease-out;
+        }
+        
+        /* Prevent horizontal scroll */
+        * {
+            box-sizing: border-box;
+        }
+        
+        html {
+            overflow-x: hidden;
+        }
+        
+        /* Smooth dropdown animation */
+        .metrics-dropdown {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            opacity: 0;
+        }
+        
+        .metrics-dropdown.open {
+            max-height: 500px;
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -29,147 +150,212 @@
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <header class="text-center mb-8">
-            <h1 class="text-3xl lg:text-4xl font-extrabold text-blue-800 mb-2">
-                Sound Object Composite Image Generator
-                <span class="inline-block ml-2 px-3 py-1 text-xs font-bold bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full shadow-lg">📊 FROM DATA</span>
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-blue-800 mb-2">
+                Sound Object Average Shape Analyzer
+                <span class="inline-block ml-2 px-3 py-1 text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full shadow-lg animate-pulse">⚡ ULTRA OPTIMIZED v2.1.1</span>
             </h1>
             <p class="text-lg sm:text-xl font-semibold text-gray-600">UCI Hearing & Speech Lab</p>
-            <p class="text-sm text-gray-500 mt-2">Generate 11 composite images (one per frequency) from Google Sheets data</p>
-            <div class="mt-3 flex justify-center gap-2 flex-wrap text-xs">
-                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full border border-blue-300">11 Frequencies</span>
-                <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full border border-purple-300">Red & Blue Phases</span>
-                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full border border-green-300">Accurate Centroids</span>
-                <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full border border-amber-300">Circle Approximations</span>
-            </div>
+            <p class="text-xs sm:text-sm text-gray-500 mt-2">Import participant drawings and generate averaged visualizations</p>
         </header>
         
-        <!-- Configuration -->
-        <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
-            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        <!-- Instructions -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:p-6 rounded-xl shadow-lg mb-6 border border-blue-200">
+            <h2 class="text-lg sm:text-xl font-bold text-blue-800 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                Google Sheets Configuration
+                How to Use
+            </h2>
+            <ol class="list-decimal list-inside space-y-2 text-sm sm:text-base text-gray-700">
+                <li><strong>Upload Files:</strong> Select PNG files OR ZIP files (even nested ZIPs!) from the Sound Object tool</li>
+                <li><strong>Process Data:</strong> Click "Analyze" and watch real-time performance metrics</li>
+                <li><strong>View Results:</strong> See averaged shapes for each frequency and statistical summaries</li>
+            </ol>
+        </div>
+        
+        <!-- File Upload Section -->
+        <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg mb-6 border border-gray-100">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 sm:w-7 sm:h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                Upload Participant Images
             </h2>
             
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Google Apps Script Web App URL
-                    </label>
-                    <input 
-                        type="text" 
-                        id="sheets-api-url" 
-                        placeholder="https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec"
-                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    >
-                    <p class="text-xs text-gray-500 mt-2">
-                        Deploy the Google Apps Script from your Sheet (reading "Data" tab) and paste the Web App URL here. 
-                    </p>
-                </div>
+            <div class="mb-4">
+                <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                    Select PNG files OR ZIP files containing PNGs (multiple files/folders allowed)
+                </label>
+                <input 
+                    type="file" 
+                    id="image-upload" 
+                    accept="image/png,.zip,application/zip" 
+                    multiple
+                    class="block w-full text-xs sm:text-sm text-gray-700
+                        file:mr-4 file:py-2 sm:file:py-3 file:px-4 sm:file:px-6
+                        file:rounded-xl file:border-0
+                        file:text-xs sm:file:text-sm file:font-bold
+                        file:bg-gradient-to-r file:from-blue-500 file:to-indigo-600
+                        file:text-white file:cursor-pointer
+                        hover:file:from-blue-600 hover:file:to-indigo-700
+                        border-2 border-gray-200 rounded-xl
+                        hover:border-blue-300 transition-all p-2 sm:p-3 bg-gray-50"
+                >
+            </div>
+            
+            <div id="file-list" class="mt-4 text-xs sm:text-sm text-gray-600"></div>
+            
+            <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                <button 
+                    id="analyze-btn" 
+                    disabled
+                    class="flex-1 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold text-sm sm:text-base text-white 
+                        bg-gradient-to-r from-purple-500 to-pink-600 
+                        hover:from-purple-600 hover:to-pink-700 
+                        disabled:from-gray-300 disabled:to-gray-400 
+                        disabled:cursor-not-allowed transition-all transform 
+                        hover:scale-105 disabled:hover:scale-100 shadow-lg"
+                >
+                    🚀 Analyze & Generate Visualizations
+                </button>
                 
-                <div class="flex gap-3">
-                    <button 
-                        id="test-connection-btn"
-                        class="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all shadow-md"
-                    >
-                        🧪 Test Connection
-                    </button>
-                    
-                    <button 
-                        id="fetch-data-btn"
-                        disabled
-                        class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-md"
-                    >
-                        📊 Fetch Data & Generate Visualizations
-                    </button>
-                </div>
-                
-                <div id="connection-status" class="text-sm"></div>
+                <button 
+                    id="cancel-btn" 
+                    class="hidden flex-1 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold text-sm sm:text-base text-white 
+                        bg-gradient-to-r from-red-500 to-red-600 
+                        hover:from-red-600 hover:to-red-700 
+                        disabled:from-gray-400 disabled:to-gray-500 
+                        disabled:cursor-not-allowed transition-all shadow-lg"
+                >
+                    ⛔ Cancel Processing
+                </button>
             </div>
         </div>
         
-        <!-- Progress -->
-        <div id="progress-container" class="hidden bg-white p-6 rounded-xl shadow-lg mb-6">
+        <!-- Progress Bar with Real-Time Metrics Dropdown -->
+        <div id="progress-container" class="hidden bg-white p-6 rounded-xl shadow-lg mb-6 border border-gray-200">
             <div class="mb-2 flex justify-between items-center">
-                <h3 class="text-lg font-bold text-gray-800">Processing</h3>
-                <span id="progress-percentage" class="text-sm font-mono font-bold text-green-600">0%</span>
+                <h3 class="text-lg font-bold text-gray-800">Processing Progress</h3>
+                <span id="progress-percentage" class="text-sm font-mono font-bold text-purple-600">0%</span>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                <div id="progress-bar" class="h-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full transition-all" style="width: 0%"></div>
+            <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
+                <div id="progress-bar" class="progress-bar-fill h-4 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full transition-all shadow-lg" style="width: 0%"></div>
             </div>
             <p id="progress-text" class="mt-2 text-sm text-gray-600 font-semibold"></p>
+            
+            <!-- Real-Time Metrics Dropdown -->
+            <div class="mt-4">
+                <button 
+                    id="toggle-metrics" 
+                    class="w-full flex items-center justify-between px-4 py-2 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 rounded-lg border border-purple-200 transition-all"
+                >
+                    <span class="text-sm font-bold text-purple-800 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        Real-Time Performance Metrics
+                    </span>
+                    <svg id="metrics-arrow" class="w-5 h-5 text-purple-600 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                
+                <div id="metrics-dropdown" class="metrics-dropdown mt-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                        <!-- Processing Speed Metric -->
+                        <div class="bg-white p-3 rounded-lg shadow">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="text-xs text-gray-500 font-semibold">Processing Speed</div>
+                                <div id="speed-metric" class="text-lg font-bold text-purple-600">0 img/s</div>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div id="speed-progress" class="mini-progress-bar h-2 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Time Remaining Metric -->
+                        <div class="bg-white p-3 rounded-lg shadow">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="text-xs text-gray-500 font-semibold">Time Remaining</div>
+                                <div id="eta-metric" class="text-lg font-bold text-blue-600">--</div>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div id="eta-progress" class="mini-progress-bar h-2 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Workers Active Metric -->
+                        <div class="bg-white p-3 rounded-lg shadow">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="text-xs text-gray-500 font-semibold">Workers Active</div>
+                                <div id="workers-metric" class="text-lg font-bold text-green-600">0</div>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div id="workers-progress" class="mini-progress-bar h-2 bg-gradient-to-r from-green-400 to-green-600 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Memory Usage Metric -->
+                        <div class="bg-white p-3 rounded-lg shadow">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="text-xs text-gray-500 font-semibold">Memory Usage</div>
+                                <div id="memory-metric" class="text-lg font-bold text-amber-600">--</div>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div id="memory-progress" class="mini-progress-bar h-2 bg-gradient-to-r from-amber-400 to-amber-600 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Micro-Progress for Current Batch -->
+            <div id="batch-progress" class="mt-4 hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-sm font-bold text-gray-700">Current Batch Progress</h4>
+                    <button 
+                        id="toggle-batch-details" 
+                        class="text-xs px-3 py-1 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-all"
+                    >
+                        Show Details
+                    </button>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+                    <div id="batch-progress-bar" class="progress-bar-fill h-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full" style="width: 0%"></div>
+                </div>
+                <div id="batch-details" class="mt-3 space-y-2 max-h-64 overflow-y-auto hidden"></div>
+            </div>
         </div>
         
         <!-- Data Summary -->
         <div id="data-summary" class="hidden bg-white p-6 rounded-xl shadow-lg mb-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Data Summary</h2>
-            <div id="summary-content" class="grid grid-cols-1 md:grid-cols-4 gap-4"></div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Analysis Summary</h2>
+            <div id="summary-content" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
         </div>
         
-        <!-- Export Combined Image Button -->
-        <div id="export-combined-container" class="hidden bg-white p-6 rounded-xl shadow-lg mb-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Export Options</h2>
-            <div class="flex gap-3 flex-wrap">
-                <button 
-                    id="export-combined-btn"
-                    class="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-all shadow-md flex items-center gap-2"
-                >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                    Download Combined Image (All Frequencies)
-                </button>
-                
-                <button 
-                    id="export-stats-btn"
-                    class="px-6 py-3 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-all shadow-md flex items-center gap-2"
-                >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    Export Statistics to Google Sheets
-                </button>
-            </div>
-        </div>
-        
-        <!-- Visualizations -->
+        <!-- Visualization Results -->
         <div id="visualization-container" class="hidden mb-6">
             <div class="bg-white p-6 rounded-xl shadow-lg mb-4">
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">11 Composite Images (One Per Frequency)</h2>
-                <p class="text-sm text-gray-600 mb-2">
-                    Each image shows clean averaged circles at one frequency with individual participant shapes in light gray background
-                </p>
-                <p class="text-xs text-gray-500">
-                    🔴 Red (solid line) = In-phase average • 🔵 Blue (dashed line) = Out-of-phase average • Gray circles = individual participants
-                </p>
-                <p class="text-xs text-gray-500 mt-1">
-                    Grid lines mark 1-unit intervals • Reference circle (black) = 3 units radius • Center (0,0) marked by axis intersection
-                </p>
-                <p class="text-xs text-gray-500 mt-1">
-                    Click any image to download as PNG
-                </p>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Averaged Shape Visualizations</h2>
+                <p class="text-sm text-gray-600 mb-4">Click on any figure to download as PNG</p>
             </div>
-            <div id="visualization-grid" class="analysis-grid"></div>
+            <div id="canvas-grid" class="analysis-grid"></div>
         </div>
         
-        <!-- Statistics -->
+        <!-- Statistics Table -->
         <div id="statistics-container" class="hidden bg-white p-6 rounded-xl shadow-lg mb-6">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Statistical Summary</h2>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gradient-to-r from-green-50 to-emerald-50">
+                    <thead class="bg-gradient-to-r from-blue-50 to-indigo-50">
                         <tr>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Frequency</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Phase</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">N</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Mean Area</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">SD Area</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Mean Radius</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">SD Radius</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Mean X</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Mean Y</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Frequency</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Color</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">N</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Mean Radius</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">SD Radius</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Mean Area</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">SD Area</th>
                         </tr>
                     </thead>
                     <tbody id="statistics-body" class="bg-white divide-y divide-gray-200"></tbody>
@@ -179,202 +365,888 @@
         
         <!-- Footer -->
         <footer class="text-center text-sm text-gray-500 mt-8 pb-4">
-            <p class="font-semibold">UCI Hearing & Speech Lab - Sound Object Composite Image Generator</p>
-            <p class="mt-1">Generates 11 frequency-based composite visualizations from "Data" tab • Red & Blue phases</p>
+            <p class="font-semibold">UCI Hearing & Speech Lab - Sound Object Average Shape Analyzer v2.1.1 FIXED</p>
+            <p class="mt-1">Enhanced UI • Real-Time Metrics • Fixed Worker Errors • Memory Optimized • Robust Parsing</p>
         </footer>
     </div>
     
     <script>
-        // Configuration
-        const CANVAS_SIZE = 600;
-        const UNIT_RANGE = 10;
-        const SCALE_FACTOR = CANVAS_SIZE / (2 * UNIT_RANGE);
-        const BACKGROUND_CIRCLE_RADIUS_UNITS = 3;
+        // ============================================
+        // GLOBAL STATE & CONFIGURATION
+        // ============================================
         
-        // The 11 frequencies we generate composite images for
-        const FREQUENCIES = [31, 62.5, 125, 250, 500, 1000, 2000, 4000, 8000, 12000, 16000];
+        const FREQUENCIES = ['31Hz', '62.5Hz', '125Hz', '250Hz', '500Hz', '1000Hz', '2000Hz', '4000Hz', '8000Hz', '12000Hz', '16000Hz'];
+        const FREQUENCY_NUMBERS = [31, 62.5, 125, 250, 500, 1000, 2000, 4000, 8000, 12000, 16000];
+        const CPU_CORES = navigator.hardwareConcurrency || 4;
+        const MAX_PARALLEL_WORKERS = Math.max(2, Math.min(CPU_CORES, 6)); // Reduced max to 6
         
-        let sheetsApiUrl = '';
-        let sheetsData = null;
-        let generatedCanvases = {};
-        let statisticsData = [];
+        let processingCancelled = false;
+        let activeWorkers = new Set();
+        let currentBatchFiles = [];
+        let batchItemStates = [];
         
-        // Load saved URL
-        window.addEventListener('DOMContentLoaded', () => {
-            const saved = localStorage.getItem('sheetsApiUrl');
-            if (saved) {
-                document.getElementById('sheets-api-url').value = saved;
-                sheetsApiUrl = saved;
-            }
-        });
+        const processingStats = {
+            startTime: 0,
+            processedCount: 0,
+            totalCount: 0,
+            speedHistory: [],
+            maxSpeed: 0,
+            batchStats: new Map()
+        };
         
-        // Update progress
+        // ============================================
+        // METRICS AND PROGRESS FUNCTIONS
+        // ============================================
+        
         function updateProgress(percentage, message) {
-            const container = document.getElementById('progress-container');
-            const bar = document.getElementById('progress-bar');
-            const text = document.getElementById('progress-text');
-            const pct = document.getElementById('progress-percentage');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const progressPercentage = document.getElementById('progress-percentage');
             
-            container.classList.remove('hidden');
-            bar.style.width = `${percentage}%`;
-            text.textContent = message;
-            pct.textContent = `${Math.round(percentage)}%`;
+            progressBar.style.width = `${percentage}%`;
+            progressText.textContent = message;
+            progressPercentage.textContent = `${Math.round(percentage)}%`;
+            
+            if (percentage > 0 && percentage < 100) {
+                document.getElementById('progress-container').classList.remove('hidden');
+            }
+        }
+        
+        function updateSpeedMetric() {
+            const elapsed = (Date.now() - processingStats.startTime) / 1000;
+            const speed = elapsed > 0 ? (processingStats.processedCount / elapsed) : 0;
+            
+            processingStats.speedHistory.push(speed);
+            if (processingStats.speedHistory.length > 10) {
+                processingStats.speedHistory.shift();
+            }
+            
+            const avgSpeed = processingStats.speedHistory.reduce((a, b) => a + b, 0) / processingStats.speedHistory.length;
+            processingStats.maxSpeed = Math.max(processingStats.maxSpeed, avgSpeed);
+            
+            document.getElementById('speed-metric').textContent = `${avgSpeed.toFixed(1)} img/s`;
+            
+            const speedProgress = processingStats.maxSpeed > 0 ? (avgSpeed / processingStats.maxSpeed) * 100 : 0;
+            document.getElementById('speed-progress').style.width = `${speedProgress}%`;
+        }
+        
+        function updateETAMetric() {
+            const elapsed = (Date.now() - processingStats.startTime) / 1000;
+            const remaining = processingStats.totalCount - processingStats.processedCount;
+            
+            if (elapsed > 0 && processingStats.processedCount > 0) {
+                const speed = processingStats.processedCount / elapsed;
+                const eta = speed > 0 ? remaining / speed : 0;
+                
+                if (eta < 60) {
+                    document.getElementById('eta-metric').textContent = `${Math.round(eta)}s`;
+                } else {
+                    const minutes = Math.floor(eta / 60);
+                    const seconds = Math.round(eta % 60);
+                    document.getElementById('eta-metric').textContent = `${minutes}m ${seconds}s`;
+                }
+                
+                const totalEstimated = processingStats.totalCount / speed;
+                const etaProgress = totalEstimated > 0 ? (elapsed / totalEstimated) * 100 : 0;
+                document.getElementById('eta-progress').style.width = `${Math.min(etaProgress, 100)}%`;
+            } else {
+                document.getElementById('eta-metric').textContent = '--';
+                document.getElementById('eta-progress').style.width = '0%';
+            }
+        }
+        
+        function updateWorkersMetric() {
+            const workerCount = activeWorkers.size;
+            document.getElementById('workers-metric').textContent = workerCount;
+            
+            const workerProgress = MAX_PARALLEL_WORKERS > 0 ? (workerCount / MAX_PARALLEL_WORKERS) * 100 : 0;
+            document.getElementById('workers-progress').style.width = `${workerProgress}%`;
+        }
+        
+        function updateMemoryMetric() {
+            if (performance.memory) {
+                const usedMB = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(1);
+                document.getElementById('memory-metric').textContent = `${usedMB} MB`;
+                
+                const memoryProgress = (performance.memory.usedJSHeapSize / performance.memory.jsHeapSizeLimit) * 100;
+                document.getElementById('memory-progress').style.width = `${memoryProgress}%`;
+            } else {
+                document.getElementById('memory-metric').textContent = 'N/A';
+                document.getElementById('memory-progress').style.width = '0%';
+            }
+        }
+        
+        function updateAllMetrics() {
+            updateSpeedMetric();
+            updateETAMetric();
+            updateWorkersMetric();
+            updateMemoryMetric();
+        }
+        
+        // ============================================
+        // BATCH TRACKING
+        // ============================================
+        
+        function initBatch(files) {
+            currentBatchFiles = files;
+            batchItemStates = files.map(file => ({
+                name: file.name,
+                status: 'pending',
+                progress: 0
+            }));
+            
+            const batchProgress = document.getElementById('batch-progress');
+            batchProgress.classList.remove('hidden');
+            
+            updateBatchDisplay();
+        }
+        
+        function updateBatchItem(index, status, progress) {
+            if (index < batchItemStates.length) {
+                batchItemStates[index].status = status;
+                batchItemStates[index].progress = progress;
+                updateBatchDisplay();
+            }
+        }
+        
+        function updateBatchDisplay() {
+            const batchBar = document.getElementById('batch-progress-bar');
+            const totalProgress = batchItemStates.reduce((sum, item) => sum + item.progress, 0);
+            const avgProgress = totalProgress / batchItemStates.length;
+            batchBar.style.width = `${avgProgress}%`;
+            
+            const details = document.getElementById('batch-details');
+            if (!details.classList.contains('hidden')) {
+                details.innerHTML = batchItemStates.map((item, i) => {
+                    let statusIcon = '⏳';
+                    let statusColor = 'text-gray-600';
+                    let bgColor = 'bg-gray-50';
+                    
+                    if (item.status === 'processing') {
+                        statusIcon = '⚙️';
+                        statusColor = 'text-blue-600';
+                        bgColor = 'bg-blue-50';
+                    } else if (item.status === 'completed') {
+                        statusIcon = '✅';
+                        statusColor = 'text-green-600';
+                        bgColor = 'bg-green-50';
+                    } else if (item.status === 'error') {
+                        statusIcon = '❌';
+                        statusColor = 'text-red-600';
+                        bgColor = 'bg-red-50';
+                    }
+                    
+                    return `
+                        <div class="batch-item p-2 rounded ${bgColor} flex items-center justify-between">
+                            <div class="flex items-center gap-2 flex-1 min-w-0">
+                                <span class="text-lg">${statusIcon}</span>
+                                <span class="text-xs ${statusColor} font-semibold truncate">${item.name}</span>
+                            </div>
+                            <div class="text-xs font-mono font-bold ${statusColor} ml-2">${item.progress}%</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+        
+        function clearBatch() {
+            currentBatchFiles = [];
+            batchItemStates = [];
+            
+            const batchProgress = document.getElementById('batch-progress');
+            batchProgress.classList.add('hidden');
+            
+            const details = document.getElementById('batch-details');
+            details.innerHTML = '';
+        }
+        
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        
+        function parseFilename(filename) {
+            try {
+                // Remove any potential BOM or hidden characters and normalize
+                const cleanFilename = filename.replace(/[\uFEFF\u200B-\u200D\uFFFE]/g, '').trim();
+                
+                // Split filename and look for frequency pattern
+                const parts = cleanFilename.split('_').map(p => p.trim());
+                
+                if (parts.length < 2) {
+                    console.warn(`Invalid filename format: ${filename}`);
+                    return null;
+                }
+                
+                // Try multiple patterns to be extra robust
+                let freqPart = null;
+                let frequencyNum = null;
+                
+                // Pattern 1: Standard format like "1000Hz" or "62.5Hz"
+                freqPart = parts.find(p => /^\d+(?:\.\d+)?hz$/i.test(p));
+                
+                if (freqPart) {
+                    const match = freqPart.match(/^(\d+(?:\.\d+)?)hz$/i);
+                    if (match) {
+                        frequencyNum = parseFloat(match[1]);
+                    }
+                }
+                
+                // Pattern 2: If not found, try anywhere in the string
+                if (!frequencyNum) {
+                    for (const part of parts) {
+                        const match = part.match(/(\d+(?:\.\d+)?)hz/i);
+                        if (match) {
+                            frequencyNum = parseFloat(match[1]);
+                            freqPart = part;
+                            break;
+                        }
+                    }
+                }
+                
+                if (!frequencyNum || !freqPart) {
+                    console.warn(`Frequency not found in: ${filename}`);
+                    return null;
+                }
+                
+                // Convert to standard format (e.g., "31Hz", "62.5Hz")
+                const frequency = frequencyNum.toString() + 'Hz';
+                
+                // Validate against known frequencies
+                const validFrequencies = ['31Hz', '62.5Hz', '125Hz', '250Hz', '500Hz', '1000Hz', '2000Hz', '4000Hz', '8000Hz', '12000Hz', '16000Hz'];
+                if (!validFrequencies.includes(frequency)) {
+                    console.warn(`Unknown frequency ${frequency} (parsed from ${frequencyNum}) in: ${filename}`);
+                    return null;
+                }
+                
+                // Get participant name - join all parts before the frequency part
+                const freqIndex = parts.indexOf(freqPart);
+                const participant = parts.slice(0, freqIndex).join(' ').trim() || 'Unknown';
+                
+                return { participant, frequency };
+            } catch (err) {
+                console.error(`Error parsing filename ${filename}:`, err);
+                return null;
+            }
         }
         
         function showError(message) {
-            const status = document.getElementById('connection-status');
-            status.innerHTML = `<span class="text-red-600 font-semibold">❌ Error: ${message}</span>`;
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-lg z-50 max-w-md';
+            errorDiv.innerHTML = `
+                <div class="flex items-start">
+                    <svg class="w-6 h-6 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div>
+                        <p class="font-bold">Error</p>
+                        <p class="text-sm">${message}</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 5000);
         }
         
-        // Test connection
-        document.getElementById('test-connection-btn').addEventListener('click', async function() {
-            const btn = this;
-            const status = document.getElementById('connection-status');
-            const urlInput = document.getElementById('sheets-api-url');
-            const url = urlInput.value.trim();
+        // ============================================
+        // WEB WORKER SETUP (FIXED VERSION)
+        // ============================================
+        
+        const workerCode = `
+self.onmessage = async function(e) {
+    try {
+        const { imageData, filename } = e.data;
+        
+        // Validate input
+        if (!imageData || !imageData.data) {
+            throw new Error('Invalid image data received');
+        }
+        
+        console.log('[Worker] Processing:', filename, 'Size:', imageData.width, 'x', imageData.height);
+        
+        // Create canvas with error handling
+        const canvas = new OffscreenCanvas(imageData.width, imageData.height);
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        
+        if (!ctx) {
+            throw new Error('Failed to get canvas context');
+        }
+        
+        ctx.putImageData(imageData, 0, 0);
+        
+        // Get image data
+        const data = ctx.getImageData(0, 0, imageData.width, imageData.height).data;
+        
+        // Analyze with validation
+        const colors = new Map();
+        const pixelCount = imageData.width * imageData.height;
+        
+        if (data.length !== pixelCount * 4) {
+            throw new Error('Invalid pixel data length');
+        }
+        
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const a = data[i + 3];
             
-            if (!url) {
-                status.innerHTML = '<span class="text-red-600">❌ Please enter a URL</span>';
-                return;
+            // Skip fully transparent or white pixels
+            if (a < 10 || (r > 250 && g > 250 && b > 250)) {
+                continue;
             }
             
-            btn.disabled = true;
-            btn.textContent = '🔄 Testing...';
-            status.innerHTML = '<span class="text-gray-600">Connecting...</span>';
-            
-            try {
-                const response = await fetch(url + '?action=getSummary', {
-                    method: 'GET',
-                    mode: 'cors'
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-                
-                sheetsApiUrl = url;
-                localStorage.setItem('sheetsApiUrl', url);
-                
-                status.innerHTML = `
-                    <span class="text-green-600 font-semibold">
-                        ✅ Connected successfully!<br>
-                        Found ${data.totalShapes} shapes from ${data.uniqueParticipants} participants across ${data.frequencies.length} frequencies
-                    </span>
-                `;
-                
-                document.getElementById('fetch-data-btn').disabled = false;
-                
-            } catch (err) {
-                console.error('Connection error:', err);
-                status.innerHTML = `
-                    <span class="text-red-600 font-semibold">
-                        ❌ Connection failed: ${err.message}<br>
-                        <span class="text-xs">Make sure the URL is correct and the script is deployed as "Anyone" can access</span>
-                    </span>
-                `;
-                sheetsApiUrl = '';
-            }
-            
-            btn.disabled = false;
-            btn.textContent = '🧪 Test Connection';
+            const colorKey = r + ',' + g + ',' + b;
+            colors.set(colorKey, (colors.get(colorKey) || 0) + 1);
+        }
+        
+        // Convert to array and validate
+        const colorData = Array.from(colors.entries()).map(([color, count]) => {
+            const [r, g, b] = color.split(',').map(Number);
+            return {
+                color: 'rgb(' + r + ',' + g + ',' + b + ')',
+                count: count,
+                percentage: (count / pixelCount) * 100
+            };
         });
         
-        // Fetch and visualize
-        document.getElementById('fetch-data-btn').addEventListener('click', async function() {
-            if (!sheetsApiUrl) {
-                showError('Please configure and test the connection first');
-                return;
+        if (colorData.length === 0) {
+            console.warn('[Worker] No colors found in:', filename);
+        }
+        
+        self.postMessage({
+            success: true,
+            filename: filename,
+            colors: colorData
+        });
+        
+    } catch (error) {
+        console.error('[Worker] Error processing image:', error.message, error.stack);
+        self.postMessage({
+            success: false,
+            filename: e.data?.filename || 'unknown',
+            error: error.message
+        });
+    }
+};
+`;
+        
+        const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
+        const workerBlobUrl = URL.createObjectURL(workerBlob);
+        
+        // ============================================
+        // IMAGE LOADING & PROCESSING (FIXED VERSION)
+        // ============================================
+        
+        async function loadImagesFromZip(file) {
+            console.log(`[ZIP] Extracting from: ${file.name}`);
+            const zip = await JSZip.loadAsync(file);
+            const images = [];
+            
+            for (const [path, zipEntry] of Object.entries(zip.files)) {
+                if (zipEntry.dir) continue;
+                
+                if (path.toLowerCase().endsWith('.zip')) {
+                    console.log(`[ZIP] Found nested ZIP: ${path}`);
+                    try {
+                        const nestedZipBlob = await zipEntry.async('blob');
+                        const nestedZipFile = new File([nestedZipBlob], path.split('/').pop());
+                        const nestedImages = await loadImagesFromZip(nestedZipFile);
+                        images.push(...nestedImages);
+                        console.log(`[ZIP] Extracted ${nestedImages.length} PNGs from ${file.name}/${path}`);
+                    } catch (err) {
+                        console.error(`[ZIP] Error processing nested ZIP ${path}:`, err);
+                    }
+                    continue;
+                }
+                
+                if (path.toLowerCase().endsWith('.png')) {
+                    try {
+                        const blobData = await zipEntry.async('blob');
+                        const pngBlob = new Blob([blobData], { type: 'image/png' });
+                        const filename = path.split('/').pop();
+                        
+                        images.push({
+                            name: filename,
+                            blob: pngBlob,
+                            fullPath: `${file.name}/${path}`
+                        });
+                        
+                        console.log(`[ZIP] Extracted PNG: ${filename}, size: ${pngBlob.size} bytes`);
+                    } catch (err) {
+                        console.error(`[ZIP] Error extracting ${path}:`, err);
+                    }
+                }
             }
             
-            try {
-                updateProgress(10, 'Fetching data from Google Sheets...');
+            console.log(`[ZIP] Extracted ${images.length} PNGs from ${file.name}`);
+            return images;
+        }
+        
+        async function loadImageToCanvas(file) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                let objectUrl = null;
                 
-                const response = await fetch(sheetsApiUrl + '?action=getAllData', {
-                    method: 'GET',
-                    mode: 'cors'
+                const loadTimeout = setTimeout(() => {
+                    if (objectUrl) URL.revokeObjectURL(objectUrl);
+                    reject(new Error(`Image load timeout: ${file.name}`));
+                }, 10000);
+                
+                img.onload = function() {
+                    clearTimeout(loadTimeout);
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        
+                        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                        if (!ctx) {
+                            reject(new Error('Failed to get canvas context'));
+                            return;
+                        }
+                        
+                        ctx.drawImage(img, 0, 0);
+                        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        resolve(imgData);
+                    } catch (err) {
+                        reject(err);
+                    } finally {
+                        if (objectUrl) URL.revokeObjectURL(objectUrl);
+                    }
+                };
+                
+                img.onerror = function() {
+                    clearTimeout(loadTimeout);
+                    if (objectUrl) URL.revokeObjectURL(objectUrl);
+                    reject(new Error(`Failed to load image: ${file.name}`));
+                };
+                
+                try {
+                    if (!file.blob) {
+                        reject(new Error(`No blob data for ${file.name}`));
+                        return;
+                    }
+                    
+                    console.log(`[Main] Creating blob URL for: ${file.name}, blob size: ${file.blob.size} bytes`);
+                    objectUrl = URL.createObjectURL(file.blob);
+                    img.crossOrigin = 'anonymous';
+                    img.src = objectUrl;
+                } catch (err) {
+                    clearTimeout(loadTimeout);
+                    if (objectUrl) URL.revokeObjectURL(objectUrl);
+                    reject(new Error(`Failed to create object URL for ${file.name}: ${err.message}`));
+                }
+            });
+        }
+        
+        // Process single image with improved error handling and worker management
+        async function processImage(file, batchIndex) {
+            // Wait if too many workers active
+            while (activeWorkers.size >= MAX_PARALLEL_WORKERS) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            return new Promise(async (resolve, reject) => {
+                let worker = null;
+                let timeout = null;
+                let imageData = null;
+                
+                try {
+                    updateBatchItem(batchIndex, 'processing', 0);
+                    
+                    console.log(`[Main] Loading image: ${file.name}`);
+                    imageData = await loadImageToCanvas(file);
+                    console.log(`[Main] Loaded image: ${file.name}, size: ${imageData.width}x${imageData.height}`);
+                    
+                    worker = new Worker(workerBlobUrl);
+                    activeWorkers.add(worker);
+                    updateWorkersMetric();
+                    
+                    timeout = setTimeout(() => {
+                        console.warn(`[Main] Worker timeout for ${file.name}`);
+                        if (worker) {
+                            activeWorkers.delete(worker);
+                            worker.terminate();
+                        }
+                        updateBatchItem(batchIndex, 'error', 0);
+                        reject(new Error(`Worker timeout for ${file.name}`));
+                    }, 30000);
+                    
+                    worker.onmessage = function(e) {
+                        clearTimeout(timeout);
+                        activeWorkers.delete(worker);
+                        worker.terminate();
+                        updateWorkersMetric();
+                        
+                        processingStats.processedCount++;
+                        updateAllMetrics();
+                        
+                        if (e.data.success) {
+                            updateBatchItem(batchIndex, 'completed', 100);
+                            resolve({
+                                filename: file.name,
+                                colors: e.data.colors,
+                                imageData: imageData  // Store ImageData with the result
+                            });
+                        } else {
+                            console.error(`Worker reported error for ${file.name}:`, e.data.error);
+                            updateBatchItem(batchIndex, 'error', 0);
+                            reject(new Error(e.data.error));
+                        }
+                    };
+                    
+                    worker.onerror = function(error) {
+                        clearTimeout(timeout);
+                        activeWorkers.delete(worker);
+                        worker.terminate();
+                        updateWorkersMetric();
+                        console.error(`Worker error for ${file.name}:`, error);
+                        updateBatchItem(batchIndex, 'error', 0);
+                        reject(error);
+                    };
+                    
+                    worker.postMessage({
+                        imageData: imageData,
+                        filename: file.name
+                    });
+                    
+                } catch (error) {
+                    if (timeout) clearTimeout(timeout);
+                    if (worker) {
+                        activeWorkers.delete(worker);
+                        worker.terminate();
+                        updateWorkersMetric();
+                    }
+                    console.error(`Error processing ${file.name}:`, error);
+                    updateBatchItem(batchIndex, 'error', 0);
+                    reject(error);
+                }
+            });
+        }
+        
+        async function processImagesParallel(files) {
+            const results = [];
+            const batchSize = MAX_PARALLEL_WORKERS * 3; // Process 3 images per worker
+            
+            for (let i = 0; i < files.length; i += batchSize) {
+                if (processingCancelled) {
+                    throw new Error('Processing cancelled by user');
+                }
+                
+                const batch = files.slice(i, i + batchSize);
+                initBatch(batch);
+                
+                const batchPromises = batch.map(async (file, batchIndex) => {
+                    try {
+                        const result = await processImage(file, batchIndex);
+                        return result;
+                    } catch (err) {
+                        console.warn(`Skipping ${file.name}:`, err.message);
+                        return null;
+                    }
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
+                const batchResults = await Promise.all(batchPromises);
+                
+                if (processingCancelled) {
+                    clearBatch();
+                    throw new Error('Processing cancelled by user');
                 }
                 
-                const data = await response.json();
+                batchResults.forEach(result => {
+                    if (result !== null) {
+                        results.push(result);
+                    }
+                });
                 
-                if (data.error) {
-                    throw new Error(data.error);
+                const progress = 10 + ((processingStats.processedCount / processingStats.totalCount) * 40);
+                updateProgress(progress, `Processing images (${processingStats.processedCount}/${processingStats.totalCount})`);
+                
+                clearBatch();
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+            
+            return results;
+        }
+        
+        // ============================================
+        // ANALYSIS FUNCTIONS
+        // ============================================
+        
+        function calculateAverageShape(dataPoints) {
+            if (dataPoints.length === 0) {
+                return { radialData: [], meanRadius: 0, sdRadius: 0, meanArea: 0, sdArea: 0 };
+            }
+            
+            const numAngles = 360;
+            const radii = Array(numAngles).fill(0).map(() => []);
+            
+            dataPoints.forEach(point => {
+                const centerX = 500;
+                const centerY = 500;
+                
+                for (let angle = 0; angle < numAngles; angle++) {
+                    const rad = (angle * Math.PI) / 180;
+                    const cos = Math.cos(rad);
+                    const sin = Math.sin(rad);
+                    
+                    let maxDist = 0;
+                    
+                    for (let r = 0; r < 500; r += 2) {
+                        const x = Math.round(centerX + r * cos);
+                        const y = Math.round(centerY + r * sin);
+                        
+                        if (x < 0 || x >= 1000 || y < 0 || y >= 1000) break;
+                        
+                        const pixelIndex = (y * 1000 + x) * 4;
+                        const colorKey = `${point.imageData.data[pixelIndex]},${point.imageData.data[pixelIndex + 1]},${point.imageData.data[pixelIndex + 2]}`;
+                        
+                        if (point.targetColor === colorKey) {
+                            maxDist = r;
+                        }
+                    }
+                    
+                    radii[angle].push(maxDist);
+                }
+            });
+            
+            const avgRadii = radii.map(angleRadii => {
+                if (angleRadii.length === 0) return 0;
+                return angleRadii.reduce((a, b) => a + b, 0) / angleRadii.length;
+            });
+            
+            const meanRadius = avgRadii.reduce((a, b) => a + b, 0) / avgRadii.length;
+            
+            const radiusVariances = avgRadii.map(r => Math.pow(r - meanRadius, 2));
+            const sdRadius = Math.sqrt(radiusVariances.reduce((a, b) => a + b, 0) / radiusVariances.length);
+            
+            const areas = dataPoints.map(point => {
+                let pixelCount = 0;
+                for (let i = 0; i < point.imageData.data.length; i += 4) {
+                    const colorKey = `${point.imageData.data[i]},${point.imageData.data[i + 1]},${point.imageData.data[i + 2]}`;
+                    if (point.targetColor === colorKey) {
+                        pixelCount++;
+                    }
+                }
+                return pixelCount;
+            });
+            
+            const meanArea = areas.reduce((a, b) => a + b, 0) / areas.length;
+            const areaVariances = areas.map(a => Math.pow(a - meanArea, 2));
+            const sdArea = Math.sqrt(areaVariances.reduce((a, b) => a + b, 0) / areaVariances.length);
+            
+            return {
+                radialData: avgRadii,
+                meanRadius,
+                sdRadius,
+                meanArea,
+                sdArea
+            };
+        }
+        
+        function drawAverageShape(canvas, radialData, color, label) {
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.beginPath();
+            radialData.forEach((radius, angle) => {
+                const rad = (angle * Math.PI) / 180;
+                const x = centerX + radius * Math.cos(rad);
+                const y = centerY + radius * Math.sin(rad);
+                
+                if (angle === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+            
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.fillStyle = 'black';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, centerX, 30);
+        }
+        
+        // ============================================
+        // MAIN ANALYSIS FUNCTION
+        // ============================================
+        
+        async function analyzeData(inputFiles) {
+            try {
+                processingCancelled = false;
+                processingStats.startTime = Date.now();
+                processingStats.processedCount = 0;
+                processingStats.speedHistory = [];
+                processingStats.maxSpeed = 0;
+                processingStats.batchStats.clear();
+                
+                document.getElementById('analyze-btn').classList.add('hidden');
+                document.getElementById('cancel-btn').classList.remove('hidden');
+                
+                document.getElementById('progress-container').classList.remove('hidden');
+                updateProgress(0, 'Initializing...');
+                
+                document.getElementById('data-summary').classList.add('hidden');
+                document.getElementById('visualization-container').classList.add('hidden');
+                document.getElementById('statistics-container').classList.add('hidden');
+                
+                console.log('[Main] Starting analysis with', inputFiles.length, 'files');
+                
+                let allImages = [];
+                
+                updateProgress(5, 'Extracting files from ZIPs...');
+                
+                for (const file of inputFiles) {
+                    if (processingCancelled) throw new Error('Processing cancelled by user');
+                    
+                    if (file.name.toLowerCase().endsWith('.zip')) {
+                        const images = await loadImagesFromZip(file);
+                        allImages.push(...images);
+                    } else if (file.name.toLowerCase().endsWith('.png')) {
+                        allImages.push({
+                            name: file.name,
+                            blob: file,
+                            fullPath: file.name
+                        });
+                        console.log(`[Main] Loaded PNG: ${file.name}`);
+                    }
                 }
                 
-                sheetsData = data;
+                console.log(`[Main] Total images to process: ${allImages.length}`);
                 
-                updateProgress(30, `Processing ${data.shapes.length} shapes...`);
+                if (allImages.length === 0) {
+                    throw new Error('No valid PNG images found in the uploaded files');
+                }
                 
-                // Organize data by frequency and phase
+                processingStats.totalCount = allImages.length;
+                updateProgress(10, `Found ${allImages.length} images, preparing to process...`);
+                
+                const metricsInterval = setInterval(() => {
+                    updateAllMetrics();
+                }, 500);
+                
+                const processedData = await processImagesParallel(allImages);
+                
+                clearInterval(metricsInterval);
+                updateAllMetrics();
+                
+                if (processedData.length === 0) {
+                    throw new Error('No valid data extracted from images');
+                }
+                
+                console.log(`[Main] Successfully processed ${processedData.length} images`);
+                
+                updateProgress(50, 'Calculating averages...');
+                
                 const participantData = {};
                 FREQUENCIES.forEach(freq => {
                     participantData[freq] = { red: [], blue: [] };
                 });
                 
-                data.shapes.forEach(shape => {
-                    if (participantData[shape.frequency]) {
-                        participantData[shape.frequency][shape.phase].push(shape);
+                for (const data of processedData) {
+                    if (processingCancelled) throw new Error('Processing cancelled by user');
+                    
+                    const parsed = parseFilename(data.filename);
+                    if (!parsed) continue;
+                    
+                    // Use the imageData that was already loaded during processing
+                    const imageData = data.imageData;
+                    
+                    const redColor = data.colors.find(c => c.color.includes('255, 0, 0') || c.color.includes('254, 0, 0'));
+                    const blueColor = data.colors.find(c => c.color.includes('0, 0, 255') || c.color.includes('0, 0, 254'));
+                    
+                    if (redColor) {
+                        const colorKey = redColor.color.match(/\d+/g).join(',');
+                        participantData[parsed.frequency].red.push({
+                            participant: parsed.participant,
+                            imageData: imageData,
+                            targetColor: colorKey
+                        });
                     }
-                });
+                    
+                    if (blueColor) {
+                        const colorKey = blueColor.color.match(/\d+/g).join(',');
+                        participantData[parsed.frequency].blue.push({
+                            participant: parsed.participant,
+                            imageData: imageData,
+                            targetColor: colorKey
+                        });
+                    }
+                }
                 
-                updateProgress(50, 'Generating 11 composite images (one per frequency)...');
+                updateProgress(70, 'Generating visualizations...');
                 
-                // Generate visualizations
-                const vizGrid = document.getElementById('visualization-grid');
-                vizGrid.innerHTML = '';
-                generatedCanvases = {};
-                statisticsData = [];
-                
-                let imagesGenerated = 0;
+                const canvasGrid = document.getElementById('canvas-grid');
+                canvasGrid.innerHTML = '';
                 
                 FREQUENCIES.forEach(freq => {
+                    if (processingCancelled) throw new Error('Processing cancelled by user');
+                    
                     const redData = participantData[freq].red;
                     const blueData = participantData[freq].blue;
                     
                     if (redData.length === 0 && blueData.length === 0) return;
                     
-                    const canvas = drawVisualization(freq, redData, blueData);
-                    generatedCanvases[freq] = canvas;
-                    imagesGenerated++;
-                    
                     const container = document.createElement('div');
                     container.className = 'canvas-container p-4 cursor-pointer hover:shadow-xl transition-shadow';
-                    container.appendChild(canvas);
                     
-                    const info = document.createElement('div');
-                    info.className = 'mt-2 text-center text-sm';
-                    info.innerHTML = `
-                        <p class="font-bold text-gray-800">${freq} Hz</p>
-                        <p class="text-xs text-gray-600">
-                            <span class="text-red-600">Red: ${redData.length}</span> | 
-                            <span class="text-blue-600">Blue: ${blueData.length}</span>
-                        </p>
-                        <p class="text-xs text-gray-400 mt-1">Click to download</p>
-                    `;
-                    container.appendChild(info);
+                    const title = document.createElement('h3');
+                    title.className = 'text-lg font-bold text-gray-800 mb-3 text-center';
+                    title.textContent = freq;
+                    container.appendChild(title);
                     
-                    container.addEventListener('click', () => {
-                        const link = document.createElement('a');
-                        link.download = `sound_object_composite_${freq}Hz.png`;
-                        link.href = canvas.toDataURL();
-                        link.click();
-                    });
+                    if (redData.length > 0) {
+                        const redAvg = calculateAverageShape(redData);
+                        const redCanvas = document.createElement('canvas');
+                        redCanvas.width = 1000;
+                        redCanvas.height = 1000;
+                        redCanvas.className = 'w-full border border-gray-200 rounded mb-2';
+                        drawAverageShape(redCanvas, redAvg.radialData, 'rgba(255, 0, 0, 0.7)', `Red Average (n=${redData.length})`);
+                        container.appendChild(redCanvas);
+                        
+                        redCanvas.addEventListener('click', () => {
+                            const link = document.createElement('a');
+                            link.download = `sound_object_${freq}_red.png`;
+                            link.href = redCanvas.toDataURL('image/png');
+                            link.click();
+                        });
+                    }
                     
-                    vizGrid.appendChild(container);
+                    if (blueData.length > 0) {
+                        const blueAvg = calculateAverageShape(blueData);
+                        const blueCanvas = document.createElement('canvas');
+                        blueCanvas.width = 1000;
+                        blueCanvas.height = 1000;
+                        blueCanvas.className = 'w-full border border-gray-200 rounded';
+                        drawAverageShape(blueCanvas, blueAvg.radialData, 'rgba(0, 0, 255, 0.7)', `Blue Average (n=${blueData.length})`);
+                        container.appendChild(blueCanvas);
+                        
+                        blueCanvas.addEventListener('click', () => {
+                            const link = document.createElement('a');
+                            link.download = `sound_object_${freq}_blue.png`;
+                            link.href = blueCanvas.toDataURL('image/png');
+                            link.click();
+                        });
+                    }
+                    
+                    canvasGrid.appendChild(container);
                 });
                 
-                updateProgress(75, `Generated ${imagesGenerated} composite images. Calculating statistics...`);
+                updateProgress(90, 'Generating statistics...');
                 
-                // Generate statistics table
                 const statsBody = document.getElementById('statistics-body');
                 statsBody.innerHTML = '';
                 
@@ -382,400 +1254,219 @@
                     const redData = participantData[freq].red;
                     const blueData = participantData[freq].blue;
                     
-                    if (redData.length === 0 && blueData.length === 0) return;
-                    
-                    // Red statistics
                     if (redData.length > 0) {
-                        const stats = calculateStats(redData);
-                        statisticsData.push({
-                            frequency: freq,
-                            phase: 'Red (In-Phase)',
-                            ...stats
-                        });
-                        
+                        const redAvg = calculateAverageShape(redData);
                         const row = document.createElement('tr');
                         row.className = 'hover:bg-gray-50';
                         row.innerHTML = `
-                            <td class="px-4 py-3 text-sm font-semibold">${freq} Hz</td>
-                            <td class="px-4 py-3 text-sm"><span class="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>Red (In-Phase)</td>
-                            <td class="px-4 py-3 text-sm">${stats.n}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${stats.meanArea.toFixed(3)}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${stats.sdArea.toFixed(3)}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${stats.meanRadius.toFixed(3)}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${stats.sdRadius.toFixed(3)}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${stats.meanCentroidX.toFixed(3)}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${stats.meanCentroidY.toFixed(3)}</td>
+                            <td class="px-4 py-3 text-sm font-semibold text-gray-800">${freq}</td>
+                            <td class="px-4 py-3"><span class="inline-block w-4 h-4 rounded-full bg-red-500"></span> Red</td>
+                            <td class="px-4 py-3 text-sm font-semibold">${redData.length}</td>
+                            <td class="px-4 py-3 text-sm font-mono">${redAvg.meanRadius.toFixed(3)}</td>
+                            <td class="px-4 py-3 text-sm font-mono">${redAvg.sdRadius.toFixed(3)}</td>
+                            <td class="px-4 py-3 text-sm font-mono">${redAvg.meanArea.toFixed(3)}</td>
+                            <td class="px-4 py-3 text-sm font-mono">${redAvg.sdArea.toFixed(3)}</td>
                         `;
                         statsBody.appendChild(row);
                     }
                     
-                    // Blue statistics
                     if (blueData.length > 0) {
-                        const stats = calculateStats(blueData);
-                        statisticsData.push({
-                            frequency: freq,
-                            phase: 'Blue (Out-of-Phase)',
-                            ...stats
-                        });
-                        
+                        const blueAvg = calculateAverageShape(blueData);
                         const row = document.createElement('tr');
                         row.className = 'hover:bg-gray-50';
                         row.innerHTML = `
-                            <td class="px-4 py-3 text-sm font-semibold">${freq} Hz</td>
-                            <td class="px-4 py-3 text-sm"><span class="inline-block w-3 h-3 rounded-full bg-blue-500 mr-2"></span>Blue (Out-of-Phase)</td>
-                            <td class="px-4 py-3 text-sm">${stats.n}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${stats.meanArea.toFixed(3)}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${stats.sdArea.toFixed(3)}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${stats.meanRadius.toFixed(3)}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${stats.sdRadius.toFixed(3)}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${stats.meanCentroidX.toFixed(3)}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${stats.meanCentroidY.toFixed(3)}</td>
+                            <td class="px-4 py-3 text-sm font-semibold text-gray-800">${freq}</td>
+                            <td class="px-4 py-3"><span class="inline-block w-4 h-4 rounded-full bg-blue-500"></span> Blue</td>
+                            <td class="px-4 py-3 text-sm font-semibold">${blueData.length}</td>
+                            <td class="px-4 py-3 text-sm font-mono">${blueAvg.meanRadius.toFixed(3)}</td>
+                            <td class="px-4 py-3 text-sm font-mono">${blueAvg.sdRadius.toFixed(3)}</td>
+                            <td class="px-4 py-3 text-sm font-mono">${blueAvg.meanArea.toFixed(3)}</td>
+                            <td class="px-4 py-3 text-sm font-mono">${blueAvg.sdArea.toFixed(3)}</td>
                         `;
                         statsBody.appendChild(row);
                     }
                 });
                 
-                // Summary
-                const participants = new Set();
-                data.shapes.forEach(s => participants.add(s.participant));
-                
                 const summaryContent = document.getElementById('summary-content');
+                summaryContent.innerHTML = '';
+                
+                const totalParticipants = new Set();
+                const totalImages = processedData.length;
+                let frequenciesWithData = 0;
+                
+                FREQUENCIES.forEach(freq => {
+                    const redData = participantData[freq].red;
+                    const blueData = participantData[freq].blue;
+                    
+                    if (redData.length > 0 || blueData.length > 0) {
+                        frequenciesWithData++;
+                    }
+                    
+                    redData.forEach(d => totalParticipants.add(d.participant));
+                    blueData.forEach(d => totalParticipants.add(d.participant));
+                });
+                
+                const processingTime = ((Date.now() - processingStats.startTime) / 1000).toFixed(1);
+                const avgSpeed = (totalImages / processingTime).toFixed(1);
+                
                 summaryContent.innerHTML = `
                     <div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
-                        <div class="text-3xl font-bold text-blue-700">${participants.size}</div>
-                        <div class="text-sm text-gray-600 font-semibold">Participants</div>
+                        <div class="text-3xl font-bold text-blue-700">${totalParticipants.size}</div>
+                        <div class="text-sm text-gray-600 font-semibold">Unique Participants</div>
                     </div>
                     <div class="bg-emerald-50 p-4 rounded-lg border-2 border-emerald-200">
-                        <div class="text-3xl font-bold text-emerald-700">${data.shapes.length}</div>
-                        <div class="text-sm text-gray-600 font-semibold">Total Shapes</div>
+                        <div class="text-3xl font-bold text-emerald-700">${totalImages}</div>
+                        <div class="text-sm text-gray-600 font-semibold">Total Images Processed</div>
                     </div>
                     <div class="bg-purple-50 p-4 rounded-lg border-2 border-purple-200">
-                        <div class="text-3xl font-bold text-purple-700">${imagesGenerated}</div>
-                        <div class="text-sm text-gray-600 font-semibold">Composite Images</div>
+                        <div class="text-3xl font-bold text-purple-700">${frequenciesWithData}</div>
+                        <div class="text-sm text-gray-600 font-semibold">Frequencies with Data</div>
                     </div>
-                    <div class="bg-amber-50 p-4 rounded-lg border-2 border-amber-200">
-                        <div class="text-xl font-bold text-amber-700">📊 "Data" Tab</div>
-                        <div class="text-sm text-gray-600 font-semibold">Source</div>
+                    <div class="bg-amber-50 p-4 rounded-lg border-2 border-amber-200 col-span-1 md:col-span-3">
+                        <div class="text-2xl font-bold text-amber-700">⚡ ${processingTime}s total • ${avgSpeed} img/s average</div>
+                        <div class="text-sm text-gray-600 font-semibold">Processing Performance</div>
                     </div>
                 `;
                 
-                updateProgress(100, 'Complete!');
+                updateProgress(100, `Complete! Processed ${totalImages} images in ${processingTime}s`);
                 
                 document.getElementById('data-summary').classList.remove('hidden');
                 document.getElementById('visualization-container').classList.remove('hidden');
                 document.getElementById('statistics-container').classList.remove('hidden');
-                document.getElementById('export-combined-container').classList.remove('hidden');
                 
                 setTimeout(() => {
+                    updateProgress(0, '');
                     document.getElementById('progress-container').classList.add('hidden');
-                }, 2000);
+                }, 3000);
                 
             } catch (err) {
-                console.error('Error:', err);
-                showError(err.message);
-                updateProgress(0, '');
-                document.getElementById('progress-container').classList.add('hidden');
+                if (err.message === 'Processing cancelled by user') {
+                    updateProgress(0, '❌ Processing cancelled by user');
+                    setTimeout(() => {
+                        document.getElementById('progress-container').classList.add('hidden');
+                    }, 2000);
+                } else {
+                    showError(err.message);
+                    console.error('Analysis error:', err);
+                }
+            } finally {
+                activeWorkers.forEach(worker => worker.terminate());
+                activeWorkers.clear();
+                
+                const cancelBtn = document.getElementById('cancel-btn');
+                const analyzeBtn = document.getElementById('analyze-btn');
+                
+                cancelBtn.classList.add('hidden');
+                analyzeBtn.classList.remove('hidden');
+                
+                const files = document.getElementById('image-upload').files;
+                if (files && files.length > 0) {
+                    analyzeBtn.disabled = false;
+                }
+            }
+        }
+        
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        
+        document.getElementById('image-upload').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            const fileList = document.getElementById('file-list');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            
+            if (files.length > 0) {
+                const pngCount = files.filter(f => f.name.toLowerCase().endsWith('.png')).length;
+                const zipCount = files.filter(f => f.name.toLowerCase().endsWith('.zip')).length;
+                
+                fileList.innerHTML = `
+                    <div class="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                        <p class="font-semibold text-blue-800">
+                            ✅ ${files.length} file(s) selected
+                            ${pngCount > 0 ? `(${pngCount} PNG${pngCount > 1 ? 's' : ''})` : ''}
+                            ${zipCount > 0 ? `(${zipCount} ZIP${zipCount > 1 ? 's' : ''})` : ''}
+                        </p>
+                        <p class="text-sm text-blue-600 mt-1">Click "Analyze & Generate Visualizations" to process!</p>
+                    </div>
+                `;
+                
+                analyzeBtn.disabled = false;
+            } else {
+                fileList.innerHTML = '';
+                analyzeBtn.disabled = true;
             }
         });
         
-        // Export combined image
-        document.getElementById('export-combined-btn').addEventListener('click', function() {
-            if (Object.keys(generatedCanvases).length === 0) {
-                alert('No images to combine. Please generate visualizations first.');
+        document.getElementById('analyze-btn').addEventListener('click', async function() {
+            const files = Array.from(document.getElementById('image-upload').files);
+            
+            if (files.length === 0) {
+                showError('Please select at least one file');
                 return;
             }
             
-            const btn = this;
-            btn.disabled = true;
-            btn.textContent = '⏳ Creating combined image...';
-            
-            setTimeout(() => {
-                try {
-                    const combinedCanvas = createCombinedImage();
-                    
-                    const link = document.createElement('a');
-                    link.download = 'sound_object_all_frequencies_combined.png';
-                    link.href = combinedCanvas.toDataURL();
-                    link.click();
-                    
-                    btn.disabled = false;
-                    btn.innerHTML = `
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        Download Combined Image (All Frequencies)
-                    `;
-                } catch (err) {
-                    console.error('Error creating combined image:', err);
-                    alert('Error creating combined image: ' + err.message);
-                    btn.disabled = false;
-                    btn.innerHTML = 'Download Combined Image (All Frequencies)';
-                }
-            }, 100);
+            await analyzeData(files);
         });
         
-        // Export statistics to Google Sheets
-        document.getElementById('export-stats-btn').addEventListener('click', async function() {
-            if (statisticsData.length === 0) {
-                alert('No statistics to export. Please generate visualizations first.');
-                return;
-            }
+        document.getElementById('cancel-btn').addEventListener('click', function() {
+            processingCancelled = true;
             
-            const btn = this;
-            btn.disabled = true;
-            btn.textContent = '⏳ Exporting to Google Sheets...';
+            activeWorkers.forEach(worker => worker.terminate());
+            activeWorkers.clear();
             
-            try {
-                const response = await fetch(sheetsApiUrl + '?action=exportStatistics', {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        statistics: statisticsData,
-                        timestamp: new Date().toISOString()
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                
-                const result = await response.json();
-                
-                if (result.error) {
-                    throw new Error(result.error);
-                }
-                
-                alert(`✅ Statistics exported successfully to sheet: "${result.sheetName}"`);
-                
-            } catch (err) {
-                console.error('Error exporting statistics:', err);
-                alert('Error exporting statistics: ' + err.message + '\n\nMake sure the Apps Script has been updated with the exportStatistics function.');
-            }
-            
-            btn.disabled = false;
-            btn.innerHTML = `
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                Export Statistics to Google Sheets
-            `;
+            this.disabled = true;
+            this.innerHTML = '⏳ Cancelling...';
         });
         
-        // Create combined image (3 rows x 4 columns)
-        function createCombinedImage() {
-            const cols = 4;
-            const rows = 3;
-            const padding = 20;
-            const imageWidth = CANVAS_SIZE;
-            const imageHeight = CANVAS_SIZE;
-            
-            const combinedWidth = (cols * imageWidth) + ((cols + 1) * padding);
-            const combinedHeight = (rows * imageHeight) + ((rows + 1) * padding);
-            
-            const combinedCanvas = document.createElement('canvas');
-            combinedCanvas.width = combinedWidth;
-            combinedCanvas.height = combinedHeight;
-            const ctx = combinedCanvas.getContext('2d');
-            
-            // White background
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, combinedWidth, combinedHeight);
-            
-            // Draw each frequency canvas
-            const frequencies = Object.keys(generatedCanvases).map(f => parseFloat(f)).sort((a, b) => a - b);
-            
-            frequencies.forEach((freq, index) => {
-                const canvas = generatedCanvases[freq];
-                const col = index % cols;
-                const row = Math.floor(index / cols);
-                
-                const x = padding + (col * (imageWidth + padding));
-                const y = padding + (row * (imageHeight + padding));
-                
-                ctx.drawImage(canvas, x, y);
-            });
-            
-            return combinedCanvas;
-        }
+        document.getElementById('toggle-batch-details').addEventListener('click', function() {
+            const details = document.getElementById('batch-details');
+            if (details.classList.contains('hidden')) {
+                details.classList.remove('hidden');
+                this.textContent = 'Hide Details';
+            } else {
+                details.classList.add('hidden');
+                this.textContent = 'Show Details';
+            }
+        });
         
-        // Calculate statistics
-        function calculateStats(dataArray) {
-            const areas = dataArray.map(d => d.area);
-            const radii = dataArray.map(d => d.radius);
-            const xValues = dataArray.map(d => d.centroid.x);
-            const yValues = dataArray.map(d => d.centroid.y);
+        document.getElementById('toggle-metrics').addEventListener('click', function() {
+            const dropdown = document.getElementById('metrics-dropdown');
+            const arrow = document.getElementById('metrics-arrow');
             
-            return {
-                n: dataArray.length,
-                meanArea: mean(areas),
-                sdArea: stdDev(areas),
-                meanRadius: mean(radii),
-                sdRadius: stdDev(radii),
-                meanCentroidX: mean(xValues),
-                meanCentroidY: mean(yValues)
-            };
-        }
+            if (dropdown.classList.contains('open')) {
+                dropdown.classList.remove('open');
+                arrow.style.transform = 'rotate(0deg)';
+            } else {
+                dropdown.classList.add('open');
+                arrow.style.transform = 'rotate(180deg)';
+            }
+        });
         
-        function mean(arr) {
-            return arr.reduce((sum, val) => sum + val, 0) / arr.length;
-        }
+        window.addEventListener('beforeunload', () => {
+            activeWorkers.forEach(worker => worker.terminate());
+            URL.revokeObjectURL(workerBlobUrl);
+        });
         
-        function stdDev(arr) {
-            const avg = mean(arr);
-            const squareDiffs = arr.map(val => Math.pow(val - avg, 2));
-            return Math.sqrt(mean(squareDiffs));
-        }
+        console.log('%c🎵 Sound Object Analyzer v2.1.1 ENHANCED UI + FIXED', 'color: #8B5CF6; font-size: 16px; font-weight: bold');
+        console.log(`%c✓ Initialized with ${CPU_CORES} CPU cores, ${MAX_PARALLEL_WORKERS} max workers`, 'color: #10B981');
+        console.log('%c✓ Robust filename parsing enabled', 'color: #10B981');
+        console.log('%c✓ Memory leak protection active', 'color: #10B981');
+        console.log('%c✓ Enhanced worker error handling enabled', 'color: #10B981');
+        console.log('%c✓ Enhanced UI with real-time metrics', 'color: #10B981');
         
-        // Draw visualization
-        function drawVisualization(frequency, redData, blueData) {
-            const canvas = document.createElement('canvas');
-            canvas.width = CANVAS_SIZE;
-            canvas.height = CANVAS_SIZE;
-            const ctx = canvas.getContext('2d');
-            
-            // White background
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-            
-            const center = CANVAS_SIZE / 2;
-            const scale = SCALE_FACTOR;
-            
-            // Draw grid lines (light gray)
-            ctx.strokeStyle = '#e5e7eb';
-            ctx.lineWidth = 1;
-            
-            // Vertical lines
-            for (let i = -UNIT_RANGE; i <= UNIT_RANGE; i++) {
-                const x = center + (i * scale);
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, CANVAS_SIZE);
-                ctx.stroke();
-            }
-            
-            // Horizontal lines
-            for (let i = -UNIT_RANGE; i <= UNIT_RANGE; i++) {
-                const y = center - (i * scale);
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(CANVAS_SIZE, y);
-                ctx.stroke();
-            }
-            
-            // Draw axes (darker)
-            ctx.strokeStyle = '#9ca3af';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(0, center);
-            ctx.lineTo(CANVAS_SIZE, center);
-            ctx.moveTo(center, 0);
-            ctx.lineTo(center, CANVAS_SIZE);
-            ctx.stroke();
-            
-            // Draw 3-unit reference circle (solid black)
-            ctx.beginPath();
-            ctx.arc(center, center, BACKGROUND_CIRCLE_RADIUS_UNITS * scale, 0, 2 * Math.PI);
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            
-            // Helper function to draw individual participant shapes in gray
-            function drawGrayShapes(dataArray) {
-                ctx.strokeStyle = '#9ca3af';
-                ctx.lineWidth = 1;
-                ctx.globalAlpha = 0.5;
-                
-                dataArray.forEach(shape => {
-                    const x = center + (shape.centroid.x * scale);
-                    const y = center - (shape.centroid.y * scale);
-                    const r = shape.radius * scale;
-                    
-                    ctx.beginPath();
-                    ctx.arc(x, y, r, 0, 2 * Math.PI);
-                    ctx.stroke();
-                });
-                
-                ctx.globalAlpha = 1.0;
-            }
-            
-            // Helper function to draw averaged circle
-            function drawAveragedCircle(dataArray, color, isDashed) {
-                if (dataArray.length === 0) return;
-                
-                // Calculate averages
-                const avgX = dataArray.reduce((sum, s) => sum + s.centroid.x, 0) / dataArray.length;
-                const avgY = dataArray.reduce((sum, s) => sum + s.centroid.y, 0) / dataArray.length;
-                const avgR = dataArray.reduce((sum, s) => sum + s.radius, 0) / dataArray.length;
-                
-                const x = center + (avgX * scale);
-                const y = center - (avgY * scale);
-                const r = avgR * scale;
-                
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 3;
-                
-                if (isDashed) {
-                    ctx.setLineDash([8, 4]);
-                }
-                
-                ctx.beginPath();
-                ctx.arc(x, y, r, 0, 2 * Math.PI);
-                ctx.stroke();
-                
-                ctx.setLineDash([]);
-            }
-            
-            // Draw all gray background shapes first
-            if (redData.length > 0) {
-                drawGrayShapes(redData);
-            }
-            if (blueData.length > 0) {
-                drawGrayShapes(blueData);
-            }
-            
-            // Draw averaged circles on top
-            if (blueData.length > 0) {
-                drawAveragedCircle(blueData, '#3b82f6', true);
-            }
-            if (redData.length > 0) {
-                drawAveragedCircle(redData, '#dc2626', false);
-            }
-            
-            // Title at top
-            ctx.fillStyle = '#000000';
-            ctx.font = 'bold 18px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(`${frequency} Hz`, center, 25);
-            
-            // Stats below title
-            const totalShapes = redData.length + blueData.length;
-            const avgRadiusRed = redData.length > 0 
-                ? (redData.reduce((sum, s) => sum + s.radius, 0) / redData.length).toFixed(2)
-                : null;
-            const avgRadiusBlue = blueData.length > 0
-                ? (blueData.reduce((sum, s) => sum + s.radius, 0) / blueData.length).toFixed(2)
-                : null;
-            
-            ctx.font = '12px Arial';
-            ctx.fillStyle = '#666666';
-            
-            let statsText = `N=${totalShapes}`;
-            if (avgRadiusRed && avgRadiusBlue) {
-                const overallAvg = ((parseFloat(avgRadiusRed) + parseFloat(avgRadiusBlue)) / 2).toFixed(2);
-                statsText += `, mean r=${overallAvg} (centroid avg)`;
-            } else if (avgRadiusRed) {
-                statsText += `, mean r=${avgRadiusRed} (centroid avg)`;
-            } else if (avgRadiusBlue) {
-                statsText += `, mean r=${avgRadiusBlue} (centroid avg)`;
-            }
-            
-            ctx.fillText(statsText, center, 45);
-            
-            return canvas;
-        }
+        // Test regex patterns at startup
+        const testFilenames = [
+            'Helen Z_62.5Hz_100dB.png',
+            'Kevin M_1000Hz_80dB.png',
+            'Test_31Hz_100dB.png'
+        ];
+        
+        console.log('%cTesting filename parsing...', 'color: #3B82F6');
+        testFilenames.forEach(filename => {
+            const parts = filename.split('_').map(p => p.trim());
+            const freqPart = parts.find(p => /^\d+(?:\.\d+)?hz$/i.test(p));
+            console.log(`  "${filename}" -> freq part: "${freqPart}" -> ${freqPart ? '✓' : '✗'}`);
+        });
     </script>
 </body>
 </html>
