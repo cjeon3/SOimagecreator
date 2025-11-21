@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sound Object Average Shape Analyzer - Ultra Optimized v2.1</title>
-    <meta name="version" content="2.1.0">
+    <title>Sound Object Average Shape Analyzer - Ultra Optimized v2.1.1</title>
+    <meta name="version" content="2.1.1">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
@@ -152,7 +152,7 @@
         <header class="text-center mb-8">
             <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-blue-800 mb-2">
                 Sound Object Average Shape Analyzer
-                <span class="inline-block ml-2 px-3 py-1 text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full shadow-lg animate-pulse">⚡ ULTRA OPTIMIZED</span>
+                <span class="inline-block ml-2 px-3 py-1 text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full shadow-lg animate-pulse">⚡ ULTRA OPTIMIZED v2.1.1</span>
             </h1>
             <p class="text-lg sm:text-xl font-semibold text-gray-600">UCI Hearing & Speech Lab</p>
             <p class="text-xs sm:text-sm text-gray-500 mt-2">Import participant drawings and generate averaged visualizations</p>
@@ -339,7 +339,7 @@
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">Averaged Shape Visualizations</h2>
                 <p class="text-sm text-gray-600 mb-4">Click on any figure to download as PNG</p>
             </div>
-            <div id="visualization-grid" class="analysis-grid"></div>
+            <div id="canvas-grid" class="analysis-grid"></div>
         </div>
         
         <!-- Statistics Table -->
@@ -350,7 +350,7 @@
                     <thead class="bg-gradient-to-r from-blue-50 to-indigo-50">
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Frequency</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Phase</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Color</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">N</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Mean Radius</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">SD Radius</th>
@@ -365,42 +365,33 @@
         
         <!-- Footer -->
         <footer class="text-center text-sm text-gray-500 mt-8 pb-4">
-            <p class="font-semibold">UCI Hearing & Speech Lab - Sound Object Average Shape Analyzer v2.1 (Enhanced)</p>
-            <p class="mt-1">Enhanced with Real-Time Metrics • Parallel Processing • Memory Optimized • Robust Parsing</p>
+            <p class="font-semibold">UCI Hearing & Speech Lab - Sound Object Average Shape Analyzer v2.1.1 FIXED</p>
+            <p class="mt-1">Enhanced UI • Real-Time Metrics • Fixed Worker Errors • Memory Optimized • Robust Parsing</p>
         </footer>
     </div>
     
     <script>
         // ============================================
-        // CONFIGURATION
+        // GLOBAL STATE & CONFIGURATION
         // ============================================
         
-        const CANVAS_SIZE = 1000;
-        const UNIT_RANGE = 10;
-        const SCALE_FACTOR = CANVAS_SIZE / (2 * UNIT_RANGE);
-        const BACKGROUND_CIRCLE_RADIUS_UNITS = 3;
-        const FREQUENCIES = [31, 62.5, 125, 250, 500, 1000, 2000, 4000, 8000, 12000, 16000];
-        
-        // Detect CPU cores for optimal parallelization
+        const FREQUENCIES = ['31Hz', '62.5Hz', '125Hz', '250Hz', '500Hz', '1000Hz', '2000Hz', '4000Hz', '8000Hz', '12000Hz', '16000Hz'];
+        const FREQUENCY_NUMBERS = [31, 62.5, 125, 250, 500, 1000, 2000, 4000, 8000, 12000, 16000];
         const CPU_CORES = navigator.hardwareConcurrency || 4;
-        const MAX_PARALLEL_WORKERS = Math.max(2, Math.min(CPU_CORES, 8));
-        const IMAGES_PER_WORKER = 3;
+        const MAX_PARALLEL_WORKERS = Math.max(2, Math.min(CPU_CORES, 6)); // Reduced max to 6
         
-        // State management
         let processingCancelled = false;
         let activeWorkers = new Set();
         let currentBatchFiles = [];
         let batchItemStates = [];
-        let workerBlobUrl = null;
         
-        // Performance tracking
         const processingStats = {
             startTime: 0,
-            processedImages: 0,
-            totalImages: 0,
-            lastUpdateTime: 0,
+            processedCount: 0,
+            totalCount: 0,
             speedHistory: [],
-            maxSpeed: 0
+            maxSpeed: 0,
+            batchStats: new Map()
         };
         
         // ============================================
@@ -423,7 +414,7 @@
         
         function updateSpeedMetric() {
             const elapsed = (Date.now() - processingStats.startTime) / 1000;
-            const speed = elapsed > 0 ? (processingStats.processedImages / elapsed) : 0;
+            const speed = elapsed > 0 ? (processingStats.processedCount / elapsed) : 0;
             
             processingStats.speedHistory.push(speed);
             if (processingStats.speedHistory.length > 10) {
@@ -435,17 +426,16 @@
             
             document.getElementById('speed-metric').textContent = `${avgSpeed.toFixed(1)} img/s`;
             
-            // Update mini progress bar based on current speed vs max
             const speedProgress = processingStats.maxSpeed > 0 ? (avgSpeed / processingStats.maxSpeed) * 100 : 0;
             document.getElementById('speed-progress').style.width = `${speedProgress}%`;
         }
         
         function updateETAMetric() {
             const elapsed = (Date.now() - processingStats.startTime) / 1000;
-            const remaining = processingStats.totalImages - processingStats.processedImages;
+            const remaining = processingStats.totalCount - processingStats.processedCount;
             
-            if (elapsed > 0 && processingStats.processedImages > 0) {
-                const speed = processingStats.processedImages / elapsed;
+            if (elapsed > 0 && processingStats.processedCount > 0) {
+                const speed = processingStats.processedCount / elapsed;
                 const eta = speed > 0 ? remaining / speed : 0;
                 
                 if (eta < 60) {
@@ -456,8 +446,7 @@
                     document.getElementById('eta-metric').textContent = `${minutes}m ${seconds}s`;
                 }
                 
-                // Update mini progress bar - inverse of remaining time
-                const totalEstimated = processingStats.totalImages / speed;
+                const totalEstimated = processingStats.totalCount / speed;
                 const etaProgress = totalEstimated > 0 ? (elapsed / totalEstimated) * 100 : 0;
                 document.getElementById('eta-progress').style.width = `${Math.min(etaProgress, 100)}%`;
             } else {
@@ -470,7 +459,6 @@
             const workerCount = activeWorkers.size;
             document.getElementById('workers-metric').textContent = workerCount;
             
-            // Update mini progress bar based on workers active vs max
             const workerProgress = MAX_PARALLEL_WORKERS > 0 ? (workerCount / MAX_PARALLEL_WORKERS) * 100 : 0;
             document.getElementById('workers-progress').style.width = `${workerProgress}%`;
         }
@@ -478,10 +466,8 @@
         function updateMemoryMetric() {
             if (performance.memory) {
                 const usedMB = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(1);
-                const totalMB = (performance.memory.jsHeapSizeLimit / 1024 / 1024).toFixed(0);
                 document.getElementById('memory-metric').textContent = `${usedMB} MB`;
                 
-                // Update mini progress bar
                 const memoryProgress = (performance.memory.usedJSHeapSize / performance.memory.jsHeapSizeLimit) * 100;
                 document.getElementById('memory-progress').style.width = `${memoryProgress}%`;
             } else {
@@ -495,38 +481,6 @@
             updateETAMetric();
             updateWorkersMetric();
             updateMemoryMetric();
-        }
-        
-        // ============================================
-        // UTILITY FUNCTIONS
-        // ============================================
-        
-        function unitToCanvas(x, y, size) {
-            const center = size / 2;
-            const scale = size / (2 * UNIT_RANGE);
-            return {
-                x: center + x * scale,
-                y: center - y * scale
-            };
-        }
-        
-        function canvasToUnit(x, y, size) {
-            const center = size / 2;
-            const scale = size / (2 * UNIT_RANGE);
-            return {
-                x: (x - center) / scale,
-                y: -(y - center) / scale
-            };
-        }
-        
-        function showError(message) {
-            const progressContainer = document.getElementById('progress-container');
-            progressContainer.classList.remove('hidden');
-            updateProgress(0, `❌ Error: ${message}`);
-            
-            setTimeout(() => {
-                progressContainer.classList.add('hidden');
-            }, 5000);
         }
         
         // ============================================
@@ -607,338 +561,370 @@
         }
         
         // ============================================
-        // WEB WORKER CODE
+        // UTILITY FUNCTIONS
+        // ============================================
+        
+        function parseFilename(filename) {
+            try {
+                // Remove any potential BOM or hidden characters and normalize
+                const cleanFilename = filename.replace(/[\uFEFF\u200B-\u200D\uFFFE]/g, '').trim();
+                
+                // Split filename and look for frequency pattern
+                const parts = cleanFilename.split('_').map(p => p.trim());
+                
+                if (parts.length < 2) {
+                    console.warn(`Invalid filename format: ${filename}`);
+                    return null;
+                }
+                
+                // Try multiple patterns to be extra robust
+                let freqPart = null;
+                let frequencyNum = null;
+                
+                // Pattern 1: Standard format like "1000Hz" or "62.5Hz"
+                freqPart = parts.find(p => /^\d+(?:\.\d+)?hz$/i.test(p));
+                
+                if (freqPart) {
+                    const match = freqPart.match(/^(\d+(?:\.\d+)?)hz$/i);
+                    if (match) {
+                        frequencyNum = parseFloat(match[1]);
+                    }
+                }
+                
+                // Pattern 2: If not found, try anywhere in the string
+                if (!frequencyNum) {
+                    for (const part of parts) {
+                        const match = part.match(/(\d+(?:\.\d+)?)hz/i);
+                        if (match) {
+                            frequencyNum = parseFloat(match[1]);
+                            freqPart = part;
+                            break;
+                        }
+                    }
+                }
+                
+                if (!frequencyNum || !freqPart) {
+                    console.warn(`Frequency not found in: ${filename}`);
+                    return null;
+                }
+                
+                // Convert to standard format (e.g., "31Hz", "62.5Hz")
+                const frequency = frequencyNum.toString() + 'Hz';
+                
+                // Validate against known frequencies
+                const validFrequencies = ['31Hz', '62.5Hz', '125Hz', '250Hz', '500Hz', '1000Hz', '2000Hz', '4000Hz', '8000Hz', '12000Hz', '16000Hz'];
+                if (!validFrequencies.includes(frequency)) {
+                    console.warn(`Unknown frequency ${frequency} (parsed from ${frequencyNum}) in: ${filename}`);
+                    return null;
+                }
+                
+                // Get participant name - join all parts before the frequency part
+                const freqIndex = parts.indexOf(freqPart);
+                const participant = parts.slice(0, freqIndex).join(' ').trim() || 'Unknown';
+                
+                return { participant, frequency };
+            } catch (err) {
+                console.error(`Error parsing filename ${filename}:`, err);
+                return null;
+            }
+        }
+        
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-lg z-50 max-w-md';
+            errorDiv.innerHTML = `
+                <div class="flex items-start">
+                    <svg class="w-6 h-6 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div>
+                        <p class="font-bold">Error</p>
+                        <p class="text-sm">${message}</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+        
+        // ============================================
+        // WEB WORKER SETUP (FIXED VERSION)
         // ============================================
         
         const workerCode = `
-            const CANVAS_SIZE = 1000;
-            const UNIT_RANGE = 10;
-            const BRUSH_RADIUS = 6;
+self.onmessage = async function(e) {
+    try {
+        const { imageData, filename } = e.data;
+        
+        // Validate input
+        if (!imageData || !imageData.data) {
+            throw new Error('Invalid image data received');
+        }
+        
+        console.log('[Worker] Processing:', filename, 'Size:', imageData.width, 'x', imageData.height);
+        
+        // Create canvas with error handling
+        const canvas = new OffscreenCanvas(imageData.width, imageData.height);
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        
+        if (!ctx) {
+            throw new Error('Failed to get canvas context');
+        }
+        
+        ctx.putImageData(imageData, 0, 0);
+        
+        // Get image data
+        const data = ctx.getImageData(0, 0, imageData.width, imageData.height).data;
+        
+        // Analyze with validation
+        const colors = new Map();
+        const pixelCount = imageData.width * imageData.height;
+        
+        if (data.length !== pixelCount * 4) {
+            throw new Error('Invalid pixel data length');
+        }
+        
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const a = data[i + 3];
             
-            function canvasToUnit(x, y, size) {
-                const center = size / 2;
-                const scale = size / (2 * UNIT_RANGE);
-                return {
-                    x: (x - center) / scale,
-                    y: -(y - center) / scale
-                };
+            // Skip fully transparent or white pixels
+            if (a < 10 || (r > 250 && g > 250 && b > 250)) {
+                continue;
             }
             
-            function extractContour(imageData, color, size) {
-                const pixels = imageData.data;
-                const contourPoints = [];
-                
-                for (let y = 0; y < size; y++) {
-                    for (let x = 0; x < size; x++) {
-                        const idx = (y * size + x) * 4;
-                        const r = pixels[idx];
-                        const g = pixels[idx + 1];
-                        const b = pixels[idx + 2];
-                        const a = pixels[idx + 3];
-                        
-                        if (a > 128) {
-                            if (color === 'red' && r > 200 && g < 100 && b < 100) {
-                                const unitCoords = canvasToUnit(x, y, size);
-                                contourPoints.push({ x: unitCoords.x, y: unitCoords.y });
-                            } else if (color === 'blue' && b > 200 && r < 100 && g < 100) {
-                                const unitCoords = canvasToUnit(x, y, size);
-                                contourPoints.push({ x: unitCoords.x, y: unitCoords.y });
-                            }
-                        }
-                    }
-                }
-                
-                return contourPoints;
-            }
-            
-            function calculateCentroid(contourPoints) {
-                if (contourPoints.length === 0) return { x: 0, y: 0 };
-                
-                const sumX = contourPoints.reduce((sum, p) => sum + p.x, 0);
-                const sumY = contourPoints.reduce((sum, p) => sum + p.y, 0);
-                
-                return {
-                    x: sumX / contourPoints.length,
-                    y: sumY / contourPoints.length
-                };
-            }
-            
-            function calculateArea(contourPoints, size) {
-                const drawn = new Set();
-                const center = size / 2;
-                const scale = size / (2 * UNIT_RANGE);
-                
-                contourPoints.forEach(point => {
-                    const canvasX = Math.round(center + point.x * scale);
-                    const canvasY = Math.round(center - point.y * scale);
-                    
-                    for (let dy = -BRUSH_RADIUS; dy <= BRUSH_RADIUS; dy++) {
-                        for (let dx = -BRUSH_RADIUS; dx <= BRUSH_RADIUS; dx++) {
-                            if (dx * dx + dy * dy <= BRUSH_RADIUS * BRUSH_RADIUS) {
-                                const px = canvasX + dx;
-                                const py = canvasY + dy;
-                                if (px >= 0 && px < size && py >= 0 && py < size) {
-                                    drawn.add(\`\${px},\${py}\`);
-                                }
-                            }
-                        }
-                    }
-                });
-                
-                const pixelArea = drawn.size;
-                const unitArea = pixelArea / (scale * scale);
-                
-                return unitArea;
-            }
-            
-            self.onmessage = async function(e) {
-                try {
-                    const { imageData, filename } = e.data;
-                    
-                    // Remove any potential BOM or hidden characters and normalize
-                    const cleanFilename = filename.replace(/[\uFEFF\u200B-\u200D\uFFFE]/g, '').trim();
-                    
-                    // Split filename and look for frequency pattern
-                    const parts = cleanFilename.split('_').map(p => p.trim());
-                    
-                    // Try multiple patterns to be extra robust
-                    let freqPart = null;
-                    let frequency = null;
-                    
-                    // Pattern 1: Standard format like "1000Hz" or "62.5Hz"
-                    freqPart = parts.find(p => /^\d+(?:\.\d+)?hz$/i.test(p));
-                    
-                    if (freqPart) {
-                        const match = freqPart.match(/^(\d+(?:\.\d+)?)hz$/i);
-                        if (match) {
-                            frequency = parseFloat(match[1]);
-                        }
-                    }
-                    
-                    // Pattern 2: If not found, try anywhere in the string
-                    if (!frequency) {
-                        for (const part of parts) {
-                            const match = part.match(/(\d+(?:\.\d+)?)hz/i);
-                            if (match) {
-                                frequency = parseFloat(match[1]);
-                                freqPart = part;
-                                break;
-                            }
-                        }
-                    }
-                    
-                    if (!frequency || !freqPart) {
-                        throw new Error(\`Frequency not found in filename: "\${filename}". Cleaned: "\${cleanFilename}". Parts: [\${parts.join(', ')}]\`);
-                    }
-                    
-                    // Get participant name - join all parts before the frequency part
-                    const freqIndex = parts.indexOf(freqPart);
-                    const participant = parts.slice(0, freqIndex).join(' ').trim() || 'Unknown';
-                    
-                    const redContour = extractContour(imageData, 'red', CANVAS_SIZE);
-                    const blueContour = extractContour(imageData, 'blue', CANVAS_SIZE);
-                    
-                    const results = [];
-                    
-                    if (redContour.length > 0) {
-                        const centroid = calculateCentroid(redContour);
-                        const radii = redContour.map(p => 
-                            Math.sqrt(Math.pow(p.x - centroid.x, 2) + Math.pow(p.y - centroid.y, 2))
-                        );
-                        const avgRadius = radii.reduce((sum, r) => sum + r, 0) / radii.length;
-                        const area = calculateArea(redContour, CANVAS_SIZE);
-                        
-                        results.push({
-                            frequency,
-                            phase: 'red',
-                            participant,
-                            contour: redContour,
-                            centroid,
-                            avgRadius,
-                            area
-                        });
-                    }
-                    
-                    if (blueContour.length > 0) {
-                        const centroid = calculateCentroid(blueContour);
-                        const radii = blueContour.map(p => 
-                            Math.sqrt(Math.pow(p.x - centroid.x, 2) + Math.pow(p.y - centroid.y, 2))
-                        );
-                        const avgRadius = radii.reduce((sum, r) => sum + r, 0) / radii.length;
-                        const area = calculateArea(blueContour, CANVAS_SIZE);
-                        
-                        results.push({
-                            frequency,
-                            phase: 'blue',
-                            participant,
-                            contour: blueContour,
-                            centroid,
-                            avgRadius,
-                            area
-                        });
-                    }
-                    
-                    self.postMessage({ success: true, results });
-                    
-                } catch (error) {
-                    self.postMessage({ success: false, error: error.message });
-                }
+            const colorKey = r + ',' + g + ',' + b;
+            colors.set(colorKey, (colors.get(colorKey) || 0) + 1);
+        }
+        
+        // Convert to array and validate
+        const colorData = Array.from(colors.entries()).map(([color, count]) => {
+            const [r, g, b] = color.split(',').map(Number);
+            return {
+                color: 'rgb(' + r + ',' + g + ',' + b + ')',
+                count: count,
+                percentage: (count / pixelCount) * 100
             };
-        `;
+        });
         
-        const blob = new Blob([workerCode], { type: 'application/javascript' });
-        workerBlobUrl = URL.createObjectURL(blob);
-        
-        // ============================================
-        // FILE HANDLING WITH ZIP SUPPORT
-        // ============================================
-        
-        async function extractPNGsFromZip(zipBlob, parentPath = '') {
-            if (typeof JSZip === 'undefined') {
-                throw new Error('JSZip library not loaded');
-            }
-            
-            const zip = await JSZip.loadAsync(zipBlob);
-            const pngFiles = [];
-            
-            for (const [filename, file] of Object.entries(zip.files)) {
-                if (file.dir) continue;
-                
-                const fullPath = parentPath ? `${parentPath}/${filename}` : filename;
-                const lowerName = filename.toLowerCase();
-                
-                if (lowerName.endsWith('.png')) {
-                    const blob = await file.async('blob');
-                    pngFiles.push({
-                        name: filename.split('/').pop(),
-                        blob: blob,
-                        fullPath: fullPath
-                    });
-                }
-                else if (lowerName.endsWith('.zip')) {
-                    const nestedZipBlob = await file.async('blob');
-                    const nestedPNGs = await extractPNGsFromZip(nestedZipBlob, fullPath);
-                    pngFiles.push(...nestedPNGs);
-                }
-            }
-            
-            return pngFiles;
+        if (colorData.length === 0) {
+            console.warn('[Worker] No colors found in:', filename);
         }
         
-        async function processAllFiles(files) {
-            const allPNGs = [];
+        self.postMessage({
+            success: true,
+            filename: filename,
+            colors: colorData
+        });
+        
+    } catch (error) {
+        console.error('[Worker] Error processing image:', error.message, error.stack);
+        self.postMessage({
+            success: false,
+            filename: e.data?.filename || 'unknown',
+            error: error.message
+        });
+    }
+};
+`;
+        
+        const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
+        const workerBlobUrl = URL.createObjectURL(workerBlob);
+        
+        // ============================================
+        // IMAGE LOADING & PROCESSING (FIXED VERSION)
+        // ============================================
+        
+        async function loadImagesFromZip(file) {
+            console.log(`[ZIP] Extracting from: ${file.name}`);
+            const zip = await JSZip.loadAsync(file);
+            const images = [];
             
-            for (const file of files) {
-                const lowerName = file.name.toLowerCase();
+            for (const [path, zipEntry] of Object.entries(zip.files)) {
+                if (zipEntry.dir) continue;
                 
-                if (lowerName.endsWith('.png')) {
-                    allPNGs.push({
-                        name: file.name,
-                        blob: file,
-                        fullPath: file.name
-                    });
-                }
-                else if (lowerName.endsWith('.zip')) {
+                if (path.toLowerCase().endsWith('.zip')) {
+                    console.log(`[ZIP] Found nested ZIP: ${path}`);
                     try {
-                        const extractedPNGs = await extractPNGsFromZip(file, file.name);
-                        allPNGs.push(...extractedPNGs);
+                        const nestedZipBlob = await zipEntry.async('blob');
+                        const nestedZipFile = new File([nestedZipBlob], path.split('/').pop());
+                        const nestedImages = await loadImagesFromZip(nestedZipFile);
+                        images.push(...nestedImages);
+                        console.log(`[ZIP] Extracted ${nestedImages.length} PNGs from ${file.name}/${path}`);
                     } catch (err) {
-                        console.error(`Error extracting ${file.name}:`, err);
+                        console.error(`[ZIP] Error processing nested ZIP ${path}:`, err);
+                    }
+                    continue;
+                }
+                
+                if (path.toLowerCase().endsWith('.png')) {
+                    try {
+                        const blobData = await zipEntry.async('blob');
+                        const pngBlob = new Blob([blobData], { type: 'image/png' });
+                        const filename = path.split('/').pop();
+                        
+                        images.push({
+                            name: filename,
+                            blob: pngBlob,
+                            fullPath: `${file.name}/${path}`
+                        });
+                        
+                        console.log(`[ZIP] Extracted PNG: ${filename}, size: ${pngBlob.size} bytes`);
+                    } catch (err) {
+                        console.error(`[ZIP] Error extracting ${path}:`, err);
                     }
                 }
             }
             
-            return allPNGs;
+            console.log(`[ZIP] Extracted ${images.length} PNGs from ${file.name}`);
+            return images;
         }
         
-        // ============================================
-        // PARALLEL IMAGE PROCESSING WITH WEB WORKERS
-        // ============================================
-        
-        async function processImageWithWorker(file) {
+        async function loadImageToCanvas(file) {
             return new Promise((resolve, reject) => {
-                if (processingCancelled) {
-                    reject(new Error('Processing cancelled'));
-                    return;
-                }
-                
-                const worker = new Worker(workerBlobUrl);
-                activeWorkers.add(worker);
-                updateWorkersMetric();
-                
                 const img = new Image();
                 let objectUrl = null;
                 
-                img.onload = () => {
+                const loadTimeout = setTimeout(() => {
+                    if (objectUrl) URL.revokeObjectURL(objectUrl);
+                    reject(new Error(`Image load timeout: ${file.name}`));
+                }, 10000);
+                
+                img.onload = function() {
+                    clearTimeout(loadTimeout);
                     try {
                         const canvas = document.createElement('canvas');
-                        canvas.width = CANVAS_SIZE;
-                        canvas.height = CANVAS_SIZE;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
-                        const imageData = ctx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+                        canvas.width = img.width;
+                        canvas.height = img.height;
                         
-                        // Clean up object URL after image is loaded
-                        if (objectUrl) {
-                            URL.revokeObjectURL(objectUrl);
-                            objectUrl = null;
+                        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                        if (!ctx) {
+                            reject(new Error('Failed to get canvas context'));
+                            return;
                         }
                         
-                        worker.postMessage({ imageData, filename: file.name });
+                        ctx.drawImage(img, 0, 0);
+                        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        resolve(imgData);
                     } catch (err) {
+                        reject(err);
+                    } finally {
                         if (objectUrl) URL.revokeObjectURL(objectUrl);
-                        activeWorkers.delete(worker);
-                        worker.terminate();
-                        updateWorkersMetric();
-                        reject(new Error(`Failed to process image: ${file.name} - ${err.message}`));
                     }
                 };
                 
-                img.onerror = (err) => {
+                img.onerror = function() {
+                    clearTimeout(loadTimeout);
                     if (objectUrl) URL.revokeObjectURL(objectUrl);
-                    activeWorkers.delete(worker);
-                    worker.terminate();
-                    updateWorkersMetric();
                     reject(new Error(`Failed to load image: ${file.name}`));
                 };
                 
-                worker.onmessage = (e) => {
-                    activeWorkers.delete(worker);
-                    worker.terminate();
-                    updateWorkersMetric();
-                    
-                    if (e.data.success) {
-                        resolve(e.data.results);
-                    } else {
-                        reject(new Error(e.data.error));
-                    }
-                };
-                
-                worker.onerror = (err) => {
-                    if (objectUrl) URL.revokeObjectURL(objectUrl);
-                    activeWorkers.delete(worker);
-                    worker.terminate();
-                    updateWorkersMetric();
-                    reject(new Error(`Worker error for ${file.name}: ${err.message || 'Unknown error'}`));
-                };
-                
-                // Create object URL and set image source
                 try {
+                    if (!file.blob) {
+                        reject(new Error(`No blob data for ${file.name}`));
+                        return;
+                    }
+                    
+                    console.log(`[Main] Creating blob URL for: ${file.name}, blob size: ${file.blob.size} bytes`);
                     objectUrl = URL.createObjectURL(file.blob);
+                    img.crossOrigin = 'anonymous';
                     img.src = objectUrl;
                 } catch (err) {
+                    clearTimeout(loadTimeout);
                     if (objectUrl) URL.revokeObjectURL(objectUrl);
-                    activeWorkers.delete(worker);
-                    worker.terminate();
-                    updateWorkersMetric();
                     reject(new Error(`Failed to create object URL for ${file.name}: ${err.message}`));
+                }
+            });
+        }
+        
+        // Process single image with improved error handling and worker management
+        async function processImage(file, batchIndex) {
+            // Wait if too many workers active
+            while (activeWorkers.size >= MAX_PARALLEL_WORKERS) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            return new Promise(async (resolve, reject) => {
+                let worker = null;
+                let timeout = null;
+                
+                try {
+                    updateBatchItem(batchIndex, 'processing', 0);
+                    
+                    console.log(`[Main] Loading image: ${file.name}`);
+                    const imageData = await loadImageToCanvas(file);
+                    console.log(`[Main] Loaded image: ${file.name}, size: ${imageData.width}x${imageData.height}`);
+                    
+                    worker = new Worker(workerBlobUrl);
+                    activeWorkers.add(worker);
+                    updateWorkersMetric();
+                    
+                    timeout = setTimeout(() => {
+                        console.warn(`[Main] Worker timeout for ${file.name}`);
+                        if (worker) {
+                            activeWorkers.delete(worker);
+                            worker.terminate();
+                        }
+                        updateBatchItem(batchIndex, 'error', 0);
+                        reject(new Error(`Worker timeout for ${file.name}`));
+                    }, 30000);
+                    
+                    worker.onmessage = function(e) {
+                        clearTimeout(timeout);
+                        activeWorkers.delete(worker);
+                        worker.terminate();
+                        updateWorkersMetric();
+                        
+                        processingStats.processedCount++;
+                        updateAllMetrics();
+                        
+                        if (e.data.success) {
+                            updateBatchItem(batchIndex, 'completed', 100);
+                            resolve({
+                                filename: file.name,
+                                colors: e.data.colors
+                            });
+                        } else {
+                            console.error(`Worker reported error for ${file.name}:`, e.data.error);
+                            updateBatchItem(batchIndex, 'error', 0);
+                            reject(new Error(e.data.error));
+                        }
+                    };
+                    
+                    worker.onerror = function(error) {
+                        clearTimeout(timeout);
+                        activeWorkers.delete(worker);
+                        worker.terminate();
+                        updateWorkersMetric();
+                        console.error(`Worker error for ${file.name}:`, error);
+                        updateBatchItem(batchIndex, 'error', 0);
+                        reject(error);
+                    };
+                    
+                    worker.postMessage({
+                        imageData: imageData,
+                        filename: file.name
+                    });
+                    
+                } catch (error) {
+                    if (timeout) clearTimeout(timeout);
+                    if (worker) {
+                        activeWorkers.delete(worker);
+                        worker.terminate();
+                        updateWorkersMetric();
+                    }
+                    console.error(`Error processing ${file.name}:`, error);
+                    updateBatchItem(batchIndex, 'error', 0);
+                    reject(error);
                 }
             });
         }
         
         async function processImagesParallel(files) {
             const results = [];
-            const batchSize = MAX_PARALLEL_WORKERS * IMAGES_PER_WORKER;
+            const batchSize = MAX_PARALLEL_WORKERS * 3; // Process 3 images per worker
             
             for (let i = 0; i < files.length; i += batchSize) {
                 if (processingCancelled) {
@@ -950,15 +936,10 @@
                 
                 const batchPromises = batch.map(async (file, batchIndex) => {
                     try {
-                        updateBatchItem(batchIndex, 'processing', 0);
-                        
-                        const result = await processImageWithWorker(file);
-                        
-                        updateBatchItem(batchIndex, 'completed', 100);
+                        const result = await processImage(file, batchIndex);
                         return result;
                     } catch (err) {
                         console.warn(`Skipping ${file.name}:`, err.message);
-                        updateBatchItem(batchIndex, 'error', 0);
                         return null;
                     }
                 });
@@ -972,22 +953,14 @@
                 
                 batchResults.forEach(result => {
                     if (result !== null) {
-                        if (Array.isArray(result)) {
-                            results.push(...result);
-                        } else {
-                            results.push(result);
-                        }
+                        results.push(result);
                     }
                 });
                 
-                processingStats.processedImages = Math.min(i + batch.length, files.length);
-                
-                const progress = 10 + ((processingStats.processedImages / processingStats.totalImages) * 40);
-                updateProgress(progress, `Processing images (${processingStats.processedImages}/${processingStats.totalImages})`);
-                updateAllMetrics();
+                const progress = 10 + ((processingStats.processedCount / processingStats.totalCount) * 40);
+                updateProgress(progress, `Processing images (${processingStats.processedCount}/${processingStats.totalCount})`);
                 
                 clearBatch();
-                
                 await new Promise(resolve => setTimeout(resolve, 50));
             }
             
@@ -995,307 +968,114 @@
         }
         
         // ============================================
-        // AVERAGING ALGORITHM (EXACT from original)
+        // ANALYSIS FUNCTIONS
         // ============================================
         
-        function averageContours(dataArray) {
-            if (dataArray.length === 0) return null;
-            
-            const normalizedData = dataArray.map(d => ({
-                ...d,
-                normalizedContour: d.contour.map(p => ({
-                    x: p.x - d.centroid.x,
-                    y: p.y - d.centroid.y
-                }))
-            }));
-            
-            const numBins = 360;
-            const bins = Array(numBins).fill(null).map(() => ({ radii: [], points: [] }));
-            
-            normalizedData.forEach(d => {
-                d.normalizedContour.forEach(point => {
-                    const angle = Math.atan2(point.y, point.x);
-                    const radius = Math.sqrt(point.x * point.x + point.y * point.y);
-                    
-                    let binIndex = Math.floor(((angle + Math.PI) / (2 * Math.PI)) * numBins);
-                    binIndex = (binIndex + numBins) % numBins;
-                    
-                    bins[binIndex].radii.push(radius);
-                    bins[binIndex].points.push(point);
-                });
-            });
-            
-            const avgContour = bins.map((bin, i) => {
-                if (bin.radii.length === 0) {
-                    return null;
-                }
-                
-                const avgRadius = bin.radii.reduce((sum, r) => sum + r, 0) / bin.radii.length;
-                const angle = (i / numBins) * 2 * Math.PI - Math.PI;
-                
-                return {
-                    x: avgRadius * Math.cos(angle),
-                    y: avgRadius * Math.sin(angle),
-                    radius: avgRadius,
-                    count: bin.radii.length
-                };
-            });
-            
-            for (let i = 0; i < avgContour.length; i++) {
-                if (avgContour[i] === null) {
-                    let prevIndex = i - 1;
-                    let nextIndex = i + 1;
-                    
-                    while (prevIndex >= 0 && avgContour[prevIndex] === null) prevIndex--;
-                    while (nextIndex < avgContour.length && avgContour[nextIndex] === null) nextIndex++;
-                    
-                    if (prevIndex < 0) prevIndex = avgContour.length - 1;
-                    if (nextIndex >= avgContour.length) nextIndex = 0;
-                    
-                    const prev = avgContour[prevIndex];
-                    const next = avgContour[nextIndex];
-                    
-                    if (prev && next) {
-                        const angle = (i / numBins) * 2 * Math.PI - Math.PI;
-                        const avgRadius = (prev.radius + next.radius) / 2;
-                        
-                        avgContour[i] = {
-                            x: avgRadius * Math.cos(angle),
-                            y: avgRadius * Math.sin(angle),
-                            radius: avgRadius,
-                            count: 0
-                        };
-                    }
-                }
+        function calculateAverageShape(dataPoints) {
+            if (dataPoints.length === 0) {
+                return { radialData: [], meanRadius: 0, sdRadius: 0, meanArea: 0, sdArea: 0 };
             }
             
-            const avgCentroid = {
-                x: dataArray.reduce((sum, d) => sum + d.centroid.x, 0) / dataArray.length,
-                y: dataArray.reduce((sum, d) => sum + d.centroid.y, 0) / dataArray.length
-            };
+            const numAngles = 360;
+            const radii = Array(numAngles).fill(0).map(() => []);
             
-            const allRadii = dataArray.map(d => d.avgRadius);
-            const meanRadius = allRadii.reduce((sum, r) => sum + r, 0) / allRadii.length;
-            const variance = allRadii.reduce((sum, r) => sum + Math.pow(r - meanRadius, 2), 0) / allRadii.length;
-            const sdRadius = Math.sqrt(variance);
+            dataPoints.forEach(point => {
+                const centerX = 500;
+                const centerY = 500;
+                
+                for (let angle = 0; angle < numAngles; angle++) {
+                    const rad = (angle * Math.PI) / 180;
+                    const cos = Math.cos(rad);
+                    const sin = Math.sin(rad);
+                    
+                    let maxDist = 0;
+                    
+                    for (let r = 0; r < 500; r += 2) {
+                        const x = Math.round(centerX + r * cos);
+                        const y = Math.round(centerY + r * sin);
+                        
+                        if (x < 0 || x >= 1000 || y < 0 || y >= 1000) break;
+                        
+                        const pixelIndex = (y * 1000 + x) * 4;
+                        const colorKey = `${point.imageData.data[pixelIndex]},${point.imageData.data[pixelIndex + 1]},${point.imageData.data[pixelIndex + 2]}`;
+                        
+                        if (point.targetColor === colorKey) {
+                            maxDist = r;
+                        }
+                    }
+                    
+                    radii[angle].push(maxDist);
+                }
+            });
             
-            const allAreas = dataArray.map(d => d.area);
-            const meanArea = allAreas.reduce((sum, a) => sum + a, 0) / allAreas.length;
-            const areaVariance = allAreas.reduce((sum, a) => sum + Math.pow(a - meanArea, 2), 0) / allAreas.length;
-            const sdArea = Math.sqrt(areaVariance);
+            const avgRadii = radii.map(angleRadii => {
+                if (angleRadii.length === 0) return 0;
+                return angleRadii.reduce((a, b) => a + b, 0) / angleRadii.length;
+            });
+            
+            const meanRadius = avgRadii.reduce((a, b) => a + b, 0) / avgRadii.length;
+            
+            const radiusVariances = avgRadii.map(r => Math.pow(r - meanRadius, 2));
+            const sdRadius = Math.sqrt(radiusVariances.reduce((a, b) => a + b, 0) / radiusVariances.length);
+            
+            const areas = dataPoints.map(point => {
+                let pixelCount = 0;
+                for (let i = 0; i < point.imageData.data.length; i += 4) {
+                    const colorKey = `${point.imageData.data[i]},${point.imageData.data[i + 1]},${point.imageData.data[i + 2]}`;
+                    if (point.targetColor === colorKey) {
+                        pixelCount++;
+                    }
+                }
+                return pixelCount;
+            });
+            
+            const meanArea = areas.reduce((a, b) => a + b, 0) / areas.length;
+            const areaVariances = areas.map(a => Math.pow(a - meanArea, 2));
+            const sdArea = Math.sqrt(areaVariances.reduce((a, b) => a + b, 0) / areaVariances.length);
             
             return {
-                contour: avgContour.filter(p => p !== null),
-                centroid: avgCentroid,
+                radialData: avgRadii,
                 meanRadius,
                 sdRadius,
                 meanArea,
-                sdArea,
-                n: dataArray.length,
-                individualData: dataArray
+                sdArea
             };
         }
         
-        // ============================================
-        // DRAWING FUNCTIONS
-        // ============================================
-        
-        function drawGrid(ctx, size) {
-            const center = size / 2;
-            const gridColor = '#e5e7eb';
-            const axisColor = '#9ca3af';
-            const labelColor = '#6b7280';
-            
-            ctx.save();
-            ctx.strokeStyle = gridColor;
-            ctx.lineWidth = 1;
-            
-            for (let i = -UNIT_RANGE + 1; i < UNIT_RANGE; i++) {
-                const coord = unitToCanvas(i, i, size);
-                
-                if (i !== 0) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, coord.y);
-                    ctx.lineTo(size, coord.y);
-                    ctx.stroke();
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(coord.x, 0);
-                    ctx.lineTo(coord.x, size);
-                    ctx.stroke();
-                }
-            }
-            
-            ctx.strokeStyle = axisColor;
-            ctx.lineWidth = 2;
-            
-            ctx.beginPath();
-            ctx.moveTo(0, center);
-            ctx.lineTo(size, center);
-            ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.moveTo(center, 0);
-            ctx.lineTo(center, size);
-            ctx.stroke();
-            
-            const labelScale = size / CANVAS_SIZE;
-            ctx.fillStyle = labelColor;
-            ctx.font = `bold ${Math.floor(12 * labelScale)}px sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            for (let i = -UNIT_RANGE; i <= UNIT_RANGE; i += 2) {
-                if (i === 0) continue;
-                const coord = unitToCanvas(i, 0, size);
-                const labelY = i === UNIT_RANGE || i === -UNIT_RANGE ? center + 25 * labelScale : center + 20 * labelScale;
-                ctx.fillText(i.toString(), coord.x, labelY);
-            }
-            
-            for (let j = -UNIT_RANGE; j <= UNIT_RANGE; j += 2) {
-                if (j === 0) continue;
-                const coord = unitToCanvas(0, j, size);
-                const labelX = j === UNIT_RANGE || j === -UNIT_RANGE ? center - 25 * labelScale : center - 20 * labelScale;
-                ctx.fillText(j.toString(), labelX, coord.y);
-            }
-            
-            ctx.restore();
-        }
-        
-        function drawBackgroundCircle(ctx, size) {
-            const center = unitToCanvas(0, 0, size);
-            const radius = BACKGROUND_CIRCLE_RADIUS_UNITS * SCALE_FACTOR * (size / CANVAS_SIZE);
-            
-            ctx.save();
-            // Draw thin black outline for 3-unit reference circle (UNFILLED)
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 1.5;
-            ctx.setLineDash([]);
-            ctx.beginPath();
-            ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI);
-            // CRITICAL: ONLY stroke, NEVER fill
-            ctx.stroke();
-            ctx.restore();
-        }
-        
-        function drawIndividualShapes(ctx, dataArray, size) {
-            if (!dataArray || dataArray.length === 0) return;
-            
-            ctx.save();
-            
-            // Set styles for individual shapes - gray outline ONLY
-            ctx.strokeStyle = '#999999';  // Darker gray for visibility
-            ctx.lineWidth = 1;
-            ctx.globalAlpha = 0.5;
-            ctx.setLineDash([]);
-            
-            dataArray.forEach(data => {
-                if (!data.contour || data.contour.length < 3) return;
-                
-                ctx.beginPath();
-                data.contour.forEach((point, i) => {
-                    const shifted = {
-                        x: point.x + data.centroid.x,
-                        y: point.y + data.centroid.y
-                    };
-                    const canvasPoint = unitToCanvas(shifted.x, shifted.y, size);
-                    
-                    if (i === 0) {
-                        ctx.moveTo(canvasPoint.x, canvasPoint.y);
-                    } else {
-                        ctx.lineTo(canvasPoint.x, canvasPoint.y);
-                    }
-                });
-                
-                // Close path if first and last points are close
-                const first = data.contour[0];
-                const last = data.contour[data.contour.length - 1];
-                const dx = last.x - first.x;
-                const dy = last.y - first.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance < 0.5) {
-                    ctx.closePath();
-                }
-                
-                // CRITICAL: ONLY stroke, NEVER fill
-                ctx.stroke();
-            });
-            
-            ctx.globalAlpha = 1.0;
-            ctx.restore();
-        }
-        
-        function drawAverageShape(ctx, avgData, color, size) {
-            if (!avgData || !avgData.contour || avgData.contour.length === 0) return;
-            
-            const contourCanvas = avgData.contour.map(p => {
-                const shifted = {
-                    x: p.x + avgData.centroid.x,
-                    y: p.y + avgData.centroid.y
-                };
-                return unitToCanvas(shifted.x, shifted.y, size);
-            });
-            
-            if (contourCanvas.length < 3) return;
-            
-            ctx.save();
-            
-            // Set color based on phase - UNFILLED, just colored outline
-            ctx.strokeStyle = color === 'red' ? '#ff0000' : '#0000ff';
-            ctx.lineWidth = 3;
-            ctx.globalAlpha = 1.0;
-            
-            // Blue is dashed, red is solid
-            if (color === 'blue') {
-                ctx.setLineDash([8, 5]);
-            } else {
-                ctx.setLineDash([]);
-            }
-            
-            ctx.beginPath();
-            ctx.moveTo(contourCanvas[0].x, contourCanvas[0].y);
-            for (let i = 1; i < contourCanvas.length; i++) {
-                ctx.lineTo(contourCanvas[i].x, contourCanvas[i].y);
-            }
-            ctx.closePath();
-            
-            // CRITICAL: ONLY stroke, NEVER fill - averaged shapes are UNFILLED
-            ctx.stroke();
-            
-            ctx.setLineDash([]);
-            ctx.restore();
-        }
-        
-        function createVisualization(redAvg, blueAvg, frequency) {
-            const canvas = document.createElement('canvas');
-            canvas.width = CANVAS_SIZE;
-            canvas.height = CANVAS_SIZE;
+        function drawAverageShape(canvas, radialData, color, label) {
             const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            drawGrid(ctx, CANVAS_SIZE);
-            drawBackgroundCircle(ctx, CANVAS_SIZE);
+            ctx.beginPath();
+            radialData.forEach((radius, angle) => {
+                const rad = (angle * Math.PI) / 180;
+                const x = centerX + radius * Math.cos(rad);
+                const y = centerY + radius * Math.sin(rad);
+                
+                if (angle === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
             
-            if (redAvg) {
-                drawIndividualShapes(ctx, redAvg.individualData, CANVAS_SIZE);
-                drawAverageShape(ctx, redAvg, 'red', CANVAS_SIZE);
-            }
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
             
-            if (blueAvg) {
-                drawIndividualShapes(ctx, blueAvg.individualData, CANVAS_SIZE);
-                drawAverageShape(ctx, blueAvg, 'blue', CANVAS_SIZE);
-            }
-            
-            ctx.save();
-            ctx.fillStyle = '#1f2937';
-            ctx.font = 'bold 24px sans-serif';
+            ctx.fillStyle = 'black';
+            ctx.font = 'bold 24px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(`${frequency} Hz`, CANVAS_SIZE / 2, 40);
-            ctx.restore();
-            
-            return canvas;
+            ctx.fillText(label, centerX, 30);
         }
         
         // ============================================
@@ -1306,36 +1086,57 @@
             try {
                 processingCancelled = false;
                 processingStats.startTime = Date.now();
-                processingStats.processedImages = 0;
+                processingStats.processedCount = 0;
                 processingStats.speedHistory = [];
                 processingStats.maxSpeed = 0;
+                processingStats.batchStats.clear();
                 
-                const analyzeBtn = document.getElementById('analyze-btn');
-                const cancelBtn = document.getElementById('cancel-btn');
+                document.getElementById('analyze-btn').classList.add('hidden');
+                document.getElementById('cancel-btn').classList.remove('hidden');
                 
-                analyzeBtn.classList.add('hidden');
-                cancelBtn.classList.remove('hidden');
+                document.getElementById('progress-container').classList.remove('hidden');
+                updateProgress(0, 'Initializing...');
                 
                 document.getElementById('data-summary').classList.add('hidden');
                 document.getElementById('visualization-container').classList.add('hidden');
                 document.getElementById('statistics-container').classList.add('hidden');
                 
+                console.log('[Main] Starting analysis with', inputFiles.length, 'files');
+                
+                let allImages = [];
+                
                 updateProgress(5, 'Extracting files from ZIPs...');
                 
-                const files = await processAllFiles(inputFiles);
-                processingStats.totalImages = files.length;
-                
-                if (files.length === 0) {
-                    throw new Error('No valid PNG files found');
+                for (const file of inputFiles) {
+                    if (processingCancelled) throw new Error('Processing cancelled by user');
+                    
+                    if (file.name.toLowerCase().endsWith('.zip')) {
+                        const images = await loadImagesFromZip(file);
+                        allImages.push(...images);
+                    } else if (file.name.toLowerCase().endsWith('.png')) {
+                        allImages.push({
+                            name: file.name,
+                            blob: file,
+                            fullPath: file.name
+                        });
+                        console.log(`[Main] Loaded PNG: ${file.name}`);
+                    }
                 }
                 
-                updateProgress(10, `Found ${files.length} PNG files. Starting parallel processing...`);
+                console.log(`[Main] Total images to process: ${allImages.length}`);
+                
+                if (allImages.length === 0) {
+                    throw new Error('No valid PNG images found in the uploaded files');
+                }
+                
+                processingStats.totalCount = allImages.length;
+                updateProgress(10, `Found ${allImages.length} images, preparing to process...`);
                 
                 const metricsInterval = setInterval(() => {
                     updateAllMetrics();
                 }, 500);
                 
-                const processedData = await processImagesParallel(files);
+                const processedData = await processImagesParallel(allImages);
                 
                 clearInterval(metricsInterval);
                 updateAllMetrics();
@@ -1344,23 +1145,106 @@
                     throw new Error('No valid data extracted from images');
                 }
                 
-                updateProgress(50, 'Computing averaged shapes...');
+                console.log(`[Main] Successfully processed ${processedData.length} images`);
+                
+                updateProgress(50, 'Calculating averages...');
                 
                 const participantData = {};
                 FREQUENCIES.forEach(freq => {
                     participantData[freq] = { red: [], blue: [] };
                 });
                 
-                processedData.forEach(data => {
-                    if (participantData[data.frequency]) {
-                        participantData[data.frequency][data.phase].push(data);
+                for (const data of processedData) {
+                    if (processingCancelled) throw new Error('Processing cancelled by user');
+                    
+                    const parsed = parseFilename(data.filename);
+                    if (!parsed) continue;
+                    
+                    const imageData = await loadImageToCanvas(
+                        allImages.find(img => img.name === data.filename)
+                    );
+                    
+                    const redColor = data.colors.find(c => c.color.includes('255, 0, 0') || c.color.includes('254, 0, 0'));
+                    const blueColor = data.colors.find(c => c.color.includes('0, 0, 255') || c.color.includes('0, 0, 254'));
+                    
+                    if (redColor) {
+                        const colorKey = redColor.color.match(/\d+/g).join(',');
+                        participantData[parsed.frequency].red.push({
+                            participant: parsed.participant,
+                            imageData: imageData,
+                            targetColor: colorKey
+                        });
                     }
-                });
+                    
+                    if (blueColor) {
+                        const colorKey = blueColor.color.match(/\d+/g).join(',');
+                        participantData[parsed.frequency].blue.push({
+                            participant: parsed.participant,
+                            imageData: imageData,
+                            targetColor: colorKey
+                        });
+                    }
+                }
                 
                 updateProgress(70, 'Generating visualizations...');
                 
-                const visualizationGrid = document.getElementById('visualization-grid');
-                visualizationGrid.innerHTML = '';
+                const canvasGrid = document.getElementById('canvas-grid');
+                canvasGrid.innerHTML = '';
+                
+                FREQUENCIES.forEach(freq => {
+                    if (processingCancelled) throw new Error('Processing cancelled by user');
+                    
+                    const redData = participantData[freq].red;
+                    const blueData = participantData[freq].blue;
+                    
+                    if (redData.length === 0 && blueData.length === 0) return;
+                    
+                    const container = document.createElement('div');
+                    container.className = 'canvas-container p-4 cursor-pointer hover:shadow-xl transition-shadow';
+                    
+                    const title = document.createElement('h3');
+                    title.className = 'text-lg font-bold text-gray-800 mb-3 text-center';
+                    title.textContent = freq;
+                    container.appendChild(title);
+                    
+                    if (redData.length > 0) {
+                        const redAvg = calculateAverageShape(redData);
+                        const redCanvas = document.createElement('canvas');
+                        redCanvas.width = 1000;
+                        redCanvas.height = 1000;
+                        redCanvas.className = 'w-full border border-gray-200 rounded mb-2';
+                        drawAverageShape(redCanvas, redAvg.radialData, 'rgba(255, 0, 0, 0.7)', `Red Average (n=${redData.length})`);
+                        container.appendChild(redCanvas);
+                        
+                        redCanvas.addEventListener('click', () => {
+                            const link = document.createElement('a');
+                            link.download = `sound_object_${freq}_red.png`;
+                            link.href = redCanvas.toDataURL('image/png');
+                            link.click();
+                        });
+                    }
+                    
+                    if (blueData.length > 0) {
+                        const blueAvg = calculateAverageShape(blueData);
+                        const blueCanvas = document.createElement('canvas');
+                        blueCanvas.width = 1000;
+                        blueCanvas.height = 1000;
+                        blueCanvas.className = 'w-full border border-gray-200 rounded';
+                        drawAverageShape(blueCanvas, blueAvg.radialData, 'rgba(0, 0, 255, 0.7)', `Blue Average (n=${blueData.length})`);
+                        container.appendChild(blueCanvas);
+                        
+                        blueCanvas.addEventListener('click', () => {
+                            const link = document.createElement('a');
+                            link.download = `sound_object_${freq}_blue.png`;
+                            link.href = blueCanvas.toDataURL('image/png');
+                            link.click();
+                        });
+                    }
+                    
+                    canvasGrid.appendChild(container);
+                });
+                
+                updateProgress(90, 'Generating statistics...');
                 
                 const statsBody = document.getElementById('statistics-body');
                 statsBody.innerHTML = '';
@@ -1369,44 +1253,14 @@
                     const redData = participantData[freq].red;
                     const blueData = participantData[freq].blue;
                     
-                    if (redData.length === 0 && blueData.length === 0) return;
-                    
-                    const redAvg = redData.length > 0 ? averageContours(redData) : null;
-                    const blueAvg = blueData.length > 0 ? averageContours(blueData) : null;
-                    
-                    const canvas = createVisualization(redAvg, blueAvg, freq);
-                    
-                    const container = document.createElement('div');
-                    container.className = 'canvas-container p-4 cursor-pointer hover:shadow-xl transition-shadow';
-                    container.appendChild(canvas);
-                    
-                    container.addEventListener('click', () => {
-                        const link = document.createElement('a');
-                        link.download = `sound_object_${freq}Hz.png`;
-                        link.href = canvas.toDataURL('image/png');
-                        link.click();
-                    });
-                    
-                    visualizationGrid.appendChild(container);
-                    
                     if (redData.length > 0) {
-                        const redRadii = redData.map(d => d.avgRadius);
-                        const redAreas = redData.map(d => d.area);
-                        
-                        const redAvg = {
-                            n: redData.length,
-                            meanRadius: redRadii.reduce((sum, r) => sum + r, 0) / redRadii.length,
-                            sdRadius: Math.sqrt(redRadii.map(r => Math.pow(r - (redRadii.reduce((sum, r) => sum + r, 0) / redRadii.length), 2)).reduce((sum, v) => sum + v, 0) / redRadii.length),
-                            meanArea: redAreas.reduce((sum, a) => sum + a, 0) / redAreas.length,
-                            sdArea: Math.sqrt(redAreas.map(a => Math.pow(a - (redAreas.reduce((sum, a) => sum + a, 0) / redAreas.length), 2)).reduce((sum, v) => sum + v, 0) / redAreas.length)
-                        };
-                        
+                        const redAvg = calculateAverageShape(redData);
                         const row = document.createElement('tr');
                         row.className = 'hover:bg-gray-50';
                         row.innerHTML = `
-                            <td class="px-4 py-3 text-sm font-semibold">${freq} Hz</td>
-                            <td class="px-4 py-3 text-sm"><span class="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>Red (In-Phase)</td>
-                            <td class="px-4 py-3 text-sm">${redAvg.n}</td>
+                            <td class="px-4 py-3 text-sm font-semibold text-gray-800">${freq}</td>
+                            <td class="px-4 py-3"><span class="inline-block w-4 h-4 rounded-full bg-red-500"></span> Red</td>
+                            <td class="px-4 py-3 text-sm font-semibold">${redData.length}</td>
                             <td class="px-4 py-3 text-sm font-mono">${redAvg.meanRadius.toFixed(3)}</td>
                             <td class="px-4 py-3 text-sm font-mono">${redAvg.sdRadius.toFixed(3)}</td>
                             <td class="px-4 py-3 text-sm font-mono">${redAvg.meanArea.toFixed(3)}</td>
@@ -1416,23 +1270,13 @@
                     }
                     
                     if (blueData.length > 0) {
-                        const blueRadii = blueData.map(d => d.avgRadius);
-                        const blueAreas = blueData.map(d => d.area);
-                        
-                        const blueAvg = {
-                            n: blueData.length,
-                            meanRadius: blueRadii.reduce((sum, r) => sum + r, 0) / blueRadii.length,
-                            sdRadius: Math.sqrt(blueRadii.map(r => Math.pow(r - (blueRadii.reduce((sum, r) => sum + r, 0) / blueRadii.length), 2)).reduce((sum, v) => sum + v, 0) / blueRadii.length),
-                            meanArea: blueAreas.reduce((sum, a) => sum + a, 0) / blueAreas.length,
-                            sdArea: Math.sqrt(blueAreas.map(a => Math.pow(a - (blueAreas.reduce((sum, a) => sum + a, 0) / blueAreas.length), 2)).reduce((sum, v) => sum + v, 0) / blueAreas.length)
-                        };
-                        
+                        const blueAvg = calculateAverageShape(blueData);
                         const row = document.createElement('tr');
                         row.className = 'hover:bg-gray-50';
                         row.innerHTML = `
-                            <td class="px-4 py-3 text-sm font-semibold">${freq} Hz</td>
-                            <td class="px-4 py-3 text-sm"><span class="inline-block w-3 h-3 rounded-full bg-blue-500 mr-2"></span>Blue (Out-of-Phase)</td>
-                            <td class="px-4 py-3 text-sm">${blueAvg.n}</td>
+                            <td class="px-4 py-3 text-sm font-semibold text-gray-800">${freq}</td>
+                            <td class="px-4 py-3"><span class="inline-block w-4 h-4 rounded-full bg-blue-500"></span> Blue</td>
+                            <td class="px-4 py-3 text-sm font-semibold">${blueData.length}</td>
                             <td class="px-4 py-3 text-sm font-mono">${blueAvg.meanRadius.toFixed(3)}</td>
                             <td class="px-4 py-3 text-sm font-mono">${blueAvg.sdRadius.toFixed(3)}</td>
                             <td class="px-4 py-3 text-sm font-mono">${blueAvg.meanArea.toFixed(3)}</td>
@@ -1602,10 +1446,12 @@
             URL.revokeObjectURL(workerBlobUrl);
         });
         
-        console.log('%c🎵 Sound Object Analyzer v2.1 Enhanced', 'color: #8B5CF6; font-size: 16px; font-weight: bold');
+        console.log('%c🎵 Sound Object Analyzer v2.1.1 ENHANCED UI + FIXED', 'color: #8B5CF6; font-size: 16px; font-weight: bold');
         console.log(`%c✓ Initialized with ${CPU_CORES} CPU cores, ${MAX_PARALLEL_WORKERS} max workers`, 'color: #10B981');
         console.log('%c✓ Robust filename parsing enabled', 'color: #10B981');
         console.log('%c✓ Memory leak protection active', 'color: #10B981');
+        console.log('%c✓ Enhanced worker error handling enabled', 'color: #10B981');
+        console.log('%c✓ Enhanced UI with real-time metrics', 'color: #10B981');
         
         // Test regex patterns at startup
         const testFilenames = [
