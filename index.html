@@ -29,7 +29,6 @@
             gap: 1.5rem;
         }
         
-        /* Mobile optimizations - Full screen width */
         @media (max-width: 768px) {
             body {
                 zoom: 1;
@@ -41,62 +40,6 @@
             .analysis-grid {
                 grid-template-columns: 1fr;
                 gap: 1rem;
-            }
-            
-            .max-w-7xl {
-                max-width: 100%;
-                width: 100%;
-                padding: 0;
-                margin: 0;
-            }
-            
-            /* Make all containers full width on mobile */
-            .bg-white, .bg-gradient-to-r {
-                width: 100%;
-                box-sizing: border-box;
-            }
-            
-            /* Larger touch targets */
-            button {
-                min-height: 44px;
-                touch-action: manipulation;
-            }
-            
-            /* File input touch-friendly */
-            input[type="file"] {
-                font-size: 16px; /* Prevents zoom on iOS */
-            }
-        }
-        
-        /* Tablet optimizations - Full screen width */
-        @media (min-width: 769px) and (max-width: 1024px) {
-            body {
-                zoom: 0.9;
-                -moz-transform: scale(0.9);
-                -moz-transform-origin: 0 0;
-                width: 100vw;
-                padding: 1rem;
-            }
-            
-            .analysis-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .max-w-7xl {
-                max-width: 100%;
-                width: 100%;
-            }
-            
-            button {
-                min-height: 40px;
-            }
-        }
-        
-        /* Large desktop */
-        @media (min-width: 1920px) {
-            body {
-                zoom: 0.8;
-                -moz-transform: scale(0.8);
             }
         }
         
@@ -117,7 +60,6 @@
             transition: width 0.2s ease-out;
         }
         
-        /* Prevent horizontal scroll */
         * {
             box-sizing: border-box;
         }
@@ -138,31 +80,15 @@
             </h1>
             <p class="text-lg sm:text-xl font-semibold text-gray-600">UCI Hearing & Speech Lab</p>
             <p class="text-xs sm:text-sm text-gray-500 mt-2">Import participant drawings and generate averaged visualizations</p>
-            <div class="mt-3 flex justify-center gap-2 text-xs flex-wrap px-2">
-                <span class="px-2 sm:px-3 py-1 bg-purple-100 text-purple-700 rounded-full border border-purple-300">🚀 Web Workers</span>
-                <span class="px-2 sm:px-3 py-1 bg-blue-100 text-blue-700 rounded-full border border-blue-300">⚡ Parallel Processing</span>
-                <span class="px-2 sm:px-3 py-1 bg-green-100 text-green-700 rounded-full border border-green-300">💾 Memory Optimized</span>
-                <span class="px-2 sm:px-3 py-1 bg-amber-100 text-amber-700 rounded-full border border-amber-300">📊 Real-time Monitoring</span>
-                <span class="px-2 sm:px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full border border-indigo-300">🎯 Exact Calculations</span>
-            </div>
         </header>
         
         <!-- Performance Dashboard -->
         <div id="performance-dashboard" class="hidden bg-gradient-to-r from-purple-50 to-pink-50 p-4 sm:p-6 rounded-xl shadow-lg mb-6 border-2 border-purple-200">
-            <h2 class="text-lg sm:text-xl font-bold text-purple-800 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                </svg>
-                Real-Time Performance Metrics
-            </h2>
-            <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+            <h2 class="text-lg sm:text-xl font-bold text-purple-800 mb-4">Real-Time Performance Metrics</h2>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
                     <div class="text-xs text-gray-500 font-semibold mb-1">Processing Speed</div>
                     <div id="speed-metric" class="text-xl sm:text-2xl font-bold text-purple-600 performance-metric">0 img/s</div>
-                </div>
-                <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
-                    <div class="text-xs text-gray-500 font-semibold mb-1">Time Elapsed</div>
-                    <div id="elapsed-metric" class="text-xl sm:text-2xl font-bold text-indigo-600 performance-metric">0s</div>
                 </div>
                 <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
                     <div class="text-xs text-gray-500 font-semibold mb-1">Time Remaining</div>
@@ -172,7 +98,7 @@
                     <div class="text-xs text-gray-500 font-semibold mb-1">Workers Active</div>
                     <div id="workers-metric" class="text-xl sm:text-2xl font-bold text-green-600 performance-metric">0</div>
                 </div>
-                <div class="bg-white p-3 sm:p-4 rounded-lg shadow" id="memory-container">
+                <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
                     <div class="text-xs text-gray-500 font-semibold mb-1">Memory Used</div>
                     <div id="memory-metric" class="text-xl sm:text-2xl font-bold text-orange-600 performance-metric">-- MB</div>
                 </div>
@@ -181,53 +107,22 @@
         
         <!-- Instructions -->
         <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:p-6 rounded-xl shadow-lg mb-6 border border-blue-200">
-            <h2 class="text-lg sm:text-xl font-bold text-blue-800 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                How to Use
-            </h2>
+            <h2 class="text-lg sm:text-xl font-bold text-blue-800 mb-4">How to Use</h2>
             <ol class="list-decimal list-inside space-y-2 text-sm sm:text-base text-gray-700">
-                <li><strong>Upload Files:</strong> Select PNG files OR ZIP files (even nested ZIPs!) from the Sound Object tool</li>
-                <li><strong>Automatic Extraction:</strong> ZIP files are automatically unpacked to find all PNG images inside</li>
-                <li><strong>Automatic Detection:</strong>
-                    <ul class="list-disc list-inside ml-6 mt-1 space-y-1">
-                        <li><strong>Participant ID & Frequency:</strong> Extracted from filename (e.g., "P-001_125Hz_90dB.png")</li>
-                        <li><strong>Phase (Red/Blue):</strong> Detected by analyzing pixel colors in the image (red pixels = in-phase, blue pixels = out-of-phase)</li>
-                    </ul>
-                </li>
-                <li><strong>Process Data:</strong> Click "Analyze & Generate Visualizations" - now with parallel processing!</li>
-                <li><strong>View & Export:</strong> See averaged shapes with statistics, download publication-ready figures</li>
+                <li><strong>Upload Files:</strong> Select PNG files OR ZIP files from the Sound Object tool</li>
+                <li><strong>Automatic Detection:</strong> Frequency, phase (Red/Blue), and participant ID from filenames</li>
+                <li><strong>Process Data:</strong> Click "Analyze & Generate Visualizations"</li>
+                <li><strong>View & Export:</strong> Download publication-ready figures</li>
             </ol>
-            <p class="mt-4 text-xs sm:text-sm text-blue-700 font-semibold">
-                📝 Expected filename format: <code class="bg-white px-2 py-1 rounded">ParticipantID_FrequencyHz_dBdB.png</code> (e.g., P-001_125Hz_90dB.png)
-            </p>
-            <p class="mt-2 text-xs sm:text-sm text-amber-700 font-semibold bg-amber-50 p-3 rounded-lg border border-amber-200">
-                🎨 <strong>Phase Detection:</strong> Red and blue phases are automatically separated by analyzing pixel colors in each image. Each image can contain both red (in-phase) and blue (out-of-phase) drawings, which are processed independently.
-            </p>
-            <p class="mt-2 text-xs sm:text-sm text-green-700 font-semibold bg-green-50 p-3 rounded-lg border border-green-200">
-                📦 <strong>ZIP Support:</strong> Upload one big ZIP file containing multiple participant folders (each as their own ZIP). The tool will automatically extract all nested ZIPs and find every PNG file!
-            </p>
-            <p class="mt-2 text-xs text-purple-700 font-semibold bg-purple-50 p-2 rounded">
-                ⚡ <strong>Ultra-Optimized Performance:</strong> This version uses Web Workers for parallel processing (3 images per CPU core), advanced memory management to minimize garbage collection, and real-time performance monitoring!
-            </p>
-            <p class="mt-2 text-xs text-green-700 font-semibold bg-green-50 p-2 rounded">
-                ✅ <strong>Perfect Consistency:</strong> This analyzer uses the EXACT coordinate system (1000×1000px canvas, ±10 unit grid), centroid calculation (uniform resampling), and area calculation (pixel-based with brush radius) as the original drawing tool.
-            </p>
         </div>
         
         <!-- File Upload Section -->
         <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg mb-6 border border-gray-100">
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 sm:w-7 sm:h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                </svg>
-                Upload Participant Images
-            </h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Upload Participant Images</h2>
             
             <div class="mb-4">
                 <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                    Select PNG files OR ZIP files containing PNGs (multiple files/folders allowed)
+                    Select PNG files OR ZIP files containing PNGs
                 </label>
                 <input 
                     type="file" 
@@ -275,7 +170,7 @@
             </div>
         </div>
         
-        <!-- Progress Bar with Micro-Progress Tracking -->
+        <!-- Progress Bar -->
         <div id="progress-container" class="hidden bg-white p-6 rounded-xl shadow-lg mb-6">
             <div class="mb-2 flex justify-between items-center">
                 <h3 class="text-lg font-bold text-gray-800">Processing Progress</h3>
@@ -286,7 +181,6 @@
             </div>
             <p id="progress-text" class="mt-2 text-sm text-gray-600 font-semibold"></p>
             
-            <!-- Micro-Progress for Current Batch -->
             <div id="batch-progress" class="mt-4 hidden">
                 <div class="flex justify-between items-center mb-2">
                     <h4 class="text-sm font-bold text-gray-700">Current Batch Progress</h4>
@@ -342,8 +236,7 @@
         
         <!-- Footer -->
         <footer class="text-center text-sm text-gray-500 mt-8 pb-4">
-            <p class="font-semibold">UCI Hearing & Speech Lab - Sound Object Average Shape Analyzer v2.0 (Ultra Optimized)</p>
-            <p class="mt-1">Parallel Web Worker Processing • Advanced Memory Management • Real-time Monitoring</p>
+            <p class="font-semibold">UCI Hearing & Speech Lab - Sound Object Average Shape Analyzer v2.0</p>
         </footer>
     </div>
     
@@ -360,30 +253,26 @@
         
         // Detect CPU cores for optimal parallelization
         const CPU_CORES = navigator.hardwareConcurrency || 4;
-        const IMAGES_PER_WORKER = 3; // Process 3 images per worker
+        const IMAGES_PER_WORKER = 3;
         const MAX_PARALLEL_WORKERS = CPU_CORES;
         
         let participantData = {};
         let processingCancelled = false;
         let activeWorkers = new Set();
-        let workerPool = [];
         
         // Performance tracking
         let processingStats = {
             startTime: 0,
             totalImages: 0,
-            processedImages: 0,
-            workersActive: 0
+            processedImages: 0
         };
         
-        // Memory management - Canvas pool with better reuse
+        // Memory management
         const canvasPool = [];
-        const MAX_POOL_SIZE = Math.min(20, MAX_PARALLEL_WORKERS * 2); // 2 canvases per worker
+        const MAX_POOL_SIZE = Math.min(20, MAX_PARALLEL_WORKERS * 2);
         
         function getCanvas() {
-            if (canvasPool.length > 0) {
-                return canvasPool.pop();
-            }
+            if (canvasPool.length > 0) return canvasPool.pop();
             const canvas = document.createElement('canvas');
             canvas.width = CANVAS_SIZE;
             canvas.height = CANVAS_SIZE;
@@ -392,32 +281,14 @@
         
         function releaseCanvas(canvas) {
             if (canvasPool.length < MAX_POOL_SIZE) {
-                // Clear canvas for reuse
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
                 canvasPool.push(canvas);
             }
         }
         
-        // Memory-efficient ImageData reuse
-        let imageDataPool = [];
-        const MAX_IMAGEDATA_POOL = MAX_PARALLEL_WORKERS * 2;
-        
-        function getImageData(ctx) {
-            if (imageDataPool.length > 0) {
-                return imageDataPool.pop();
-            }
-            return ctx.createImageData(CANVAS_SIZE, CANVAS_SIZE);
-        }
-        
-        function releaseImageData(imageData) {
-            if (imageDataPool.length < MAX_IMAGEDATA_POOL) {
-                imageDataPool.push(imageData);
-            }
-        }
-        
         // ============================================
-        // WEB WORKER CODE (Inline) - FIXED REGEX
+        // WEB WORKER CODE
         // ============================================
         
         const workerCode = `
@@ -434,20 +305,10 @@
                 };
             }
             
-            function unitToCanvas(unitX, unitY, canvasSize = CANVAS_SIZE) {
-                const center = canvasSize / 2;
-                const scale = canvasSize / (2 * UNIT_RANGE);
-                return {
-                    x: center + (unitX * scale),
-                    y: center - (unitY * scale)
-                };
-            }
-            
             function calculateGeometricCentroid(pixels) {
                 if (pixels.length === 0) return { x: 0, y: 0 };
                 
                 const points = pixels.map(p => canvasToUnit(p.x, p.y));
-                
                 const totalPathLength = (points.length - 1) * 1.0;
                 const numSamples = Math.max(100, Math.floor(totalPathLength * 10));
                 const sampledPoints = [];
@@ -518,78 +379,6 @@
                 const dx = px - xx;
                 const dy = py - yy;
                 return Math.sqrt(dx * dx + dy * dy);
-            }
-            
-            function fillContourGaps(bins, avgRadius) {
-                // Fill gaps in angular bins by interpolating from neighboring bins
-                // This helps with incomplete shapes due to red/blue overlap
-                const maxGapSize = 20; // Maximum gap size to fill (in bins)
-                
-                for (let i = 0; i < bins.length; i++) {
-                    if (bins[i].maxRadius > 0) continue; // Already has data
-                    
-                    // Find previous and next non-empty bins
-                    let prevIdx = -1, nextIdx = -1;
-                    let gapSize = 0;
-                    
-                    // Search backward
-                    for (let j = 1; j <= maxGapSize; j++) {
-                        const idx = (i - j + bins.length) % bins.length;
-                        if (bins[idx].maxRadius > 0) {
-                            prevIdx = idx;
-                            break;
-                        }
-                    }
-                    
-                    // Search forward
-                    for (let j = 1; j <= maxGapSize; j++) {
-                        const idx = (i + j) % bins.length;
-                        if (bins[idx].maxRadius > 0) {
-                            nextIdx = idx;
-                            gapSize = j;
-                            break;
-                        }
-                    }
-                    
-                    // If we found both neighbors, interpolate
-                    if (prevIdx !== -1 && nextIdx !== -1 && gapSize <= maxGapSize) {
-                        const prevRadius = bins[prevIdx].maxRadius;
-                        const nextRadius = bins[nextIdx].maxRadius;
-                        
-                        // Use smooth interpolation (cubic for natural curves)
-                        const totalGap = gapSize + 1;
-                        let distFromPrev = 1;
-                        for (let k = prevIdx + 1; k !== nextIdx; k = (k + 1) % bins.length) {
-                            if (bins[k].maxRadius === 0) {
-                                const t = distFromPrev / totalGap;
-                                // Cubic interpolation for smoother curves
-                                const smoothT = t * t * (3 - 2 * t);
-                                const interpRadius = prevRadius + (nextRadius - prevRadius) * smoothT;
-                                
-                                const angle = (k / bins.length) * 2 * Math.PI - Math.PI;
-                                bins[k].maxRadius = interpRadius;
-                                bins[k].point = {
-                                    x: interpRadius * Math.cos(angle),
-                                    y: interpRadius * Math.sin(angle)
-                                };
-                            }
-                            distFromPrev++;
-                        }
-                    } else if (prevIdx !== -1 || nextIdx !== -1) {
-                        // If only one neighbor, use average radius
-                        const refRadius = prevIdx !== -1 ? bins[prevIdx].maxRadius : bins[nextIdx].maxRadius;
-                        const interpRadius = avgRadius > 0 ? avgRadius : refRadius;
-                        
-                        const angle = (i / bins.length) * 2 * Math.PI - Math.PI;
-                        bins[i].maxRadius = interpRadius;
-                        bins[i].point = {
-                            x: interpRadius * Math.cos(angle),
-                            y: interpRadius * Math.sin(angle)
-                        };
-                    }
-                }
-                
-                return bins;
             }
             
             function isPointInPolygon(x, y, polygon) {
@@ -669,15 +458,12 @@
                             }
                         }
                         
-                        if (isPainted) {
-                            paintedCells++;
-                        }
+                        if (isPainted) paintedCells++;
                     }
                 }
                 
                 const cellArea = resolution * resolution;
                 const totalArea = paintedCells * cellArea;
-                
                 let adjustedArea = totalArea;
                 
                 if (isClosed) {
@@ -702,7 +488,6 @@
                 const height = imageData.height;
                 const data = imageData.data;
                 
-                // Quick bounds detection
                 let minX = width, maxX = 0, minY = height, maxY = 0;
                 let hasContent = false;
                 
@@ -733,15 +518,8 @@
                 
                 const redPixels = [];
                 const bluePixels = [];
-                const whiteThreshold = 240;
-                const grayMin = 140;
-                const grayMax = 200;
-                const grayColorDiff = 20;
-                const alphaThreshold = 128;
-                
-                // Enhanced color separation thresholds
-                const RED_THRESHOLD = 30;  // r must be at least 30 more than b
-                const BLUE_THRESHOLD = 30; // b must be at least 30 more than r
+                const RED_THRESHOLD = 30;
+                const BLUE_THRESHOLD = 30;
                 
                 for (let y = minY; y < maxY; y++) {
                     for (let x = minX; x < maxX; x++) {
@@ -751,55 +529,27 @@
                         const b = data[idx + 2];
                         const a = data[idx + 3];
                         
-                        if (a <= alphaThreshold) continue;
-                        if (r > whiteThreshold && g > whiteThreshold && b > whiteThreshold) continue;
+                        if (a <= 128) continue;
+                        if (r > 240 && g > 240 && b > 240) continue;
                         
-                        if (r >= grayMin && r <= grayMax) {
-                            const rgDiff = Math.abs(r - g);
-                            if (rgDiff < grayColorDiff) {
-                                const gbDiff = Math.abs(g - b);
-                                if (gbDiff < grayColorDiff) continue;
-                            }
-                        }
-                        
-                        // Enhanced red/blue separation with stronger thresholds
                         const rbDiff = r - b;
                         
                         if (rbDiff > RED_THRESHOLD) {
-                            // Clearly red pixel
                             redPixels.push({ x, y, r, g, b });
                         } else if (rbDiff < -BLUE_THRESHOLD) {
-                            // Clearly blue pixel
                             bluePixels.push({ x, y, r, g, b });
-                        } else {
-                            // Ambiguous - use secondary criteria
-                            // Check saturation and hue to make better decision
-                            const maxChannel = Math.max(r, g, b);
-                            const minChannel = Math.min(r, g, b);
-                            const saturation = maxChannel > 0 ? (maxChannel - minChannel) / maxChannel : 0;
-                            
-                            if (saturation > 0.3) {
-                                // High saturation - use stronger color indicator
-                                if (r > b && r > g * 0.8) {
-                                    redPixels.push({ x, y, r, g, b });
-                                } else if (b > r && b > g * 0.8) {
-                                    bluePixels.push({ x, y, r, g, b });
-                                }
-                            }
                         }
                     }
                 }
                 
-                // Process each color separately
                 const results = [];
                 
                 if (redPixels.length > 0) {
                     const centroid = calculateGeometricCentroid(redPixels);
                     const unitPoints = redPixels.map(p => canvasToUnit(p.x, p.y));
-                    const estimatedBrushSize = 5;
-                    const area = calculatePixelBasedArea(unitPoints, estimatedBrushSize);
+                    const area = calculatePixelBasedArea(unitPoints, 5);
                     
-                    const numBins = 180;
+                    const numBins = 360;
                     const bins = Array(numBins).fill(null).map(() => ({ maxRadius: 0, point: null }));
                     
                     unitPoints.forEach(point => {
@@ -813,21 +563,16 @@
                         
                         if (radius > bins[binIndex].maxRadius) {
                             bins[binIndex].maxRadius = radius;
-                            // Store point RELATIVE to centroid
                             bins[binIndex].point = { x: dx, y: dy };
                         }
                     });
                     
-                    // Calculate initial average radius for gap filling
-                    const radii = bins.filter(bin => bin.maxRadius > 0).map(bin => bin.maxRadius);
-                    const avgRadius = radii.length > 0 ? radii.reduce((sum, r) => sum + r, 0) / radii.length : 0;
-                    
-                    // NOTE: Gap filling temporarily disabled - was causing worker crashes
-                    // fillContourGaps(bins, avgRadius);
-                    
                     const contour = bins
                         .filter(bin => bin.point !== null)
                         .map(bin => bin.point);
+                    
+                    const radii = bins.filter(bin => bin.maxRadius > 0).map(bin => bin.maxRadius);
+                    const avgRadius = radii.length > 0 ? radii.reduce((sum, r) => sum + r, 0) / radii.length : 0;
                     
                     results.push({
                         phase: 'red',
@@ -842,10 +587,9 @@
                 if (bluePixels.length > 0) {
                     const centroid = calculateGeometricCentroid(bluePixels);
                     const unitPoints = bluePixels.map(p => canvasToUnit(p.x, p.y));
-                    const estimatedBrushSize = 5;
-                    const area = calculatePixelBasedArea(unitPoints, estimatedBrushSize);
+                    const area = calculatePixelBasedArea(unitPoints, 5);
                     
-                    const numBins = 180;
+                    const numBins = 360;
                     const bins = Array(numBins).fill(null).map(() => ({ maxRadius: 0, point: null }));
                     
                     unitPoints.forEach(point => {
@@ -859,21 +603,16 @@
                         
                         if (radius > bins[binIndex].maxRadius) {
                             bins[binIndex].maxRadius = radius;
-                            // Store point RELATIVE to centroid
                             bins[binIndex].point = { x: dx, y: dy };
                         }
                     });
                     
-                    // Calculate initial average radius for gap filling
-                    const radii = bins.filter(bin => bin.maxRadius > 0).map(bin => bin.maxRadius);
-                    const avgRadius = radii.length > 0 ? radii.reduce((sum, r) => sum + r, 0) / radii.length : 0;
-                    
-                    // NOTE: Gap filling temporarily disabled - was causing worker crashes
-                    // fillContourGaps(bins, avgRadius);
-                    
                     const contour = bins
                         .filter(bin => bin.point !== null)
                         .map(bin => bin.point);
+                    
+                    const radii = bins.filter(bin => bin.maxRadius > 0).map(bin => bin.maxRadius);
+                    const avgRadius = radii.length > 0 ? radii.reduce((sum, r) => sum + r, 0) / radii.length : 0;
                     
                     results.push({
                         phase: 'blue',
@@ -888,65 +627,43 @@
                 return results.length > 0 ? results : null;
             }
             
-            // Worker message handler with better error handling
             self.onmessage = function(e) {
                 try {
                     const { imageData, filename } = e.data;
                     
-                    // Validate inputs
                     if (!imageData || !filename) {
-                        self.postMessage({ 
-                            error: 'Missing imageData or filename', 
-                            filename: filename || 'unknown' 
-                        });
+                        self.postMessage({ error: 'Missing data', filename: filename || 'unknown' });
                         return;
                     }
                     
-                    // Parse filename - FIXED REGEX WITHOUT DOUBLE ESCAPING
                     const parts = filename.replace('.png', '').split('_');
                     if (parts.length < 2) {
-                        self.postMessage({ 
-                            error: 'Invalid filename format', 
-                            filename 
-                        });
+                        self.postMessage({ error: 'Invalid filename format', filename });
                         return;
                     }
                     
                     const participant = parts[0];
-                    // FIXED: Use single backslashes since this is in a string
                     const freqMatch = parts[1].match(/(\\d+\\.?\\d*)Hz/);
                     
                     if (!freqMatch) {
-                        self.postMessage({ 
-                            error: 'No frequency found in filename', 
-                            filename 
-                        });
+                        self.postMessage({ error: 'No frequency found', filename });
                         return;
                     }
                     
                     const frequency = parseFloat(freqMatch[1]);
                     
-                    // Validate frequency
                     if (isNaN(frequency) || frequency <= 0) {
-                        self.postMessage({ 
-                            error: 'Invalid frequency value', 
-                            filename 
-                        });
+                        self.postMessage({ error: 'Invalid frequency', filename });
                         return;
                     }
                     
-                    // Process image - now returns array of shapes (red and blue)
                     const shapes = extractContours(imageData);
                     
                     if (!shapes || shapes.length === 0) {
-                        self.postMessage({ 
-                            error: 'No contours found in image', 
-                            filename 
-                        });
+                        self.postMessage({ error: 'No contours found', filename });
                         return;
                     }
                     
-                    // Send result back - now includes multiple shapes
                     self.postMessage({
                         success: true,
                         results: shapes.map(shape => ({
@@ -958,50 +675,34 @@
                     });
                     
                 } catch (err) {
-                    // Catch any unexpected errors
                     self.postMessage({ 
-                        error: err.message || 'Unknown error in worker', 
-                        filename: e.data ? e.data.filename : 'unknown',
-                        stack: err.stack
+                        error: err.message || 'Unknown error', 
+                        filename: e.data ? e.data.filename : 'unknown'
                     });
                 }
             };
-            
-            // Handle worker-level errors
-            self.onerror = function(err) {
-                self.postMessage({ 
-                    error: 'Worker error: ' + (err.message || 'Unknown error'),
-                    filename: 'unknown'
-                });
-            };
         `;
         
-        // Create blob URL for worker
         const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
         const workerBlobUrl = URL.createObjectURL(workerBlob);
         
         // ============================================
-        // WORKER POOL MANAGEMENT
+        // WORKER MANAGEMENT
         // ============================================
         
         function createWorker() {
             const worker = new Worker(workerBlobUrl);
             activeWorkers.add(worker);
-            updateWorkersMetric();
+            const metric = document.getElementById('workers-metric');
+            if (metric) metric.textContent = activeWorkers.size;
             return worker;
         }
         
         function terminateWorker(worker) {
             worker.terminate();
             activeWorkers.delete(worker);
-            updateWorkersMetric();
-        }
-        
-        function updateWorkersMetric() {
             const metric = document.getElementById('workers-metric');
-            if (metric) {
-                metric.textContent = activeWorkers.size;
-            }
+            if (metric) metric.textContent = activeWorkers.size;
         }
         
         // ============================================
@@ -1014,26 +715,12 @@
             const total = processingStats.totalImages;
             const remaining = total - processed;
             
-            // Speed (images per second)
             const speed = processed / elapsed;
             const speedMetric = document.getElementById('speed-metric');
             if (speedMetric && !isNaN(speed) && isFinite(speed)) {
                 speedMetric.textContent = `${speed.toFixed(1)} img/s`;
             }
             
-            // Elapsed time
-            const elapsedMetric = document.getElementById('elapsed-metric');
-            if (elapsedMetric && !isNaN(elapsed) && isFinite(elapsed)) {
-                if (elapsed < 60) {
-                    elapsedMetric.textContent = `${elapsed.toFixed(1)}s`;
-                } else {
-                    const minutes = Math.floor(elapsed / 60);
-                    const seconds = Math.floor(elapsed % 60);
-                    elapsedMetric.textContent = `${minutes}m ${seconds}s`;
-                }
-            }
-            
-            // ETA (estimated time remaining)
             const eta = remaining / speed;
             const etaMetric = document.getElementById('eta-metric');
             if (etaMetric && !isNaN(eta) && isFinite(eta)) {
@@ -1046,40 +733,15 @@
                 }
             }
             
-            // Memory usage (if available)
             if (performance.memory) {
                 const memoryMetric = document.getElementById('memory-metric');
                 const usedMB = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(1);
-                if (memoryMetric) {
-                    memoryMetric.textContent = `${usedMB} MB`;
-                }
+                if (memoryMetric) memoryMetric.textContent = `${usedMB} MB`;
             }
         }
         
         // ============================================
-        // COORDINATE SYSTEM FUNCTIONS (EXACT from original)
-        // ============================================
-        
-        function canvasToUnit(canvasX, canvasY) {
-            const centerX = CANVAS_SIZE / 2;
-            const centerY = CANVAS_SIZE / 2;
-            return {
-                x: (canvasX - centerX) / SCALE_FACTOR,
-                y: (centerY - canvasY) / SCALE_FACTOR
-            };
-        }
-        
-        function unitToCanvas(unitX, unitY, canvasSize = CANVAS_SIZE) {
-            const center = canvasSize / 2;
-            const scale = canvasSize / (2 * UNIT_RANGE);
-            return {
-                x: center + (unitX * scale),
-                y: center - (unitY * scale)
-            };
-        }
-        
-        // ============================================
-        // UI UPDATE FUNCTIONS
+        // UI FUNCTIONS
         // ============================================
         
         function updateProgress(percentage, message) {
@@ -1093,7 +755,6 @@
             text.textContent = message;
             percentageText.textContent = `${Math.round(percentage)}%`;
             
-            // Update performance metrics if processing
             if (processingStats.startTime > 0 && processingStats.processedImages > 0) {
                 updatePerformanceMetrics();
             }
@@ -1110,78 +771,8 @@
             text.textContent = `❌ Error: ${message}`;
         }
         
-        let currentBatchFiles = [];
-        let batchItemStates = [];
-        
-        function initBatch(filenames) {
-            currentBatchFiles = filenames;
-            batchItemStates = filenames.map(name => ({ name, status: 'pending', progress: 0 }));
-            
-            const batchProgress = document.getElementById('batch-progress');
-            batchProgress.classList.remove('hidden');
-            
-            updateBatchDisplay();
-        }
-        
-        function updateBatchItem(index, status, progress) {
-            if (index < batchItemStates.length) {
-                batchItemStates[index].status = status;
-                batchItemStates[index].progress = progress;
-                updateBatchDisplay();
-            }
-        }
-        
-        function updateBatchDisplay() {
-            const batchBar = document.getElementById('batch-progress-bar');
-            const totalProgress = batchItemStates.reduce((sum, item) => sum + item.progress, 0);
-            const avgProgress = totalProgress / batchItemStates.length;
-            batchBar.style.width = `${avgProgress}%`;
-            
-            const details = document.getElementById('batch-details');
-            if (!details.classList.contains('hidden')) {
-                details.innerHTML = batchItemStates.map((item, i) => {
-                    const statusColors = {
-                        'pending': 'bg-gray-100 border-gray-300',
-                        'processing': 'bg-blue-50 border-blue-400',
-                        'completed': 'bg-green-50 border-green-400',
-                        'error': 'bg-red-50 border-red-400'
-                    };
-                    const statusIcons = {
-                        'pending': '⏳',
-                        'processing': '⚡',
-                        'completed': '✅',
-                        'error': '❌'
-                    };
-                    
-                    return `
-                        <div class="batch-item p-2 rounded border-2 ${statusColors[item.status]}">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-mono truncate flex-1">${statusIcons[item.status]} ${item.name}</span>
-                                <span class="text-xs font-bold ml-2">${item.progress}%</span>
-                            </div>
-                            <div class="w-full bg-gray-300 rounded-full h-1 mt-1">
-                                <div class="h-1 bg-blue-600 rounded-full" style="width: ${item.progress}%"></div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-        }
-        
-        // Toggle batch details visibility
-        document.getElementById('toggle-batch-details').addEventListener('click', function() {
-            const details = document.getElementById('batch-details');
-            if (details.classList.contains('hidden')) {
-                details.classList.remove('hidden');
-                this.textContent = 'Hide Details';
-            } else {
-                details.classList.add('hidden');
-                this.textContent = 'Show Details';
-            }
-        });
-        
         // ============================================
-        // FILE EXTRACTION (ZIP SUPPORT)
+        // FILE HANDLING
         // ============================================
         
         async function extractPNGsFromZip(zipFile, zipName) {
@@ -1247,7 +838,7 @@
         }
         
         // ============================================
-        // PARALLEL IMAGE PROCESSING WITH WEB WORKERS
+        // IMAGE PROCESSING
         // ============================================
         
         async function processImageWithWorker(file) {
@@ -1267,20 +858,14 @@
                             return;
                         }
                         
-                        // Use pooled canvas
                         const canvas = getCanvas();
-                        const ctx = canvas.getContext('2d', { 
-                            willReadFrequently: true,
-                            alpha: false
-                        });
+                        const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
                         
                         ctx.drawImage(img, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
                         const imageData = ctx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
                         
-                        // Return canvas to pool immediately
                         releaseCanvas(canvas);
                         
-                        // Create worker and process
                         const worker = createWorker();
                         
                         worker.onmessage = (e) => {
@@ -1290,7 +875,6 @@
                                 console.error('Worker error for', file.name, ':', e.data.error);
                                 reject(new Error(e.data.error));
                             } else {
-                                // Now returns array of shapes (red and blue)
                                 resolve(e.data.results);
                             }
                         };
@@ -1298,17 +882,16 @@
                         worker.onerror = (err) => {
                             console.error('Worker crashed for', file.name, ':', err);
                             terminateWorker(worker);
-                            reject(new Error('Worker crashed: ' + (err.message || 'Unknown error')));
+                            reject(new Error('Worker crashed'));
                         };
                         
-                        // Send to worker
                         try {
                             worker.postMessage({
                                 imageData: imageData,
                                 filename: file.name
-                            }, [imageData.data.buffer]); // Transfer ownership for efficiency
+                            }, [imageData.data.buffer]);
                         } catch (err) {
-                            console.error('Error posting message to worker:', err);
+                            console.error('Error posting to worker:', err);
                             terminateWorker(worker);
                             reject(err);
                         }
@@ -1323,59 +906,27 @@
             });
         }
         
-        // Process images in parallel batches
         async function processBatchParallel(files, batchSize) {
             const results = [];
-            
-            // Calculate optimal batch size based on cores
             const optimalBatchSize = MAX_PARALLEL_WORKERS * IMAGES_PER_WORKER;
             const actualBatchSize = Math.min(batchSize, optimalBatchSize);
             
             for (let i = 0; i < files.length; i += actualBatchSize) {
-                if (processingCancelled) {
-                    throw new Error('Processing cancelled by user');
-                }
+                if (processingCancelled) throw new Error('Processing cancelled by user');
                 
                 const batch = files.slice(i, Math.min(i + actualBatchSize, files.length));
-                
-                // Initialize batch progress
-                initBatch(batch.map(f => f.name));
-                
-                // Process entire batch in parallel
-                const batchPromises = batch.map(async (file, batchIndex) => {
-                    if (processingCancelled) {
-                        updateBatchItem(batchIndex, 'error', 0);
-                        return null;
-                    }
-                    
+                const batchPromises = batch.map(async (file) => {
                     try {
-                        updateBatchItem(batchIndex, 'processing', 30);
-                        
-                        const result = await processImageWithWorker(file);
-                        
-                        updateBatchItem(batchIndex, 'processing', 80);
-                        
-                        // Small delay to show progress
-                        await new Promise(resolve => setTimeout(resolve, 10));
-                        
-                        updateBatchItem(batchIndex, 'completed', 100);
-                        
-                        return result;
+                        return await processImageWithWorker(file);
                     } catch (err) {
-                        const errorMsg = err && err.message ? err.message : (err ? String(err) : 'Unknown error');
-                        console.warn(`Skipping ${file.name}:`, errorMsg);
-                        updateBatchItem(batchIndex, 'error', 0);
+                        console.warn(`Skipping ${file.name}:`, err.message);
                         return null;
                     }
                 });
                 
-                // Wait for all in batch to complete
                 const batchResults = await Promise.all(batchPromises);
-                
-                // Add successful results (filter out nulls from errors)
                 results.push(...batchResults.filter(r => r !== null).flat());
                 
-                // Update global progress
                 processingStats.processedImages = i + batch.length;
                 const overallProgress = (processingStats.processedImages / processingStats.totalImages) * 100;
                 updateProgress(overallProgress, `Processing batch ${Math.floor(i / actualBatchSize) + 1} of ${Math.ceil(files.length / actualBatchSize)}...`);
@@ -1385,7 +936,7 @@
         }
         
         // ============================================
-        // VISUALIZATION GENERATION
+        // VISUALIZATION
         // ============================================
         
         function drawVisualization(frequency, redData, blueData) {
@@ -1402,15 +953,26 @@
             const center = vizSize / 2;
             const scale = vizSize / (2 * UNIT_RANGE);
             
-            // Draw background circle (3-unit radius)
-            ctx.beginPath();
-            ctx.arc(center, center, BACKGROUND_CIRCLE_RADIUS_UNITS * scale, 0, 2 * Math.PI);
-            ctx.strokeStyle = '#cccccc';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            // Draw light gray grid
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.lineWidth = 0.5;
+            for (let i = -UNIT_RANGE; i <= UNIT_RANGE; i++) {
+                if (i === 0) continue;
+                const pos = center + (i * scale);
+                // Vertical
+                ctx.beginPath();
+                ctx.moveTo(pos, 0);
+                ctx.lineTo(pos, vizSize);
+                ctx.stroke();
+                // Horizontal
+                ctx.beginPath();
+                ctx.moveTo(0, pos);
+                ctx.lineTo(vizSize, pos);
+                ctx.stroke();
+            }
             
-            // Draw axes
-            ctx.strokeStyle = '#d0d0d0';
+            // Draw axes (darker)
+            ctx.strokeStyle = '#9ca3af';
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(0, center);
@@ -1419,13 +981,21 @@
             ctx.lineTo(center, vizSize);
             ctx.stroke();
             
-            // Draw all individual participant shapes first (faded gray background)
-            ctx.strokeStyle = '#d8d8d8';
+            // Draw 3-unit reference circle (thin black solid line)
+            ctx.beginPath();
+            ctx.arc(center, center, BACKGROUND_CIRCLE_RADIUS_UNITS * scale, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([]);
+            ctx.stroke();
+            
+            // Draw individual participant shapes (darker gray)
+            ctx.strokeStyle = '#999999';  // Darker gray than before
             ctx.lineWidth = 1;
-            ctx.globalAlpha = 0.35;
+            ctx.globalAlpha = 0.5;  // More visible
             ctx.setLineDash([]);
             
-            // Draw all red participant shapes
+            // Red shapes
             redData.forEach(d => {
                 if (d.allPoints && d.allPoints.length > 0) {
                     ctx.beginPath();
@@ -1438,20 +1008,17 @@
                             ctx.lineTo(x, y);
                         }
                     });
-                    // Close path if shape is closed
                     const first = d.allPoints[0];
                     const last = d.allPoints[d.allPoints.length - 1];
                     const dx = last.x - first.x;
                     const dy = last.y - first.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < 0.5) {
-                        ctx.closePath();
-                    }
+                    if (distance < 0.5) ctx.closePath();
                     ctx.stroke();
                 }
             });
             
-            // Draw all blue participant shapes
+            // Blue shapes
             blueData.forEach(d => {
                 if (d.allPoints && d.allPoints.length > 0) {
                     ctx.beginPath();
@@ -1464,22 +1031,19 @@
                             ctx.lineTo(x, y);
                         }
                     });
-                    // Close path if shape is closed
                     const first = d.allPoints[0];
                     const last = d.allPoints[d.allPoints.length - 1];
                     const dx = last.x - first.x;
                     const dy = last.y - first.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < 0.5) {
-                        ctx.closePath();
-                    }
+                    if (distance < 0.5) ctx.closePath();
                     ctx.stroke();
                 }
             });
             
             ctx.globalAlpha = 1.0;
             
-            // Smooth an array using moving average
+            // Smooth array helper
             function smoothArray(arr, windowSize = 5) {
                 const result = [];
                 for (let i = 0; i < arr.length; i++) {
@@ -1497,25 +1061,21 @@
                 return result;
             }
             
-            // Function to draw clean averaged shape (UNFILLED)
+            // Draw averaged shape (unfilled, smooth but preserving irregularities)
             function drawAveragedShape(dataArray, color, isDashed = false) {
                 if (dataArray.length === 0) return;
                 
-                // Use 360 angular bins for smooth averaging
                 const numBins = 360;
                 const bins = Array(numBins).fill(null).map(() => []);
                 
-                // Collect all radii from all participants into angular bins
                 dataArray.forEach(d => {
-                    // Each contour point is relative to that shape's centroid
                     d.contour.forEach(point => {
                         const angle = Math.atan2(point.y, point.x);
                         const radius = Math.sqrt(point.x * point.x + point.y * point.y);
                         
-                        // Skip extreme outliers
-                        if (radius > 15) return;
+                        // Filter extreme outliers only (>12 units from center)
+                        if (radius > 12) return;
                         
-                        // Map angle [-π, π] to bin index [0, numBins)
                         let binIndex = Math.floor(((angle + Math.PI) / (2 * Math.PI)) * numBins);
                         binIndex = ((binIndex % numBins) + numBins) % numBins;
                         
@@ -1523,7 +1083,7 @@
                     });
                 });
                 
-                // Calculate median radius for each bin
+                // Use median (robust to outliers but preserves shape)
                 const avgRadii = bins.map(bin => {
                     if (bin.length === 0) return null;
                     
@@ -1536,12 +1096,12 @@
                     }
                 });
                 
-                // Fill gaps by interpolating
+                // Fill gaps
                 for (let i = 0; i < avgRadii.length; i++) {
                     if (avgRadii[i] !== null) continue;
                     
                     let prevIdx = -1, nextIdx = -1;
-                    const maxGap = 45;
+                    const maxGap = 30;
                     
                     for (let j = 1; j <= maxGap; j++) {
                         const prevI = (i - j + avgRadii.length) % avgRadii.length;
@@ -1578,10 +1138,10 @@
                     }
                 }
                 
-                // Apply smoothing for clean curves
+                // Light smoothing (2 passes) - preserves irregularities
                 let smoothedRadii = avgRadii;
-                for (let pass = 0; pass < 3; pass++) {
-                    smoothedRadii = smoothArray(smoothedRadii, 11);
+                for (let pass = 0; pass < 2; pass++) {
+                    smoothedRadii = smoothArray(smoothedRadii, 7);
                 }
                 
                 // Convert to points
@@ -1598,7 +1158,7 @@
                 
                 if (points.length === 0) return;
                 
-                // Draw UNFILLED averaged shape with clean line
+                // Draw unfilled averaged shape
                 ctx.strokeStyle = color;
                 ctx.lineWidth = 3;
                 ctx.globalAlpha = 1.0;
@@ -1622,7 +1182,7 @@
                 ctx.setLineDash([]);
             }
             
-            // Draw averaged shapes - blue first (dashed), then red (solid)
+            // Draw blue first (dashed), then red (solid)
             if (blueData.length > 0) {
                 drawAveragedShape(blueData, '#0000ff', true);
             }
@@ -1631,17 +1191,28 @@
                 drawAveragedShape(redData, '#ff0000', false);
             }
             
-            // Add title
+            // Add title and N count
             ctx.fillStyle = '#000000';
             ctx.font = 'bold 24px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(`${frequency} Hz`, center, 40);
+            ctx.fillText(`${frequency} Hz`, center, 30);
+            
+            const nRed = redData.length;
+            const nBlue = blueData.length;
+            const nTotal = nRed + nBlue;
+            
+            // Calculate mean radius
+            const allRadii = [...redData, ...blueData].map(d => d.avgRadius);
+            const meanRadius = allRadii.length > 0 ? (allRadii.reduce((sum, r) => sum + r, 0) / allRadii.length).toFixed(2) : 0;
+            
+            ctx.font = '14px Arial';
+            ctx.fillText(`N=${nTotal}, mean r=${meanRadius} (centroid avg)`, center, 50);
             
             return canvas;
         }
         
         // ============================================
-        // MAIN ANALYSIS FUNCTION
+        // MAIN ANALYSIS
         // ============================================
         
         async function analyzeData(inputFiles) {
@@ -1650,47 +1221,38 @@
                 processingStats = {
                     startTime: Date.now(),
                     totalImages: 0,
-                    processedImages: 0,
-                    workersActive: 0
+                    processedImages: 0
                 };
                 
-                // Show/hide buttons
                 const cancelBtn = document.getElementById('cancel-btn');
                 const analyzeBtn = document.getElementById('analyze-btn');
                 cancelBtn.classList.remove('hidden');
                 analyzeBtn.classList.add('hidden');
                 
-                // Show performance dashboard
                 document.getElementById('performance-dashboard').classList.remove('hidden');
                 
-                // Process all files (extract ZIPs)
                 updateProgress(0, 'Extracting files from ZIPs...');
                 const allPNGs = await processAllFiles(inputFiles);
                 
                 if (allPNGs.length === 0) {
-                    throw new Error('No PNG files found in selected files');
+                    throw new Error('No PNG files found');
                 }
                 
                 processingStats.totalImages = allPNGs.length;
                 
                 updateProgress(5, `Found ${allPNGs.length} PNG files. Starting parallel processing...`);
                 
-                // Process all images in parallel batches
                 const processedData = await processBatchParallel(allPNGs, 1000);
                 
-                if (processingCancelled) {
-                    throw new Error('Processing cancelled by user');
-                }
+                if (processingCancelled) throw new Error('Processing cancelled by user');
                 
                 updateProgress(90, 'Organizing data by frequency...');
                 
-                // Initialize data structure
                 participantData = {};
                 FREQUENCIES.forEach(freq => {
                     participantData[freq] = { red: [], blue: [] };
                 });
                 
-                // Organize processed data
                 processedData.forEach(result => {
                     const freq = result.frequency;
                     const phase = result.phase;
@@ -1702,7 +1264,6 @@
                 
                 updateProgress(95, 'Generating visualizations...');
                 
-                // Generate visualizations
                 const vizGrid = document.getElementById('visualization-grid');
                 vizGrid.innerHTML = '';
                 
@@ -1740,7 +1301,7 @@
                     vizGrid.appendChild(container);
                 });
                 
-                // Generate statistics
+                // Statistics
                 const statsBody = document.getElementById('statistics-body');
                 statsBody.innerHTML = '';
                 
@@ -1750,7 +1311,6 @@
                     
                     if (redData.length === 0 && blueData.length === 0) return;
                     
-                    // Calculate statistics for red
                     if (redData.length > 0) {
                         const redRadii = redData.map(d => d.avgRadius);
                         const redAreas = redData.map(d => d.area);
@@ -1777,7 +1337,6 @@
                         statsBody.appendChild(row);
                     }
                     
-                    // Calculate statistics for blue
                     if (blueData.length > 0) {
                         const blueRadii = blueData.map(d => d.avgRadius);
                         const blueAreas = blueData.map(d => d.area);
@@ -1824,7 +1383,6 @@
                     blueData.forEach(d => totalParticipants.add(d.participant));
                 });
                 
-                // Calculate processing time
                 const processingTime = ((Date.now() - processingStats.startTime) / 1000).toFixed(1);
                 const avgSpeed = (totalImages / processingTime).toFixed(1);
                 
@@ -1842,7 +1400,7 @@
                         <div class="text-sm text-gray-600 font-semibold">Frequencies with Data</div>
                     </div>
                     <div class="bg-amber-50 p-4 rounded-lg border-2 border-amber-200 col-span-1 md:col-span-3">
-                        <div class="text-2xl font-bold text-amber-700">⚡ ${processingTime}s total • ${avgSpeed} img/s average • ${MAX_PARALLEL_WORKERS} workers</div>
+                        <div class="text-2xl font-bold text-amber-700">⚡ ${processingTime}s total • ${avgSpeed} img/s average</div>
                         <div class="text-sm text-gray-600 font-semibold">Processing Performance</div>
                     </div>
                 `;
@@ -1860,12 +1418,9 @@
                 
             } catch (err) {
                 if (err.message === 'Processing cancelled by user') {
-                    const progressContainer = document.getElementById('progress-container');
-                    progressContainer.classList.remove('hidden');
                     updateProgress(0, '❌ Processing cancelled by user');
-                    
                     setTimeout(() => {
-                        progressContainer.classList.add('hidden');
+                        document.getElementById('progress-container').classList.add('hidden');
                         document.getElementById('performance-dashboard').classList.add('hidden');
                     }, 2000);
                 } else {
@@ -1873,18 +1428,11 @@
                     console.error('Analysis error:', err);
                 }
             } finally {
-                // Cleanup all active workers
                 activeWorkers.forEach(worker => worker.terminate());
                 activeWorkers.clear();
-                updateWorkersMetric();
                 
                 const cancelBtn = document.getElementById('cancel-btn');
                 const analyzeBtn = document.getElementById('analyze-btn');
-                
-                cancelBtn.disabled = false;
-                cancelBtn.innerHTML = '⛔ Cancel Processing';
-                cancelBtn.classList.remove('from-gray-400', 'to-gray-500', 'cursor-not-allowed');
-                cancelBtn.classList.add('from-red-500', 'to-red-600', 'hover:from-red-600', 'hover:to-red-700');
                 
                 cancelBtn.classList.add('hidden');
                 analyzeBtn.classList.remove('hidden');
@@ -1916,7 +1464,7 @@
                             ${pngCount > 0 ? `(${pngCount} PNG${pngCount > 1 ? 's' : ''})` : ''}
                             ${zipCount > 0 ? `(${zipCount} ZIP${zipCount > 1 ? 's' : ''})` : ''}
                         </p>
-                        <p class="text-sm text-blue-600 mt-1">Click "Analyze & Generate Visualizations" to process with parallel Web Workers!</p>
+                        <p class="text-sm text-blue-600 mt-1">Click "Analyze & Generate Visualizations" to process!</p>
                     </div>
                 `;
                 
@@ -1941,28 +1489,30 @@
         document.getElementById('cancel-btn').addEventListener('click', function() {
             processingCancelled = true;
             
-            // Terminate all active workers immediately
             activeWorkers.forEach(worker => worker.terminate());
             activeWorkers.clear();
-            updateWorkersMetric();
             
             this.disabled = true;
             this.innerHTML = '⏳ Cancelling...';
-            this.classList.remove('from-red-500', 'to-red-600', 'hover:from-red-600', 'hover:to-red-700');
-            this.classList.add('from-gray-400', 'to-gray-500', 'cursor-not-allowed');
         });
         
-        // Cleanup on page unload
+        document.getElementById('toggle-batch-details').addEventListener('click', function() {
+            const details = document.getElementById('batch-details');
+            if (details.classList.contains('hidden')) {
+                details.classList.remove('hidden');
+                this.textContent = 'Hide Details';
+            } else {
+                details.classList.add('hidden');
+                this.textContent = 'Show Details';
+            }
+        });
+        
         window.addEventListener('beforeunload', () => {
             activeWorkers.forEach(worker => worker.terminate());
             URL.revokeObjectURL(workerBlobUrl);
         });
         
-        console.log(`Sound Object Analyzer Ultra Optimized initialized`);
-        console.log(`CPU Cores: ${CPU_CORES}`);
-        console.log(`Max Parallel Workers: ${MAX_PARALLEL_WORKERS}`);
-        console.log(`Images per Worker: ${IMAGES_PER_WORKER}`);
-        console.log(`Optimal Batch Size: ${MAX_PARALLEL_WORKERS * IMAGES_PER_WORKER}`);
+        console.log(`Sound Object Analyzer initialized - ${CPU_CORES} cores, ${MAX_PARALLEL_WORKERS} workers`);
     </script>
 </body>
 </html>
