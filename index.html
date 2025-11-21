@@ -694,15 +694,28 @@
                 try {
                     const { imageData, filename } = e.data;
                     
+                    // Split filename and look for frequency pattern
                     const parts = filename.split('_');
-                    const freqPart = parts.find(p => /^\d+(\.\d+)?Hz/.test(p));
+                    
+                    // More robust frequency detection - case insensitive, allows whitespace
+                    const freqPart = parts.find(p => /^\d+(\.\d+)?hz/i.test(p.trim()));
                     
                     if (!freqPart) {
-                        throw new Error('Frequency not found in filename');
+                        // Provide detailed error for debugging
+                        throw new Error(\`Frequency not found in filename: "\${filename}". Parts: [\${parts.join(', ')}]\`);
                     }
                     
-                    const frequency = parseFloat(freqPart.replace('Hz', ''));
-                    const participant = parts[0];
+                    // Extract just the number part (handle both Hz and hz)
+                    const freqMatch = freqPart.match(/(\d+(?:\.\d+)?)/);
+                    if (!freqMatch) {
+                        throw new Error(\`Could not parse frequency from: "\${freqPart}" in filename: "\${filename}"\`);
+                    }
+                    
+                    const frequency = parseFloat(freqMatch[1]);
+                    
+                    // Get participant name - handle names with spaces by joining parts before frequency
+                    const freqIndex = parts.findIndex(p => /^\d+(\.\d+)?hz/i.test(p.trim()));
+                    const participant = parts.slice(0, freqIndex).join(' ').trim() || 'Unknown';
                     
                     const redContour = extractContour(imageData, 'red', CANVAS_SIZE);
                     const blueContour = extractContour(imageData, 'blue', CANVAS_SIZE);
