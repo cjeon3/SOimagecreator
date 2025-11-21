@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sound Object Average Shape Analyzer - Ultra Optimized</title>
+    <title>Sound Object Average Shape Analyzer - Ultra Optimized v2.1</title>
+    <meta name="version" content="2.1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
@@ -364,8 +365,8 @@
         
         <!-- Footer -->
         <footer class="text-center text-sm text-gray-500 mt-8 pb-4">
-            <p class="font-semibold">UCI Hearing & Speech Lab - Sound Object Average Shape Analyzer v2.0 (Ultra Optimized)</p>
-            <p class="mt-1">Enhanced with Real-Time Metrics • Parallel Processing • Memory Optimized</p>
+            <p class="font-semibold">UCI Hearing & Speech Lab - Sound Object Average Shape Analyzer v2.1 (Enhanced)</p>
+            <p class="mt-1">Enhanced with Real-Time Metrics • Parallel Processing • Memory Optimized • Robust Parsing</p>
         </footer>
     </div>
     
@@ -694,27 +695,44 @@
                 try {
                     const { imageData, filename } = e.data;
                     
+                    // Remove any potential BOM or hidden characters and normalize
+                    const cleanFilename = filename.replace(/[\uFEFF\u200B-\u200D\uFFFE]/g, '').trim();
+                    
                     // Split filename and look for frequency pattern
-                    const parts = filename.split('_');
+                    const parts = cleanFilename.split('_').map(p => p.trim());
                     
-                    // More robust frequency detection - case insensitive, allows whitespace
-                    const freqPart = parts.find(p => /^\d+(\.\d+)?hz/i.test(p.trim()));
+                    // Try multiple patterns to be extra robust
+                    let freqPart = null;
+                    let frequency = null;
                     
-                    if (!freqPart) {
-                        // Provide detailed error for debugging
-                        throw new Error(\`Frequency not found in filename: "\${filename}". Parts: [\${parts.join(', ')}]\`);
+                    // Pattern 1: Standard format like "1000Hz" or "62.5Hz"
+                    freqPart = parts.find(p => /^\d+(?:\.\d+)?hz$/i.test(p));
+                    
+                    if (freqPart) {
+                        const match = freqPart.match(/^(\d+(?:\.\d+)?)hz$/i);
+                        if (match) {
+                            frequency = parseFloat(match[1]);
+                        }
                     }
                     
-                    // Extract just the number part (handle both Hz and hz)
-                    const freqMatch = freqPart.match(/(\d+(?:\.\d+)?)/);
-                    if (!freqMatch) {
-                        throw new Error(\`Could not parse frequency from: "\${freqPart}" in filename: "\${filename}"\`);
+                    // Pattern 2: If not found, try anywhere in the string
+                    if (!frequency) {
+                        for (const part of parts) {
+                            const match = part.match(/(\d+(?:\.\d+)?)hz/i);
+                            if (match) {
+                                frequency = parseFloat(match[1]);
+                                freqPart = part;
+                                break;
+                            }
+                        }
                     }
                     
-                    const frequency = parseFloat(freqMatch[1]);
+                    if (!frequency || !freqPart) {
+                        throw new Error(\`Frequency not found in filename: "\${filename}". Cleaned: "\${cleanFilename}". Parts: [\${parts.join(', ')}]\`);
+                    }
                     
-                    // Get participant name - handle names with spaces by joining parts before frequency
-                    const freqIndex = parts.findIndex(p => /^\d+(\.\d+)?hz/i.test(p.trim()));
+                    // Get participant name - join all parts before the frequency part
+                    const freqIndex = parts.indexOf(freqPart);
                     const participant = parts.slice(0, freqIndex).join(' ').trim() || 'Unknown';
                     
                     const redContour = extractContour(imageData, 'red', CANVAS_SIZE);
@@ -1584,7 +1602,24 @@
             URL.revokeObjectURL(workerBlobUrl);
         });
         
-        console.log(`Sound Object Analyzer initialized - ${CPU_CORES} cores, ${MAX_PARALLEL_WORKERS} workers`);
+        console.log('%c🎵 Sound Object Analyzer v2.1 Enhanced', 'color: #8B5CF6; font-size: 16px; font-weight: bold');
+        console.log(`%c✓ Initialized with ${CPU_CORES} CPU cores, ${MAX_PARALLEL_WORKERS} max workers`, 'color: #10B981');
+        console.log('%c✓ Robust filename parsing enabled', 'color: #10B981');
+        console.log('%c✓ Memory leak protection active', 'color: #10B981');
+        
+        // Test regex patterns at startup
+        const testFilenames = [
+            'Helen Z_62.5Hz_100dB.png',
+            'Kevin M_1000Hz_80dB.png',
+            'Test_31Hz_100dB.png'
+        ];
+        
+        console.log('%cTesting filename parsing...', 'color: #3B82F6');
+        testFilenames.forEach(filename => {
+            const parts = filename.split('_').map(p => p.trim());
+            const freqPart = parts.find(p => /^\d+(?:\.\d+)?hz$/i.test(p));
+            console.log(`  "${filename}" -> freq part: "${freqPart}" -> ${freqPart ? '✓' : '✗'}`);
+        });
     </script>
 </body>
 </html>
