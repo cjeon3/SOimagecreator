@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sound Object Average Shape Analyzer - Ultra Optimized v2.1.1</title>
-    <meta name="version" content="2.1.1">
+    <title>Sound Object Analyzer - Complete v5.0 with Google Sheets Validation</title>
+    <meta name="version" content="5.0.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
@@ -26,11 +26,10 @@
         
         .analysis-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
         }
         
-        /* Mobile optimizations - Full screen width */
         @media (max-width: 768px) {
             body {
                 zoom: 1;
@@ -51,25 +50,16 @@
                 margin: 0;
             }
             
-            /* Make all containers full width on mobile */
-            .bg-white, .bg-gradient-to-r {
-                width: 100%;
-                box-sizing: border-box;
-            }
-            
-            /* Larger touch targets */
             button {
                 min-height: 44px;
                 touch-action: manipulation;
             }
             
-            /* File input touch-friendly */
             input[type="file"] {
-                font-size: 16px; /* Prevents zoom on iOS */
+                font-size: 16px;
             }
         }
         
-        /* Tablet optimizations - Full screen width */
         @media (min-width: 769px) and (max-width: 1024px) {
             body {
                 zoom: 0.9;
@@ -87,13 +77,8 @@
                 max-width: 100%;
                 width: 100%;
             }
-            
-            button {
-                min-height: 40px;
-            }
         }
         
-        /* Large desktop */
         @media (min-width: 1920px) {
             body {
                 zoom: 0.8;
@@ -101,37 +86,6 @@
             }
         }
         
-        .performance-metric {
-            animation: pulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        
-        .batch-item {
-            transition: all 0.3s ease;
-        }
-        
-        .progress-bar-fill {
-            transition: width 0.2s ease-out;
-        }
-        
-        .mini-progress-bar {
-            transition: width 0.3s ease-out;
-        }
-        
-        /* Prevent horizontal scroll */
-        * {
-            box-sizing: border-box;
-        }
-        
-        html {
-            overflow-x: hidden;
-        }
-        
-        /* Smooth dropdown animation */
         .metrics-dropdown {
             max-height: 0;
             overflow: hidden;
@@ -140,8 +94,37 @@
         }
         
         .metrics-dropdown.open {
-            max-height: 500px;
+            max-height: 800px;
             opacity: 1;
+        }
+        
+        .validation-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .validation-pass {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .validation-warn {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .validation-fail {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .progress-bar-fill {
+            transition: width 0.2s ease-out;
         }
     </style>
 </head>
@@ -152,11 +135,87 @@
         <header class="text-center mb-8">
             <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-blue-800 mb-2">
                 Sound Object Average Shape Analyzer
-                <span class="inline-block ml-2 px-3 py-1 text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full shadow-lg animate-pulse">⚡ ULTRA OPTIMIZED v2.1.1</span>
+                <span class="inline-block ml-2 px-3 py-1 text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full shadow-lg">
+                    ⚡ COMPLETE v5.0
+                </span>
             </h1>
             <p class="text-lg sm:text-xl font-semibold text-gray-600">UCI Hearing & Speech Lab</p>
-            <p class="text-xs sm:text-sm text-gray-500 mt-2">Import participant drawings and generate averaged visualizations</p>
+            <p class="text-xs sm:text-sm text-gray-500 mt-2">
+                Advanced contour detection • Overlap handling • MAD outlier filtering • Google Sheets validation
+            </p>
         </header>
+        
+        <!-- Google Sheets Configuration Section -->
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 sm:p-6 rounded-xl shadow-lg mb-6 border border-green-200">
+            <h2 class="text-lg sm:text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Google Sheets Validation (Optional)
+            </h2>
+            <p class="text-sm text-gray-700 mb-4">
+                Enable continuous validation against your Google Sheets data containing participant ID, frequency, color, centroid coordinates, and area measurements.
+                <strong class="text-green-700">✅ COMPLETELY FREE</strong> - Choose either method below.
+            </p>
+            
+            <div class="mb-3 p-3 bg-blue-50 border-l-4 border-blue-400 rounded">
+                <p class="text-xs font-semibold text-blue-800">📌 Two Methods (Both Free):</p>
+                <p class="text-xs text-gray-700 mt-1">
+                    <strong>Option 1 (Easiest):</strong> Deploy your Apps Script → Paste web app URL below (no API key needed!)
+                    <a href="#" onclick="showAppsScriptGuide(); return false;" class="text-blue-600 hover:underline ml-1">Setup guide →</a>
+                </p>
+                <p class="text-xs text-gray-700 mt-1">
+                    <strong>Option 2:</strong> Use Google Sheets API → Need both URL and API key
+                    <a href="#" onclick="showSheetsInstructions(); return false;" class="text-blue-600 hover:underline ml-1">Instructions →</a>
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                        Google Sheets URL or Apps Script URL
+                    </label>
+                    <input 
+                        type="text" 
+                        id="sheets-url" 
+                        placeholder="https://docs.google.com/spreadsheets/... OR https://script.google.com/macros/..."
+                        class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-green-400 focus:outline-none"
+                    >
+                    <p class="text-xs text-gray-500 mt-1">Paste either your Sheet URL or Apps Script web app URL</p>
+                </div>
+                <div>
+                    <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                        Google API Key <span class="text-xs font-normal text-gray-500">(only if using Option 2)</span>
+                    </label>
+                    <input 
+                        type="password" 
+                        id="api-key" 
+                        placeholder="Leave blank if using Apps Script"
+                        class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-green-400 focus:outline-none"
+                    >
+                    <p class="text-xs text-gray-500 mt-1">Not needed for Apps Script web app</p>
+                </div>
+            </div>
+            
+            <div class="flex gap-3">
+                <button 
+                    id="validate-sheets-btn" 
+                    class="px-4 py-2 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 transition-all shadow"
+                >
+                    🔗 Connect & Validate
+                </button>
+                <button 
+                    id="test-sheets-btn" 
+                    class="px-4 py-2 rounded-lg font-bold text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 transition-all"
+                >
+                    🧪 Test Connection
+                </button>
+            </div>
+            
+            <div id="sheets-status" class="mt-4 hidden">
+                <div class="p-3 rounded-lg border-2" id="sheets-status-content"></div>
+            </div>
+        </div>
         
         <!-- Instructions -->
         <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:p-6 rounded-xl shadow-lg mb-6 border border-blue-200">
@@ -164,12 +223,16 @@
                 <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                How to Use
+                How to Use - Enhanced Features
             </h2>
             <ol class="list-decimal list-inside space-y-2 text-sm sm:text-base text-gray-700">
                 <li><strong>Upload Files:</strong> Select PNG files OR ZIP files (even nested ZIPs!) from the Sound Object tool</li>
-                <li><strong>Process Data:</strong> Click "Analyze" and watch real-time performance metrics</li>
-                <li><strong>View Results:</strong> See averaged shapes for each frequency and statistical summaries</li>
+                <li><strong>Auto-Detection:</strong> Frequency, phase (Red/Blue), and participant ID parsed from filenames</li>
+                <li><strong>Trial Mapping:</strong> Inconsistent trial numbers auto-corrected (lowest→1, middle→2, highest→3)</li>
+                <li><strong>Overlap Handling:</strong> Advanced contour detection reconstructs shapes where blue overlaps red</li>
+                <li><strong>Outlier Filtering:</strong> MAD (Median Absolute Deviation) removes statistical outliers while preserving natural variation</li>
+                <li><strong>Google Sheets Validation:</strong> Optional continuous validation against ground truth data</li>
+                <li><strong>View Results:</strong> Publication-ready composite figures with individual gray shapes + averaged red/blue lines</li>
             </ol>
         </div>
         
@@ -224,22 +287,21 @@
                     class="hidden flex-1 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold text-sm sm:text-base text-white 
                         bg-gradient-to-r from-red-500 to-red-600 
                         hover:from-red-600 hover:to-red-700 
-                        disabled:from-gray-400 disabled:to-gray-500 
-                        disabled:cursor-not-allowed transition-all shadow-lg"
+                        transition-all shadow-lg"
                 >
                     ⛔ Cancel Processing
                 </button>
             </div>
         </div>
         
-        <!-- Progress Bar with Real-Time Metrics Dropdown -->
+        <!-- Progress Container with Metrics Dropdown -->
         <div id="progress-container" class="hidden bg-white p-6 rounded-xl shadow-lg mb-6 border border-gray-200">
             <div class="mb-2 flex justify-between items-center">
                 <h3 class="text-lg font-bold text-gray-800">Processing Progress</h3>
                 <span id="progress-percentage" class="text-sm font-mono font-bold text-purple-600">0%</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
-                <div id="progress-bar" class="progress-bar-fill h-4 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full transition-all shadow-lg" style="width: 0%"></div>
+                <div id="progress-bar" class="progress-bar-fill h-4 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full" style="width: 0%"></div>
             </div>
             <p id="progress-text" class="mt-2 text-sm text-gray-600 font-semibold"></p>
             
@@ -262,69 +324,54 @@
                 
                 <div id="metrics-dropdown" class="metrics-dropdown mt-3">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-                        <!-- Processing Speed Metric -->
                         <div class="bg-white p-3 rounded-lg shadow">
                             <div class="flex justify-between items-center mb-2">
                                 <div class="text-xs text-gray-500 font-semibold">Processing Speed</div>
                                 <div id="speed-metric" class="text-lg font-bold text-purple-600">0 img/s</div>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                                <div id="speed-progress" class="mini-progress-bar h-2 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full" style="width: 0%"></div>
+                                <div id="speed-progress" class="h-2 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full" style="width: 0%"></div>
                             </div>
                         </div>
                         
-                        <!-- Time Remaining Metric -->
                         <div class="bg-white p-3 rounded-lg shadow">
                             <div class="flex justify-between items-center mb-2">
                                 <div class="text-xs text-gray-500 font-semibold">Time Remaining</div>
                                 <div id="eta-metric" class="text-lg font-bold text-blue-600">--</div>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                                <div id="eta-progress" class="mini-progress-bar h-2 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full" style="width: 0%"></div>
+                                <div id="eta-progress" class="h-2 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full" style="width: 0%"></div>
                             </div>
                         </div>
                         
-                        <!-- Workers Active Metric -->
                         <div class="bg-white p-3 rounded-lg shadow">
                             <div class="flex justify-between items-center mb-2">
-                                <div class="text-xs text-gray-500 font-semibold">Workers Active</div>
-                                <div id="workers-metric" class="text-lg font-bold text-green-600">0</div>
+                                <div class="text-xs text-gray-500 font-semibold">Shapes Validated</div>
+                                <div id="validation-metric" class="text-lg font-bold text-green-600">0/0</div>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                                <div id="workers-progress" class="mini-progress-bar h-2 bg-gradient-to-r from-green-400 to-green-600 rounded-full" style="width: 0%"></div>
+                                <div id="validation-progress" class="h-2 bg-gradient-to-r from-green-400 to-green-600 rounded-full" style="width: 0%"></div>
                             </div>
                         </div>
                         
-                        <!-- Memory Usage Metric -->
                         <div class="bg-white p-3 rounded-lg shadow">
                             <div class="flex justify-between items-center mb-2">
-                                <div class="text-xs text-gray-500 font-semibold">Memory Usage</div>
-                                <div id="memory-metric" class="text-lg font-bold text-amber-600">--</div>
+                                <div class="text-xs text-gray-500 font-semibold">Outliers Filtered</div>
+                                <div id="outlier-metric" class="text-lg font-bold text-amber-600">0</div>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                                <div id="memory-progress" class="mini-progress-bar h-2 bg-gradient-to-r from-amber-400 to-amber-600 rounded-full" style="width: 0%"></div>
+                                <div id="outlier-progress" class="h-2 bg-gradient-to-r from-amber-400 to-amber-600 rounded-full" style="width: 0%"></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Micro-Progress for Current Batch -->
-            <div id="batch-progress" class="mt-4 hidden">
-                <div class="flex justify-between items-center mb-2">
-                    <h4 class="text-sm font-bold text-gray-700">Current Batch Progress</h4>
-                    <button 
-                        id="toggle-batch-details" 
-                        class="text-xs px-3 py-1 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-all"
-                    >
-                        Show Details
-                    </button>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
-                    <div id="batch-progress-bar" class="progress-bar-fill h-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full" style="width: 0%"></div>
-                </div>
-                <div id="batch-details" class="mt-3 space-y-2 max-h-64 overflow-y-auto hidden"></div>
-            </div>
+        </div>
+        
+        <!-- Validation Summary -->
+        <div id="validation-summary" class="hidden bg-white p-6 rounded-xl shadow-lg mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Validation Summary</h2>
+            <div id="validation-content" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
         </div>
         
         <!-- Data Summary -->
@@ -352,10 +399,11 @@
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Frequency</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Color</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">N</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Outliers</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Mean Radius</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">SD Radius</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Mean Area</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">SD Area</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Validation</th>
                         </tr>
                     </thead>
                     <tbody id="statistics-body" class="bg-white divide-y divide-gray-200"></tbody>
@@ -365,25 +413,34 @@
         
         <!-- Footer -->
         <footer class="text-center text-sm text-gray-500 mt-8 pb-4">
-            <p class="font-semibold">UCI Hearing & Speech Lab - Sound Object Average Shape Analyzer v2.1.1 FIXED</p>
-            <p class="mt-1">Enhanced UI • Real-Time Metrics • Fixed Worker Errors • Memory Optimized • Robust Parsing</p>
+            <p class="font-semibold">UCI Hearing & Speech Lab - Sound Object Analyzer v5.0 Complete</p>
+            <p class="mt-1">Contour Detection • Overlap Reconstruction • MAD Outlier Filtering • Google Sheets Validation</p>
         </footer>
     </div>
     
     <script>
         // ============================================
-        // GLOBAL STATE & CONFIGURATION
+        // GLOBAL CONSTANTS & CONFIGURATION
         // ============================================
         
         const FREQUENCIES = ['31Hz', '62.5Hz', '125Hz', '250Hz', '500Hz', '1000Hz', '2000Hz', '4000Hz', '8000Hz', '12000Hz', '16000Hz'];
         const FREQUENCY_NUMBERS = [31, 62.5, 125, 250, 500, 1000, 2000, 4000, 8000, 12000, 16000];
         const CPU_CORES = navigator.hardwareConcurrency || 4;
-        const MAX_PARALLEL_WORKERS = Math.max(2, Math.min(CPU_CORES, 6)); // Reduced max to 6
+        const MAX_PARALLEL_WORKERS = Math.max(2, Math.min(CPU_CORES, 6));
         
+        // Canvas/Grid constants (from original drawing tool)
+        const CANVAS_SIZE = 1000;  // 1000x1000 pixels
+        const GRID_RANGE = 10;     // -10 to +10 units
+        const SCALE_FACTOR = CANVAS_SIZE / (2 * GRID_RANGE); // 50 pixels per unit
+        const CENTER_X = CANVAS_SIZE / 2;  // 500
+        const CENTER_Y = CANVAS_SIZE / 2;  // 500
+        const REFERENCE_CIRCLE_RADIUS = 3; // 3 units
+        
+        // Processing state
         let processingCancelled = false;
         let activeWorkers = new Set();
-        let currentBatchFiles = [];
-        let batchItemStates = [];
+        let googleSheetsData = null;
+        let sheetsValidationEnabled = false;
         
         const processingStats = {
             startTime: 0,
@@ -391,11 +448,618 @@
             totalCount: 0,
             speedHistory: [],
             maxSpeed: 0,
-            batchStats: new Map()
+            validatedCount: 0,
+            outliersFiltered: 0
         };
         
         // ============================================
-        // METRICS AND PROGRESS FUNCTIONS
+        // GOOGLE SHEETS INTEGRATION (READ-ONLY)
+        // ============================================
+        
+        async function connectToGoogleSheets() {
+            const url = document.getElementById('sheets-url').value.trim();
+            const apiKey = document.getElementById('api-key').value.trim();
+            
+            if (!url) {
+                showSheetsStatus('error', 'Please enter a Google Sheets URL or Apps Script URL');
+                return false;
+            }
+            
+            try {
+                // Detect which method: Apps Script or Direct API
+                const isAppsScript = url.includes('script.google.com');
+                
+                if (isAppsScript) {
+                    // **METHOD 1: Apps Script (No API Key Needed)** ✅ FREE
+                    console.log('[Sheets] Using Apps Script web app (no API key needed)');
+                    showSheetsStatus('loading', 'Connecting via Apps Script...');
+                    
+                    const response = await fetch(`${url}?action=getAllData`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`Apps Script request failed: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
+                    if (!data.success || !data.shapes || data.shapes.length === 0) {
+                        throw new Error('No data found in Apps Script response');
+                    }
+                    
+                    // Convert Apps Script format to our internal format
+                    googleSheetsData = data.shapes.map(shape => ({
+                        participantId: String(shape.participant).trim(),
+                        frequency: parseFloat(shape.frequency),
+                        color: String(shape.color).toLowerCase(),
+                        trial: parseInt(shape.trial),
+                        centroidX: parseFloat(shape.centroid.x),
+                        centroidY: parseFloat(shape.centroid.y),
+                        area: parseFloat(shape.area)
+                    }));
+                    
+                    sheetsValidationEnabled = true;
+                    showSheetsStatus('success', `✅ Connected via Apps Script! Loaded ${googleSheetsData.length} records (FREE - no API key)`);
+                    console.log('[Sheets] Loaded', googleSheetsData.length, 'records from Apps Script');
+                    return true;
+                    
+                } else {
+                    // **METHOD 2: Direct Google Sheets API** ✅ Also FREE (within generous limits)
+                    if (!apiKey) {
+                        showSheetsStatus('error', 'API key required for direct API access (or use Apps Script URL)');
+                        return false;
+                    }
+                    
+                    console.log('[Sheets] Using Google Sheets API (with API key)');
+                    showSheetsStatus('loading', 'Connecting via Google Sheets API...');
+                    
+                    // Extract spreadsheet ID
+                    const spreadsheetId = extractSpreadsheetId(url);
+                    if (!spreadsheetId) {
+                        throw new Error('Invalid Google Sheets URL');
+                    }
+                    
+                    // Fetch from "Data" tab
+                    const range = 'Data!A:I';
+                    const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
+                    
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) {
+                        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (!data.values || data.values.length === 0) {
+                        throw new Error('No data found in "Data" tab');
+                    }
+                    
+                    // Parse sheet data (existing function)
+                    googleSheetsData = parseGoogleSheetsData(data.values);
+                    sheetsValidationEnabled = true;
+                    
+                    showSheetsStatus('success', `✅ Connected via API! Loaded ${googleSheetsData.length} records (FREE - within quota)`);
+                    console.log('[Sheets] Loaded', googleSheetsData.length, 'records from API');
+                    return true;
+                }
+                
+            } catch (error) {
+                showSheetsStatus('error', `Connection failed: ${error.message}`);
+                console.error('[Sheets] Error:', error);
+                return false;
+            }
+        }
+        
+        function extractSpreadsheetId(url) {
+            const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+            return match ? match[1] : null;
+        }
+        
+        function parseGoogleSheetsData(values) {
+            // Expected columns: Participant ID | Frequency | Color | Trial | Centroid X | Centroid Y | Area | ... 
+            const headers = values[0].map(h => h.toLowerCase().trim());
+            const data = [];
+            
+            for (let i = 1; i < values.length; i++) {
+                const row = values[i];
+                if (row.length < 7) continue; // Skip incomplete rows
+                
+                const record = {
+                    participantId: row[headers.indexOf('participant id')] || row[headers.indexOf('participant')] || row[0],
+                    frequency: parseFloat(row[headers.indexOf('frequency')]) || parseFloat(row[1]),
+                    color: (row[headers.indexOf('color')] || row[2]).toLowerCase(),
+                    trial: parseInt(row[headers.indexOf('trial')]) || parseInt(row[3]),
+                    centroidX: parseFloat(row[headers.indexOf('centroid x')] || row[headers.indexOf('centroid_x')] || row[4]),
+                    centroidY: parseFloat(row[headers.indexOf('centroid y')] || row[headers.indexOf('centroid_y')] || row[5]),
+                    area: parseFloat(row[headers.indexOf('area')] || row[6])
+                };
+                
+                // Validate required fields
+                if (record.participantId && !isNaN(record.frequency) && record.color && 
+                    !isNaN(record.centroidX) && !isNaN(record.centroidY) && !isNaN(record.area)) {
+                    data.push(record);
+                }
+            }
+            
+            return data;
+        }
+        
+        function showSheetsStatus(type, message) {
+            const container = document.getElementById('sheets-status');
+            const content = document.getElementById('sheets-status-content');
+            
+            container.classList.remove('hidden');
+            
+            let bgColor, borderColor, textColor, icon;
+            
+            if (type === 'success') {
+                bgColor = 'bg-green-50';
+                borderColor = 'border-green-300';
+                textColor = 'text-green-800';
+                icon = '✓';
+            } else if (type === 'error') {
+                bgColor = 'bg-red-50';
+                borderColor = 'border-red-300';
+                textColor = 'text-red-800';
+                icon = '✗';
+            } else if (type === 'loading') {
+                bgColor = 'bg-blue-50';
+                borderColor = 'border-blue-300';
+                textColor = 'text-blue-800';
+                icon = '⏳';
+            } else {
+                bgColor = 'bg-yellow-50';
+                borderColor = 'border-yellow-300';
+                textColor = 'text-yellow-800';
+                icon = '⚠';
+            }
+            
+            content.className = `p-3 rounded-lg border-2 ${bgColor} ${borderColor}`;
+            content.innerHTML = `<p class="text-sm font-semibold ${textColor}">${icon} ${message}</p>`;
+        }
+        
+        function validateShapeAgainstSheets(participantId, frequency, color, trial, centroid, area) {
+            if (!sheetsValidationEnabled || !googleSheetsData) {
+                return { valid: true, confidence: 0, message: 'Validation disabled' };
+            }
+            
+            // Find matching record in sheets
+            const matchingRecords = googleSheetsData.filter(record => 
+                record.participantId === participantId &&
+                Math.abs(record.frequency - frequency) < 0.1 &&
+                record.color === color.toLowerCase() &&
+                record.trial === trial
+            );
+            
+            if (matchingRecords.length === 0) {
+                return { valid: true, confidence: 0, message: 'No sheet data for comparison' };
+            }
+            
+            const sheetRecord = matchingRecords[0];
+            
+            // Calculate deviations
+            const centroidErrorX = Math.abs(centroid.x - sheetRecord.centroidX);
+            const centroidErrorY = Math.abs(centroid.y - sheetRecord.centroidY);
+            const centroidError = Math.sqrt(centroidErrorX * centroidErrorX + centroidErrorY * centroidErrorY);
+            const areaError = Math.abs((area - sheetRecord.area) / sheetRecord.area) * 100; // Percentage
+            
+            // Validation thresholds
+            const CENTROID_THRESHOLD = 0.5; // 0.5 units
+            const AREA_THRESHOLD = 15; // 15% difference
+            
+            let valid = true;
+            let confidence = 100;
+            let warnings = [];
+            
+            if (centroidError > CENTROID_THRESHOLD) {
+                valid = false;
+                confidence -= 30;
+                warnings.push(`Centroid mismatch: ${centroidError.toFixed(2)} units`);
+            }
+            
+            if (areaError > AREA_THRESHOLD) {
+                valid = false;
+                confidence -= 30;
+                warnings.push(`Area mismatch: ${areaError.toFixed(1)}%`);
+            }
+            
+            // If minor deviations, still pass but with lower confidence
+            if (centroidError > CENTROID_THRESHOLD / 2 && centroidError <= CENTROID_THRESHOLD) {
+                confidence -= 10;
+            }
+            if (areaError > AREA_THRESHOLD / 2 && areaError <= AREA_THRESHOLD) {
+                confidence -= 10;
+            }
+            
+            processingStats.validatedCount++;
+            updateValidationMetric();
+            
+            return {
+                valid,
+                confidence: Math.max(0, confidence),
+                centroidError,
+                areaError,
+                warnings: warnings.length > 0 ? warnings.join('; ') : 'Validation passed',
+                sheetData: sheetRecord
+            };
+        }
+        
+        // ============================================
+        // TRIAL NUMBER RE-MAPPING
+        // ============================================
+        
+        function normalizeTrialNumbers(participantFiles) {
+            // Group files by participant and frequency (NOT color, since each file has both colors)
+            const grouped = {};
+            
+            participantFiles.forEach(file => {
+                const key = `${file.participant}_${file.frequency}`;
+                if (!grouped[key]) {
+                    grouped[key] = [];
+                }
+                grouped[key].push(file);
+            });
+            
+            // For each group, re-map trial numbers based on ZIP order
+            Object.keys(grouped).forEach(key => {
+                const files = grouped[key];
+                
+                // Check if files have ZIP order numbers
+                const hasZipOrder = files.some(f => f.zipOrderNumber !== null && f.zipOrderNumber !== undefined);
+                
+                if (hasZipOrder) {
+                    // Sort by ZIP order number (lowest first)
+                    files.sort((a, b) => {
+                        const orderA = a.zipOrderNumber !== null ? a.zipOrderNumber : 999;
+                        const orderB = b.zipOrderNumber !== null ? b.zipOrderNumber : 999;
+                        return orderA - orderB;
+                    });
+                    
+                    console.log(`[Trial] ${key}: Sorting by ZIP order numbers`);
+                } else {
+                    // Fallback: Sort alphabetically by filename
+                    files.sort((a, b) => a.filename.localeCompare(b.filename));
+                    console.log(`[Trial] ${key}: No ZIP order found, sorting alphabetically`);
+                }
+                
+                // Re-map: lowest → 1, second-lowest → 2, highest → 3
+                if (files.length >= 1) files[0].normalizedTrial = 1;
+                if (files.length >= 2) files[1].normalizedTrial = 2;
+                if (files.length >= 3) files[2].normalizedTrial = 3;
+                
+                // Handle cases with more than 3 files (use only first 3)
+                for (let i = 3; i < files.length; i++) {
+                    files[i].normalizedTrial = null; // Mark as extra/invalid
+                    const zipInfo = files[i].sourceZip ? ` from ${files[i].sourceZip}` : '';
+                    console.warn(`[Trial] ${key}: File ${files[i].filename}${zipInfo} is position #${i+1} (>3), will be ignored`);
+                }
+                
+                // Log the mapping for transparency
+                if (files.length > 0 && files.length <= 3) {
+                    console.log(`[Trial] ${key}: Assigned trials:`);
+                    files.forEach((f, idx) => {
+                        const zipInfo = f.sourceZip ? ` (from ${f.sourceZip}, ZIP order=${f.zipOrderNumber})` : ' (direct PNG)';
+                        console.log(`[Trial]   → Trial ${idx + 1}: ${f.filename}${zipInfo}`);
+                    });
+                }
+            });
+            
+            return participantFiles;
+        }
+        
+        // ============================================
+        // ADVANCED EDGE DETECTION & CONTOUR TRACING
+        // ============================================
+        
+        function detectEdges(imageData, targetColor) {
+            const width = imageData.width;
+            const height = imageData.height;
+            const data = imageData.data;
+            const edges = [];
+            
+            // Convert target color string to RGB
+            const [tr, tg, tb] = targetColor.split(',').map(Number);
+            
+            // Scan for edge pixels (pixels of target color adjacent to non-target pixels)
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    const idx = (y * width + x) * 4;
+                    const r = data[idx];
+                    const g = data[idx + 1];
+                    const b = data[idx + 2];
+                    const a = data[idx + 3];
+                    
+                    // Skip if not target color
+                    if (Math.abs(r - tr) > 5 || Math.abs(g - tg) > 5 || Math.abs(b - tb) > 5 || a < 128) {
+                        continue;
+                    }
+                    
+                    // Check if this is an edge pixel (has non-target neighbor)
+                    let isEdge = false;
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            if (dx === 0 && dy === 0) continue;
+                            
+                            const nx = x + dx;
+                            const ny = y + dy;
+                            const nidx = (ny * width + nx) * 4;
+                            const nr = data[nidx];
+                            const ng = data[nidx + 1];
+                            const nb = data[nidx + 2];
+                            const na = data[nidx + 3];
+                            
+                            if (Math.abs(nr - tr) > 5 || Math.abs(ng - tg) > 5 || Math.abs(nb - tb) > 5 || na < 128) {
+                                isEdge = true;
+                                break;
+                            }
+                        }
+                        if (isEdge) break;
+                    }
+                    
+                    if (isEdge) {
+                        edges.push({ x, y });
+                    }
+                }
+            }
+            
+            return edges;
+        }
+        
+        function traceContour(edges) {
+            if (edges.length === 0) return [];
+            
+            // Sort edges by angle from center
+            const sortedEdges = edges.map(edge => {
+                const dx = edge.x - CENTER_X;
+                const dy = edge.y - CENTER_Y;
+                const angle = Math.atan2(dy, dx);
+                const radius = Math.sqrt(dx * dx + dy * dy);
+                return { ...edge, angle, radius };
+            });
+            
+            sortedEdges.sort((a, b) => a.angle - b.angle);
+            
+            return sortedEdges;
+        }
+        
+        function extractCompleteShapeContour(imageData, targetColorString) {
+            // Detect edges
+            const edges = detectEdges(imageData, targetColorString);
+            
+            if (edges.length === 0) {
+                console.warn('[Contour] No edges found for color:', targetColorString);
+                return [];
+            }
+            
+            // Trace contour
+            const contour = traceContour(edges);
+            
+            // Fill gaps using interpolation
+            const completeContour = fillContourGaps(contour);
+            
+            return completeContour;
+        }
+        
+        function fillContourGaps(contour) {
+            if (contour.length < 2) return contour;
+            
+            const filled = [];
+            const angleThreshold = 0.05; // ~3 degrees
+            
+            for (let i = 0; i < contour.length; i++) {
+                const current = contour[i];
+                const next = contour[(i + 1) % contour.length];
+                
+                filled.push(current);
+                
+                // Check if there's a gap
+                const angleDiff = Math.abs(next.angle - current.angle);
+                
+                if (angleDiff > angleThreshold) {
+                    // Interpolate between current and next
+                    const steps = Math.ceil(angleDiff / angleThreshold);
+                    
+                    for (let step = 1; step < steps; step++) {
+                        const t = step / steps;
+                        const interpolatedAngle = current.angle + (next.angle - current.angle) * t;
+                        const interpolatedRadius = current.radius + (next.radius - current.radius) * t;
+                        
+                        const x = CENTER_X + interpolatedRadius * Math.cos(interpolatedAngle);
+                        const y = CENTER_Y + interpolatedRadius * Math.sin(interpolatedAngle);
+                        
+                        filled.push({
+                            x: Math.round(x),
+                            y: Math.round(y),
+                            angle: interpolatedAngle,
+                            radius: interpolatedRadius,
+                            interpolated: true
+                        });
+                    }
+                }
+            }
+            
+            return filled;
+        }
+        
+        // ============================================
+        // MAD (MEDIAN ABSOLUTE DEVIATION) OUTLIER DETECTION
+        // ============================================
+        
+        function calculateMedian(values) {
+            if (values.length === 0) return 0;
+            const sorted = [...values].sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+            return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+        }
+        
+        function calculateMAD(values) {
+            const median = calculateMedian(values);
+            const absoluteDeviations = values.map(v => Math.abs(v - median));
+            return calculateMedian(absoluteDeviations);
+        }
+        
+        function filterOutliersMAD(values, threshold = 3.5) {
+            if (values.length < 3) return { valid: values, outliers: [] };
+            
+            const median = calculateMedian(values);
+            const mad = calculateMAD(values);
+            
+            const valid = [];
+            const outliers = [];
+            
+            values.forEach((value, index) => {
+                const modifiedZScore = mad === 0 ? 0 : (0.6745 * (value - median)) / mad;
+                
+                if (Math.abs(modifiedZScore) < threshold) {
+                    valid.push({ value, index });
+                } else {
+                    outliers.push({ value, index, zScore: modifiedZScore });
+                    processingStats.outliersFiltered++;
+                }
+            });
+            
+            updateOutlierMetric();
+            
+            return { valid, outliers };
+        }
+        
+        function filterRadialOutliers(participantShapes) {
+            const numAngles = 360;
+            const filteredShapes = participantShapes.map(shape => ({ ...shape, radialData: [...shape.radialData] }));
+            
+            // For each angle, detect outliers across all participants
+            for (let angle = 0; angle < numAngles; angle++) {
+                const radiiAtAngle = participantShapes.map((shape, idx) => ({
+                    value: shape.radialData[angle],
+                    shapeIndex: idx
+                }));
+                
+                const values = radiiAtAngle.map(r => r.value);
+                const { valid, outliers } = filterOutliersMAD(values);
+                
+                // For outliers, replace with median value
+                if (outliers.length > 0) {
+                    const median = calculateMedian(valid.map(v => v.value));
+                    
+                    outliers.forEach(outlier => {
+                        const shapeIdx = radiiAtAngle[outlier.index].shapeIndex;
+                        filteredShapes[shapeIdx].radialData[angle] = median;
+                        
+                        if (!filteredShapes[shapeIdx].outlierCount) {
+                            filteredShapes[shapeIdx].outlierCount = 0;
+                        }
+                        filteredShapes[shapeIdx].outlierCount++;
+                    });
+                }
+            }
+            
+            // Remove shapes with too many outliers (>25% of angles)
+            const validShapes = filteredShapes.filter(shape => {
+                const outlierPercentage = ((shape.outlierCount || 0) / numAngles) * 100;
+                return outlierPercentage < 25;
+            });
+            
+            console.log(`[MAD Filter] Kept ${validShapes.length}/${participantShapes.length} shapes`);
+            
+            return validShapes;
+        }
+        
+        // ============================================
+        // SHAPE ANALYSIS WITH CONTOUR & VALIDATION
+        // ============================================
+        
+        function pixelsToUnits(pixels) {
+            return pixels / SCALE_FACTOR;
+        }
+        
+        function unitsToPixels(units) {
+            return units * SCALE_FACTOR;
+        }
+        
+        function calculateCentroid(contour) {
+            if (contour.length === 0) return { x: 0, y: 0 };
+            
+            let sumX = 0;
+            let sumY = 0;
+            
+            contour.forEach(point => {
+                sumX += point.x;
+                sumY += point.y;
+            });
+            
+            const centroidX = sumX / contour.length;
+            const centroidY = sumY / contour.length;
+            
+            // Convert to units relative to center
+            return {
+                x: pixelsToUnits(centroidX - CENTER_X),
+                y: pixelsToUnits(CENTER_Y - centroidY) // Flip Y axis
+            };
+        }
+        
+        function calculateAreaFromContour(contour) {
+            if (contour.length < 3) return 0;
+            
+            // Use shoelace formula
+            let area = 0;
+            
+            for (let i = 0; i < contour.length; i++) {
+                const current = contour[i];
+                const next = contour[(i + 1) % contour.length];
+                area += current.x * next.y - next.x * current.y;
+            }
+            
+            area = Math.abs(area) / 2;
+            
+            // Convert from pixels² to units²
+            const areaInUnits = area / (SCALE_FACTOR * SCALE_FACTOR);
+            
+            return areaInUnits;
+        }
+        
+        function contourToRadialData(contour) {
+            const numAngles = 360;
+            const radialData = new Array(numAngles).fill(0);
+            
+            // For each angle, find the maximum radius
+            contour.forEach(point => {
+                const dx = point.x - CENTER_X;
+                const dy = point.y - CENTER_Y;
+                const angle = Math.atan2(dy, dx);
+                const angleIndex = Math.round(((angle + Math.PI) / (2 * Math.PI)) * numAngles) % numAngles;
+                const radius = pixelsToUnits(Math.sqrt(dx * dx + dy * dy));
+                
+                radialData[angleIndex] = Math.max(radialData[angleIndex], radius);
+            });
+            
+            // Fill zero values with interpolation
+            for (let i = 0; i < numAngles; i++) {
+                if (radialData[i] === 0) {
+                    // Find nearest non-zero values
+                    let before = i - 1;
+                    let after = i + 1;
+                    
+                    while (before >= 0 && radialData[before] === 0) before--;
+                    while (after < numAngles && radialData[after] === 0) after++;
+                    
+                    if (before >= 0 && after < numAngles) {
+                        radialData[i] = (radialData[before] + radialData[after]) / 2;
+                    } else if (before >= 0) {
+                        radialData[i] = radialData[before];
+                    } else if (after < numAngles) {
+                        radialData[i] = radialData[after];
+                    }
+                }
+            }
+            
+            return radialData;
+        }
+        
+        // ============================================
+        // METRICS UPDATE FUNCTIONS
         // ============================================
         
         function updateProgress(percentage, message) {
@@ -455,109 +1119,32 @@
             }
         }
         
-        function updateWorkersMetric() {
-            const workerCount = activeWorkers.size;
-            document.getElementById('workers-metric').textContent = workerCount;
+        function updateValidationMetric() {
+            const validated = processingStats.validatedCount;
+            const total = processingStats.totalCount;
             
-            const workerProgress = MAX_PARALLEL_WORKERS > 0 ? (workerCount / MAX_PARALLEL_WORKERS) * 100 : 0;
-            document.getElementById('workers-progress').style.width = `${workerProgress}%`;
+            document.getElementById('validation-metric').textContent = `${validated}/${total}`;
+            
+            const progress = total > 0 ? (validated / total) * 100 : 0;
+            document.getElementById('validation-progress').style.width = `${progress}%`;
         }
         
-        function updateMemoryMetric() {
-            if (performance.memory) {
-                const usedMB = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(1);
-                document.getElementById('memory-metric').textContent = `${usedMB} MB`;
-                
-                const memoryProgress = (performance.memory.usedJSHeapSize / performance.memory.jsHeapSizeLimit) * 100;
-                document.getElementById('memory-progress').style.width = `${memoryProgress}%`;
-            } else {
-                document.getElementById('memory-metric').textContent = 'N/A';
-                document.getElementById('memory-progress').style.width = '0%';
-            }
+        function updateOutlierMetric() {
+            const filtered = processingStats.outliersFiltered;
+            
+            document.getElementById('outlier-metric').textContent = filtered;
+            
+            // Progress bar shows relative filtering rate
+            const maxOutliers = Math.max(processingStats.totalCount * 0.1, 10); // Assume max 10% outliers
+            const progress = Math.min((filtered / maxOutliers) * 100, 100);
+            document.getElementById('outlier-progress').style.width = `${progress}%`;
         }
         
         function updateAllMetrics() {
             updateSpeedMetric();
             updateETAMetric();
-            updateWorkersMetric();
-            updateMemoryMetric();
-        }
-        
-        // ============================================
-        // BATCH TRACKING
-        // ============================================
-        
-        function initBatch(files) {
-            currentBatchFiles = files;
-            batchItemStates = files.map(file => ({
-                name: file.name,
-                status: 'pending',
-                progress: 0
-            }));
-            
-            const batchProgress = document.getElementById('batch-progress');
-            batchProgress.classList.remove('hidden');
-            
-            updateBatchDisplay();
-        }
-        
-        function updateBatchItem(index, status, progress) {
-            if (index < batchItemStates.length) {
-                batchItemStates[index].status = status;
-                batchItemStates[index].progress = progress;
-                updateBatchDisplay();
-            }
-        }
-        
-        function updateBatchDisplay() {
-            const batchBar = document.getElementById('batch-progress-bar');
-            const totalProgress = batchItemStates.reduce((sum, item) => sum + item.progress, 0);
-            const avgProgress = totalProgress / batchItemStates.length;
-            batchBar.style.width = `${avgProgress}%`;
-            
-            const details = document.getElementById('batch-details');
-            if (!details.classList.contains('hidden')) {
-                details.innerHTML = batchItemStates.map((item, i) => {
-                    let statusIcon = '⏳';
-                    let statusColor = 'text-gray-600';
-                    let bgColor = 'bg-gray-50';
-                    
-                    if (item.status === 'processing') {
-                        statusIcon = '⚙️';
-                        statusColor = 'text-blue-600';
-                        bgColor = 'bg-blue-50';
-                    } else if (item.status === 'completed') {
-                        statusIcon = '✅';
-                        statusColor = 'text-green-600';
-                        bgColor = 'bg-green-50';
-                    } else if (item.status === 'error') {
-                        statusIcon = '❌';
-                        statusColor = 'text-red-600';
-                        bgColor = 'bg-red-50';
-                    }
-                    
-                    return `
-                        <div class="batch-item p-2 rounded ${bgColor} flex items-center justify-between">
-                            <div class="flex items-center gap-2 flex-1 min-w-0">
-                                <span class="text-lg">${statusIcon}</span>
-                                <span class="text-xs ${statusColor} font-semibold truncate">${item.name}</span>
-                            </div>
-                            <div class="text-xs font-mono font-bold ${statusColor} ml-2">${item.progress}%</div>
-                        </div>
-                    `;
-                }).join('');
-            }
-        }
-        
-        function clearBatch() {
-            currentBatchFiles = [];
-            batchItemStates = [];
-            
-            const batchProgress = document.getElementById('batch-progress');
-            batchProgress.classList.add('hidden');
-            
-            const details = document.getElementById('batch-details');
-            details.innerHTML = '';
+            updateValidationMetric();
+            updateOutlierMetric();
         }
         
         // ============================================
@@ -566,10 +1153,7 @@
         
         function parseFilename(filename) {
             try {
-                // Remove any potential BOM or hidden characters and normalize
                 const cleanFilename = filename.replace(/[\uFEFF\u200B-\u200D\uFFFE]/g, '').trim();
-                
-                // Split filename and look for frequency pattern
                 const parts = cleanFilename.split('_').map(p => p.trim());
                 
                 if (parts.length < 2) {
@@ -577,11 +1161,10 @@
                     return null;
                 }
                 
-                // Try multiple patterns to be extra robust
+                // Extract frequency
                 let freqPart = null;
                 let frequencyNum = null;
                 
-                // Pattern 1: Standard format like "1000Hz" or "62.5Hz"
                 freqPart = parts.find(p => /^\d+(?:\.\d+)?hz$/i.test(p));
                 
                 if (freqPart) {
@@ -591,8 +1174,7 @@
                     }
                 }
                 
-                // Pattern 2: If not found, try anywhere in the string
-                if (!frequencyNum) {
+                if (!frequencyNum || !freqPart) {
                     for (const part of parts) {
                         const match = part.match(/(\d+(?:\.\d+)?)hz/i);
                         if (match) {
@@ -608,21 +1190,26 @@
                     return null;
                 }
                 
-                // Convert to standard format (e.g., "31Hz", "62.5Hz")
                 const frequency = frequencyNum.toString() + 'Hz';
                 
-                // Validate against known frequencies
                 const validFrequencies = ['31Hz', '62.5Hz', '125Hz', '250Hz', '500Hz', '1000Hz', '2000Hz', '4000Hz', '8000Hz', '12000Hz', '16000Hz'];
                 if (!validFrequencies.includes(frequency)) {
-                    console.warn(`Unknown frequency ${frequency} (parsed from ${frequencyNum}) in: ${filename}`);
+                    console.warn(`Unknown frequency ${frequency} in: ${filename}`);
                     return null;
                 }
                 
-                // Get participant name - join all parts before the frequency part
+                // Get participant name
                 const freqIndex = parts.indexOf(freqPart);
                 const participant = parts.slice(0, freqIndex).join(' ').trim() || 'Unknown';
                 
-                return { participant, frequency };
+                // Extract trial number (if present)
+                let trialNumber = 1; // Default
+                const trialMatch = cleanFilename.match(/trial[\s_-]?(\d+)/i) || cleanFilename.match(/_(\d+)\.png$/i);
+                if (trialMatch) {
+                    trialNumber = parseInt(trialMatch[1]);
+                }
+                
+                return { participant, frequency, frequencyNumber: frequencyNum, trialNumber };
             } catch (err) {
                 console.error(`Error parsing filename ${filename}:`, err);
                 return null;
@@ -648,7 +1235,7 @@
         }
         
         // ============================================
-        // WEB WORKER SETUP (FIXED VERSION)
+        // WEB WORKER FOR IMAGE PROCESSING
         // ============================================
         
         const workerCode = `
@@ -656,71 +1243,50 @@ self.onmessage = async function(e) {
     try {
         const { imageData, filename } = e.data;
         
-        // Validate input
         if (!imageData || !imageData.data) {
-            throw new Error('Invalid image data received');
+            throw new Error('Invalid image data');
         }
         
-        console.log('[Worker] Processing:', filename, 'Size:', imageData.width, 'x', imageData.height);
+        const width = imageData.width;
+        const height = imageData.height;
+        const data = imageData.data;
         
-        // Create canvas with error handling
-        const canvas = new OffscreenCanvas(imageData.width, imageData.height);
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        // Detect colors
+        const redPixels = [];
+        const bluePixels = [];
         
-        if (!ctx) {
-            throw new Error('Failed to get canvas context');
-        }
-        
-        ctx.putImageData(imageData, 0, 0);
-        
-        // Get image data
-        const data = ctx.getImageData(0, 0, imageData.width, imageData.height).data;
-        
-        // Analyze with validation
-        const colors = new Map();
-        const pixelCount = imageData.width * imageData.height;
-        
-        if (data.length !== pixelCount * 4) {
-            throw new Error('Invalid pixel data length');
-        }
-        
-        for (let i = 0; i < data.length; i += 4) {
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            const a = data[i + 3];
-            
-            // Skip fully transparent or white pixels
-            if (a < 10 || (r > 250 && g > 250 && b > 250)) {
-                continue;
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const idx = (y * width + x) * 4;
+                const r = data[idx];
+                const g = data[idx + 1];
+                const b = data[idx + 2];
+                const a = data[idx + 3];
+                
+                if (a < 128) continue;
+                
+                // Red detection (allow some tolerance)
+                if (r > 240 && g < 20 && b < 20) {
+                    redPixels.push({ x, y, r, g, b });
+                }
+                
+                // Blue detection (allow some tolerance)
+                if (b > 240 && r < 20 && g < 20) {
+                    bluePixels.push({ x, y, r, g, b });
+                }
             }
-            
-            const colorKey = r + ',' + g + ',' + b;
-            colors.set(colorKey, (colors.get(colorKey) || 0) + 1);
-        }
-        
-        // Convert to array and validate
-        const colorData = Array.from(colors.entries()).map(([color, count]) => {
-            const [r, g, b] = color.split(',').map(Number);
-            return {
-                color: 'rgb(' + r + ',' + g + ',' + b + ')',
-                count: count,
-                percentage: (count / pixelCount) * 100
-            };
-        });
-        
-        if (colorData.length === 0) {
-            console.warn('[Worker] No colors found in:', filename);
         }
         
         self.postMessage({
             success: true,
             filename: filename,
-            colors: colorData
+            redPixels: redPixels,
+            bluePixels: bluePixels,
+            hasRed: redPixels.length > 0,
+            hasBlue: bluePixels.length > 0
         });
         
     } catch (error) {
-        console.error('[Worker] Error processing image:', error.message, error.stack);
         self.postMessage({
             success: false,
             filename: e.data?.filename || 'unknown',
@@ -734,25 +1300,42 @@ self.onmessage = async function(e) {
         const workerBlobUrl = URL.createObjectURL(workerBlob);
         
         // ============================================
-        // IMAGE LOADING & PROCESSING (FIXED VERSION)
+        // FILE LOADING
         // ============================================
         
         async function loadImagesFromZip(file) {
             console.log(`[ZIP] Extracting from: ${file.name}`);
+            
+            // Extract ordering number from ZIP name (e.g., "Michael D_07_Drawings.zip" → 7)
+            const zipOrderMatch = file.name.match(/_(\d+)_/);
+            const zipOrderNumber = zipOrderMatch ? parseInt(zipOrderMatch[1]) : null;
+            
+            // Extract participant name from ZIP name (before first underscore+number pattern)
+            const nameWithoutExt = file.name.replace(/\.zip$/i, '');
+            const zipParticipantMatch = nameWithoutExt.match(/^(.+?)_\d+/);
+            const zipParticipant = zipParticipantMatch ? zipParticipantMatch[1].trim() : null;
+            
+            if (zipOrderNumber !== null && zipParticipant !== null) {
+                console.log(`[ZIP]   ✓ Participant="${zipParticipant}", Order=${zipOrderNumber}`);
+            } else {
+                console.warn(`[ZIP]   ⚠ Could not extract order/participant from: ${file.name}`);
+            }
+            
             const zip = await JSZip.loadAsync(file);
             const images = [];
+            let pngCount = 0;
+            let nestedZipCount = 0;
             
             for (const [path, zipEntry] of Object.entries(zip.files)) {
                 if (zipEntry.dir) continue;
                 
                 if (path.toLowerCase().endsWith('.zip')) {
-                    console.log(`[ZIP] Found nested ZIP: ${path}`);
                     try {
+                        nestedZipCount++;
                         const nestedZipBlob = await zipEntry.async('blob');
                         const nestedZipFile = new File([nestedZipBlob], path.split('/').pop());
                         const nestedImages = await loadImagesFromZip(nestedZipFile);
                         images.push(...nestedImages);
-                        console.log(`[ZIP] Extracted ${nestedImages.length} PNGs from ${file.name}/${path}`);
                     } catch (err) {
                         console.error(`[ZIP] Error processing nested ZIP ${path}:`, err);
                     }
@@ -761,6 +1344,7 @@ self.onmessage = async function(e) {
                 
                 if (path.toLowerCase().endsWith('.png')) {
                     try {
+                        pngCount++;
                         const blobData = await zipEntry.async('blob');
                         const pngBlob = new Blob([blobData], { type: 'image/png' });
                         const filename = path.split('/').pop();
@@ -768,17 +1352,28 @@ self.onmessage = async function(e) {
                         images.push({
                             name: filename,
                             blob: pngBlob,
-                            fullPath: `${file.name}/${path}`
+                            fullPath: `${file.name}/${path}`,
+                            sourceZip: file.name,
+                            zipOrderNumber: zipOrderNumber,
+                            zipParticipant: zipParticipant
                         });
-                        
-                        console.log(`[ZIP] Extracted PNG: ${filename}, size: ${pngBlob.size} bytes`);
                     } catch (err) {
                         console.error(`[ZIP] Error extracting ${path}:`, err);
                     }
                 }
             }
             
-            console.log(`[ZIP] Extracted ${images.length} PNGs from ${file.name}`);
+            // Log summary for this ZIP
+            if (pngCount > 0) {
+                console.log(`[ZIP]   → Found ${pngCount} PNG file(s) in ${file.name}`);
+            }
+            if (nestedZipCount > 0) {
+                console.log(`[ZIP]   → Found ${nestedZipCount} nested ZIP(s) in ${file.name}`);
+            }
+            if (pngCount === 0 && nestedZipCount === 0) {
+                console.warn(`[ZIP]   ⚠ No PNG or ZIP files found in ${file.name}`);
+            }
+            
             return images;
         }
         
@@ -827,7 +1422,6 @@ self.onmessage = async function(e) {
                         return;
                     }
                     
-                    console.log(`[Main] Creating blob URL for: ${file.name}, blob size: ${file.blob.size} bytes`);
                     objectUrl = URL.createObjectURL(file.blob);
                     img.crossOrigin = 'anonymous';
                     img.src = objectUrl;
@@ -839,92 +1433,59 @@ self.onmessage = async function(e) {
             });
         }
         
-        // Process single image with improved error handling and worker management
-        async function processImage(file, batchIndex) {
-            // Wait if too many workers active
-            while (activeWorkers.size >= MAX_PARALLEL_WORKERS) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
+        // ============================================
+        // MAIN PROCESSING PIPELINE
+        // ============================================
+        
+        async function processImage(file) {
+            const imageData = await loadImageToCanvas(file);
             
-            return new Promise(async (resolve, reject) => {
-                let worker = null;
-                let timeout = null;
+            const worker = new Worker(workerBlobUrl);
+            activeWorkers.add(worker);
+            
+            return new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                    activeWorkers.delete(worker);
+                    worker.terminate();
+                    reject(new Error(`Worker timeout for ${file.name}`));
+                }, 30000);
                 
-                try {
-                    updateBatchItem(batchIndex, 'processing', 0);
+                worker.onmessage = function(e) {
+                    clearTimeout(timeout);
+                    activeWorkers.delete(worker);
+                    worker.terminate();
                     
-                    console.log(`[Main] Loading image: ${file.name}`);
-                    const imageData = await loadImageToCanvas(file);
-                    console.log(`[Main] Loaded image: ${file.name}, size: ${imageData.width}x${imageData.height}`);
+                    processingStats.processedCount++;
+                    updateAllMetrics();
                     
-                    worker = new Worker(workerBlobUrl);
-                    activeWorkers.add(worker);
-                    updateWorkersMetric();
-                    
-                    timeout = setTimeout(() => {
-                        console.warn(`[Main] Worker timeout for ${file.name}`);
-                        if (worker) {
-                            activeWorkers.delete(worker);
-                            worker.terminate();
-                        }
-                        updateBatchItem(batchIndex, 'error', 0);
-                        reject(new Error(`Worker timeout for ${file.name}`));
-                    }, 30000);
-                    
-                    worker.onmessage = function(e) {
-                        clearTimeout(timeout);
-                        activeWorkers.delete(worker);
-                        worker.terminate();
-                        updateWorkersMetric();
-                        
-                        processingStats.processedCount++;
-                        updateAllMetrics();
-                        
-                        if (e.data.success) {
-                            updateBatchItem(batchIndex, 'completed', 100);
-                            resolve({
-                                filename: file.name,
-                                colors: e.data.colors
-                            });
-                        } else {
-                            console.error(`Worker reported error for ${file.name}:`, e.data.error);
-                            updateBatchItem(batchIndex, 'error', 0);
-                            reject(new Error(e.data.error));
-                        }
-                    };
-                    
-                    worker.onerror = function(error) {
-                        clearTimeout(timeout);
-                        activeWorkers.delete(worker);
-                        worker.terminate();
-                        updateWorkersMetric();
-                        console.error(`Worker error for ${file.name}:`, error);
-                        updateBatchItem(batchIndex, 'error', 0);
-                        reject(error);
-                    };
-                    
-                    worker.postMessage({
-                        imageData: imageData,
-                        filename: file.name
-                    });
-                    
-                } catch (error) {
-                    if (timeout) clearTimeout(timeout);
-                    if (worker) {
-                        activeWorkers.delete(worker);
-                        worker.terminate();
-                        updateWorkersMetric();
+                    if (e.data.success) {
+                        resolve({
+                            filename: file.name,
+                            imageData,
+                            sourceZip: file.sourceZip,
+                            zipOrderNumber: file.zipOrderNumber,
+                            zipParticipant: file.zipParticipant,
+                            ...e.data
+                        });
+                    } else {
+                        reject(new Error(e.data.error));
                     }
-                    console.error(`Error processing ${file.name}:`, error);
-                    updateBatchItem(batchIndex, 'error', 0);
+                };
+                
+                worker.onerror = function(error) {
+                    clearTimeout(timeout);
+                    activeWorkers.delete(worker);
+                    worker.terminate();
                     reject(error);
-                }
+                };
+                
+                worker.postMessage({ imageData, filename: file.name });
             });
         }
         
         async function processImagesParallel(files) {
             const results = [];
-            const batchSize = MAX_PARALLEL_WORKERS * 3; // Process 3 images per worker
+            const batchSize = MAX_PARALLEL_WORKERS * 3;
             
             for (let i = 0; i < files.length; i += batchSize) {
                 if (processingCancelled) {
@@ -932,11 +1493,10 @@ self.onmessage = async function(e) {
                 }
                 
                 const batch = files.slice(i, i + batchSize);
-                initBatch(batch);
                 
-                const batchPromises = batch.map(async (file, batchIndex) => {
+                const batchPromises = batch.map(async (file) => {
                     try {
-                        const result = await processImage(file, batchIndex);
+                        const result = await processImage(file);
                         return result;
                     } catch (err) {
                         console.warn(`Skipping ${file.name}:`, err.message);
@@ -945,11 +1505,6 @@ self.onmessage = async function(e) {
                 });
                 
                 const batchResults = await Promise.all(batchPromises);
-                
-                if (processingCancelled) {
-                    clearBatch();
-                    throw new Error('Processing cancelled by user');
-                }
                 
                 batchResults.forEach(result => {
                     if (result !== null) {
@@ -960,7 +1515,6 @@ self.onmessage = async function(e) {
                 const progress = 10 + ((processingStats.processedCount / processingStats.totalCount) * 40);
                 updateProgress(progress, `Processing images (${processingStats.processedCount}/${processingStats.totalCount})`);
                 
-                clearBatch();
                 await new Promise(resolve => setTimeout(resolve, 50));
             }
             
@@ -968,95 +1522,151 @@ self.onmessage = async function(e) {
         }
         
         // ============================================
-        // ANALYSIS FUNCTIONS
+        // SHAPE AVERAGING WITH ADVANCED FEATURES
         // ============================================
         
-        function calculateAverageShape(dataPoints) {
-            if (dataPoints.length === 0) {
-                return { radialData: [], meanRadius: 0, sdRadius: 0, meanArea: 0, sdArea: 0 };
+        function calculateAverageShape(participantShapes) {
+            if (participantShapes.length === 0) {
+                return { radialData: [], meanRadius: 0, sdRadius: 0, meanArea: 0, sdArea: 0, nShapes: 0, outliersRemoved: 0 };
             }
             
+            // Filter outliers using MAD
+            const validShapes = filterRadialOutliers(participantShapes);
+            const outliersRemoved = participantShapes.length - validShapes.length;
+            
             const numAngles = 360;
-            const radii = Array(numAngles).fill(0).map(() => []);
+            const avgRadii = new Array(numAngles).fill(0);
             
-            dataPoints.forEach(point => {
-                const centerX = 500;
-                const centerY = 500;
-                
-                for (let angle = 0; angle < numAngles; angle++) {
-                    const rad = (angle * Math.PI) / 180;
-                    const cos = Math.cos(rad);
-                    const sin = Math.sin(rad);
-                    
-                    let maxDist = 0;
-                    
-                    for (let r = 0; r < 500; r += 2) {
-                        const x = Math.round(centerX + r * cos);
-                        const y = Math.round(centerY + r * sin);
-                        
-                        if (x < 0 || x >= 1000 || y < 0 || y >= 1000) break;
-                        
-                        const pixelIndex = (y * 1000 + x) * 4;
-                        const colorKey = `${point.imageData.data[pixelIndex]},${point.imageData.data[pixelIndex + 1]},${point.imageData.data[pixelIndex + 2]}`;
-                        
-                        if (point.targetColor === colorKey) {
-                            maxDist = r;
-                        }
-                    }
-                    
-                    radii[angle].push(maxDist);
-                }
-            });
+            // Calculate median radius at each angle (more robust than mean)
+            for (let angle = 0; angle < numAngles; angle++) {
+                const radiiAtAngle = validShapes.map(shape => shape.radialData[angle]);
+                avgRadii[angle] = calculateMedian(radiiAtAngle);
+            }
             
-            const avgRadii = radii.map(angleRadii => {
-                if (angleRadii.length === 0) return 0;
-                return angleRadii.reduce((a, b) => a + b, 0) / angleRadii.length;
-            });
+            // Light smoothing (window size 3) to preserve hand-drawn characteristics
+            const smoothedRadii = [...avgRadii];
+            for (let angle = 0; angle < numAngles; angle++) {
+                const prev = avgRadii[(angle - 1 + numAngles) % numAngles];
+                const curr = avgRadii[angle];
+                const next = avgRadii[(angle + 1) % numAngles];
+                smoothedRadii[angle] = (prev + curr + next) / 3;
+            }
             
-            const meanRadius = avgRadii.reduce((a, b) => a + b, 0) / avgRadii.length;
+            // Calculate statistics
+            const meanRadius = smoothedRadii.reduce((a, b) => a + b, 0) / numAngles;
+            const radiusVariances = smoothedRadii.map(r => Math.pow(r - meanRadius, 2));
+            const sdRadius = Math.sqrt(radiusVariances.reduce((a, b) => a + b, 0) / numAngles);
             
-            const radiusVariances = avgRadii.map(r => Math.pow(r - meanRadius, 2));
-            const sdRadius = Math.sqrt(radiusVariances.reduce((a, b) => a + b, 0) / radiusVariances.length);
-            
-            const areas = dataPoints.map(point => {
-                let pixelCount = 0;
-                for (let i = 0; i < point.imageData.data.length; i += 4) {
-                    const colorKey = `${point.imageData.data[i]},${point.imageData.data[i + 1]},${point.imageData.data[i + 2]}`;
-                    if (point.targetColor === colorKey) {
-                        pixelCount++;
-                    }
-                }
-                return pixelCount;
-            });
-            
-            const meanArea = areas.reduce((a, b) => a + b, 0) / areas.length;
-            const areaVariances = areas.map(a => Math.pow(a - meanArea, 2));
-            const sdArea = Math.sqrt(areaVariances.reduce((a, b) => a + b, 0) / areaVariances.length);
+            // Calculate areas
+            const areas = validShapes.map(shape => shape.area);
+            const meanArea = calculateMedian(areas);
+            const areaDeviations = areas.map(a => Math.abs(a - meanArea));
+            const sdArea = calculateMedian(areaDeviations) * 1.4826; // MAD to SD conversion
             
             return {
-                radialData: avgRadii,
+                radialData: smoothedRadii,
                 meanRadius,
                 sdRadius,
                 meanArea,
-                sdArea
+                sdArea,
+                nShapes: validShapes.length,
+                outliersRemoved
             };
         }
         
-        function drawAverageShape(canvas, radialData, color, label) {
-            const ctx = canvas.getContext('2d');
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
+        // ============================================
+        // DRAWING FUNCTIONS
+        // ============================================
+        
+        function drawGrid(ctx, size) {
+            const gridSize = size / (2 * GRID_RANGE); // pixels per unit
+            const center = size / 2;
             
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#e5e5e5';
+            ctx.lineWidth = 1;
             
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Vertical lines
+            for (let i = -GRID_RANGE; i <= GRID_RANGE; i++) {
+                const x = center + i * gridSize;
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, size);
+                ctx.stroke();
+            }
+            
+            // Horizontal lines
+            for (let i = -GRID_RANGE; i <= GRID_RANGE; i++) {
+                const y = center + i * gridSize;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(size, y);
+                ctx.stroke();
+            }
+            
+            // Axes (darker)
+            ctx.strokeStyle = '#d0d0d0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(center, 0);
+            ctx.lineTo(center, size);
+            ctx.moveTo(0, center);
+            ctx.lineTo(size, center);
+            ctx.stroke();
+        }
+        
+        function drawReferenceCircle(ctx, size) {
+            const center = size / 2;
+            const radius = unitsToPixels(REFERENCE_CIRCLE_RADIUS);
+            
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(center, center, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+        
+        function drawIndividualShapes(ctx, shapes, color = '#999999') {
+            ctx.strokeStyle = color;
+            ctx.fillStyle = 'transparent'; // UNFILLED
+            ctx.lineWidth = 1;
+            ctx.globalAlpha = 0.5;
+            
+            shapes.forEach(shape => {
+                ctx.beginPath();
+                shape.radialData.forEach((radius, angle) => {
+                    const rad = (angle * Math.PI) / 180;
+                    const x = CENTER_X + unitsToPixels(radius) * Math.cos(rad);
+                    const y = CENTER_Y + unitsToPixels(radius) * Math.sin(rad);
+                    
+                    if (angle === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                ctx.closePath();
+                ctx.stroke(); // ONLY stroke, never fill
+            });
+            
+            ctx.globalAlpha = 1.0;
+        }
+        
+        function drawAveragedShape(ctx, radialData, color, dashed = false) {
+            ctx.strokeStyle = color;
+            ctx.fillStyle = 'transparent'; // UNFILLED
+            ctx.lineWidth = 3;
+            
+            if (dashed) {
+                ctx.setLineDash([10, 5]);
+            } else {
+                ctx.setLineDash([]);
+            }
             
             ctx.beginPath();
             radialData.forEach((radius, angle) => {
                 const rad = (angle * Math.PI) / 180;
-                const x = centerX + radius * Math.cos(rad);
-                const y = centerY + radius * Math.sin(rad);
+                const x = CENTER_X + unitsToPixels(radius) * Math.cos(rad);
+                const y = CENTER_Y + unitsToPixels(radius) * Math.sin(rad);
                 
                 if (angle === 0) {
                     ctx.moveTo(x, y);
@@ -1065,17 +1675,52 @@ self.onmessage = async function(e) {
                 }
             });
             ctx.closePath();
-            ctx.fillStyle = color;
-            ctx.fill();
+            ctx.stroke(); // ONLY stroke, never fill
             
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        
+        function drawCompositeVisualization(canvas, frequency, redShapes, blueShapes, redAvg, blueAvg) {
+            const ctx = canvas.getContext('2d');
             
+            // Clear and white background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            drawGrid(ctx, canvas.width);
+            
+            // Draw reference circle
+            drawReferenceCircle(ctx, canvas.width);
+            
+            // Draw individual shapes in gray (background)
+            drawIndividualShapes(ctx, redShapes, '#999999');
+            drawIndividualShapes(ctx, blueShapes, '#999999');
+            
+            // Draw averaged shapes on top
+            if (redAvg && redAvg.radialData.length > 0) {
+                drawAveragedShape(ctx, redAvg.radialData, '#FF0000', false); // Solid red
+            }
+            
+            if (blueAvg && blueAvg.radialData.length > 0) {
+                drawAveragedShape(ctx, blueAvg.radialData, '#0000FF', true); // Dashed blue
+            }
+            
+            // Add frequency label
             ctx.fillStyle = 'black';
-            ctx.font = 'bold 24px Arial';
+            ctx.font = 'bold 32px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(label, centerX, 30);
+            ctx.fillText(frequency, canvas.width / 2, 40);
+            
+            // Add N and outlier info
+            const nRed = redShapes.length;
+            const nBlue = blueShapes.length;
+            const outliersRed = redAvg ? redAvg.outliersRemoved : 0;
+            const outliersBlue = blueAvg ? blueAvg.outliersRemoved : 0;
+            
+            ctx.font = '16px Arial';
+            ctx.fillText(`N(red)=${nRed}, outliers=${outliersRed}`, canvas.width / 2, canvas.height - 40);
+            ctx.fillText(`N(blue)=${nBlue}, outliers=${outliersBlue}`, canvas.width / 2, canvas.height - 20);
         }
         
         // ============================================
@@ -1089,17 +1734,19 @@ self.onmessage = async function(e) {
                 processingStats.processedCount = 0;
                 processingStats.speedHistory = [];
                 processingStats.maxSpeed = 0;
-                processingStats.batchStats.clear();
+                processingStats.validatedCount = 0;
+                processingStats.outliersFiltered = 0;
                 
                 document.getElementById('analyze-btn').classList.add('hidden');
                 document.getElementById('cancel-btn').classList.remove('hidden');
-                
                 document.getElementById('progress-container').classList.remove('hidden');
+                
                 updateProgress(0, 'Initializing...');
                 
                 document.getElementById('data-summary').classList.add('hidden');
                 document.getElementById('visualization-container').classList.add('hidden');
                 document.getElementById('statistics-container').classList.add('hidden');
+                document.getElementById('validation-summary').classList.add('hidden');
                 
                 console.log('[Main] Starting analysis with', inputFiles.length, 'files');
                 
@@ -1108,7 +1755,7 @@ self.onmessage = async function(e) {
                 updateProgress(5, 'Extracting files from ZIPs...');
                 
                 for (const file of inputFiles) {
-                    if (processingCancelled) throw new Error('Processing cancelled by user');
+                    if (processingCancelled) throw new Error('Processing cancelled');
                     
                     if (file.name.toLowerCase().endsWith('.zip')) {
                         const images = await loadImagesFromZip(file);
@@ -1117,233 +1764,225 @@ self.onmessage = async function(e) {
                         allImages.push({
                             name: file.name,
                             blob: file,
-                            fullPath: file.name
+                            fullPath: file.name,
+                            sourceZip: null,
+                            zipOrderNumber: null,
+                            zipParticipant: null
                         });
-                        console.log(`[Main] Loaded PNG: ${file.name}`);
                     }
                 }
                 
-                console.log(`[Main] Total images to process: ${allImages.length}`);
-                
                 if (allImages.length === 0) {
-                    throw new Error('No valid PNG images found in the uploaded files');
+                    throw new Error('No valid PNG images found');
                 }
                 
-                processingStats.totalCount = allImages.length;
-                updateProgress(10, `Found ${allImages.length} images, preparing to process...`);
+                console.log(`[Main] ✓ Total PNGs extracted: ${allImages.length}`);
+                console.log(`[Main] Sample file:`, allImages[0]);
                 
-                const metricsInterval = setInterval(() => {
-                    updateAllMetrics();
-                }, 500);
+                processingStats.totalCount = allImages.length;
+                updateProgress(10, `Found ${allImages.length} images...`);
+                
+                const metricsInterval = setInterval(updateAllMetrics, 500);
                 
                 const processedData = await processImagesParallel(allImages);
                 
                 clearInterval(metricsInterval);
-                updateAllMetrics();
+                
+                console.log(`[Main] ✓ Processed ${processedData.length} images with workers`);
                 
                 if (processedData.length === 0) {
-                    throw new Error('No valid data extracted from images');
+                    throw new Error('No valid data extracted');
                 }
                 
-                console.log(`[Main] Successfully processed ${processedData.length} images`);
+                updateProgress(50, 'Extracting contours and analyzing shapes...');
                 
-                updateProgress(50, 'Calculating averages...');
-                
-                const participantData = {};
-                FREQUENCIES.forEach(freq => {
-                    participantData[freq] = { red: [], blue: [] };
-                });
+                // Parse filenames and normalize trial numbers
+                const parsedData = [];
+                let parseFailures = 0;
                 
                 for (const data of processedData) {
-                    if (processingCancelled) throw new Error('Processing cancelled by user');
-                    
                     const parsed = parseFilename(data.filename);
-                    if (!parsed) continue;
-                    
-                    const imageData = await loadImageToCanvas(
-                        allImages.find(img => img.name === data.filename)
-                    );
-                    
-                    const redColor = data.colors.find(c => c.color.includes('255, 0, 0') || c.color.includes('254, 0, 0'));
-                    const blueColor = data.colors.find(c => c.color.includes('0, 0, 255') || c.color.includes('0, 0, 254'));
-                    
-                    if (redColor) {
-                        const colorKey = redColor.color.match(/\d+/g).join(',');
-                        participantData[parsed.frequency].red.push({
-                            participant: parsed.participant,
-                            imageData: imageData,
-                            targetColor: colorKey
-                        });
+                    if (!parsed) {
+                        parseFailures++;
+                        console.warn(`[Parse] ⚠ Failed to parse filename: ${data.filename}`);
+                        continue;
                     }
                     
-                    if (blueColor) {
-                        const colorKey = blueColor.color.match(/\d+/g).join(',');
-                        participantData[parsed.frequency].blue.push({
-                            participant: parsed.participant,
-                            imageData: imageData,
-                            targetColor: colorKey
-                        });
+                    parsedData.push({
+                        ...data,
+                        ...parsed
+                    });
+                }
+                
+                console.log(`[Parse] ✓ Successfully parsed ${parsedData.length} filenames`);
+                if (parseFailures > 0) {
+                    console.warn(`[Parse] ⚠ Failed to parse ${parseFailures} filenames`);
+                }
+                
+                // Normalize trial numbers
+                console.log('[Trial] Starting trial number normalization...');
+                normalizeTrialNumbers(parsedData);
+                console.log('[Trial] ✓ Trial normalization complete');
+                
+                // Group by participant, frequency, and extract contours
+                const participantShapes = {};
+                
+                FREQUENCIES.forEach(freq => {
+                    participantShapes[freq] = { red: [], blue: [] };
+                });
+                
+                for (const data of parsedData) {
+                    if (processingCancelled) throw new Error('Processing cancelled');
+                    
+                    // Extract red shape
+                    if (data.hasRed) {
+                        const redContour = extractCompleteShapeContour(data.imageData, '255,0,0');
+                        if (redContour.length > 0) {
+                            const radialData = contourToRadialData(redContour);
+                            const centroid = calculateCentroid(redContour);
+                            const area = calculateAreaFromContour(redContour);
+                            
+                            // Validate against Google Sheets
+                            const validation = validateShapeAgainstSheets(
+                                data.participant,
+                                data.frequencyNumber,
+                                'red',
+                                data.normalizedTrial || data.trialNumber,
+                                centroid,
+                                area
+                            );
+                            
+                            participantShapes[data.frequency].red.push({
+                                participant: data.participant,
+                                trial: data.normalizedTrial || data.trialNumber,
+                                radialData,
+                                centroid,
+                                area,
+                                validation,
+                                contour: redContour
+                            });
+                        }
+                    }
+                    
+                    // Extract blue shape
+                    if (data.hasBlue) {
+                        const blueContour = extractCompleteShapeContour(data.imageData, '0,0,255');
+                        if (blueContour.length > 0) {
+                            const radialData = contourToRadialData(blueContour);
+                            const centroid = calculateCentroid(blueContour);
+                            const area = calculateAreaFromContour(blueContour);
+                            
+                            const validation = validateShapeAgainstSheets(
+                                data.participant,
+                                data.frequencyNumber,
+                                'blue',
+                                data.normalizedTrial || data.trialNumber,
+                                centroid,
+                                area
+                            );
+                            
+                            participantShapes[data.frequency].blue.push({
+                                participant: data.participant,
+                                trial: data.normalizedTrial || data.trialNumber,
+                                radialData,
+                                centroid,
+                                area,
+                                validation,
+                                contour: blueContour
+                            });
+                        }
                     }
                 }
                 
-                updateProgress(70, 'Generating visualizations...');
-                
-                const canvasGrid = document.getElementById('canvas-grid');
-                canvasGrid.innerHTML = '';
-                
+                // Log shape extraction results
+                console.log('[Shapes] Extraction complete. Summary by frequency:');
                 FREQUENCIES.forEach(freq => {
-                    if (processingCancelled) throw new Error('Processing cancelled by user');
-                    
-                    const redData = participantData[freq].red;
-                    const blueData = participantData[freq].blue;
-                    
-                    if (redData.length === 0 && blueData.length === 0) return;
-                    
-                    const container = document.createElement('div');
-                    container.className = 'canvas-container p-4 cursor-pointer hover:shadow-xl transition-shadow';
-                    
-                    const title = document.createElement('h3');
-                    title.className = 'text-lg font-bold text-gray-800 mb-3 text-center';
-                    title.textContent = freq;
-                    container.appendChild(title);
-                    
-                    if (redData.length > 0) {
-                        const redAvg = calculateAverageShape(redData);
-                        const redCanvas = document.createElement('canvas');
-                        redCanvas.width = 1000;
-                        redCanvas.height = 1000;
-                        redCanvas.className = 'w-full border border-gray-200 rounded mb-2';
-                        drawAverageShape(redCanvas, redAvg.radialData, 'rgba(255, 0, 0, 0.7)', `Red Average (n=${redData.length})`);
-                        container.appendChild(redCanvas);
-                        
-                        redCanvas.addEventListener('click', () => {
-                            const link = document.createElement('a');
-                            link.download = `sound_object_${freq}_red.png`;
-                            link.href = redCanvas.toDataURL('image/png');
-                            link.click();
-                        });
+                    const redCount = participantShapes[freq].red.length;
+                    const blueCount = participantShapes[freq].blue.length;
+                    if (redCount > 0 || blueCount > 0) {
+                        console.log(`[Shapes]   ${freq}: ${redCount} red, ${blueCount} blue`);
                     }
-                    
-                    if (blueData.length > 0) {
-                        const blueAvg = calculateAverageShape(blueData);
-                        const blueCanvas = document.createElement('canvas');
-                        blueCanvas.width = 1000;
-                        blueCanvas.height = 1000;
-                        blueCanvas.className = 'w-full border border-gray-200 rounded';
-                        drawAverageShape(blueCanvas, blueAvg.radialData, 'rgba(0, 0, 255, 0.7)', `Blue Average (n=${blueData.length})`);
-                        container.appendChild(blueCanvas);
-                        
-                        blueCanvas.addEventListener('click', () => {
-                            const link = document.createElement('a');
-                            link.download = `sound_object_${freq}_blue.png`;
-                            link.href = blueCanvas.toDataURL('image/png');
-                            link.click();
-                        });
-                    }
-                    
-                    canvasGrid.appendChild(container);
                 });
                 
-                updateProgress(90, 'Generating statistics...');
+                updateProgress(70, 'Calculating averaged shapes...');
+                
+                // Calculate averages
+                const canvasGrid = document.getElementById('canvas-grid');
+                canvasGrid.innerHTML = '';
                 
                 const statsBody = document.getElementById('statistics-body');
                 statsBody.innerHTML = '';
                 
                 FREQUENCIES.forEach(freq => {
-                    const redData = participantData[freq].red;
-                    const blueData = participantData[freq].blue;
+                    if (processingCancelled) return;
                     
-                    if (redData.length > 0) {
-                        const redAvg = calculateAverageShape(redData);
-                        const row = document.createElement('tr');
-                        row.className = 'hover:bg-gray-50';
-                        row.innerHTML = `
-                            <td class="px-4 py-3 text-sm font-semibold text-gray-800">${freq}</td>
-                            <td class="px-4 py-3"><span class="inline-block w-4 h-4 rounded-full bg-red-500"></span> Red</td>
-                            <td class="px-4 py-3 text-sm font-semibold">${redData.length}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${redAvg.meanRadius.toFixed(3)}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${redAvg.sdRadius.toFixed(3)}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${redAvg.meanArea.toFixed(3)}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${redAvg.sdArea.toFixed(3)}</td>
-                        `;
+                    const redShapes = participantShapes[freq].red;
+                    const blueShapes = participantShapes[freq].blue;
+                    
+                    if (redShapes.length === 0 && blueShapes.length === 0) return;
+                    
+                    const redAvg = calculateAverageShape(redShapes);
+                    const blueAvg = calculateAverageShape(blueShapes);
+                    
+                    // Create visualization
+                    const container = document.createElement('div');
+                    container.className = 'canvas-container p-4 cursor-pointer hover:shadow-xl transition-shadow';
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 1000;
+                    canvas.height = 1000;
+                    canvas.className = 'w-full border border-gray-200 rounded';
+                    
+                    drawCompositeVisualization(canvas, freq, redShapes, blueShapes, redAvg, blueAvg);
+                    
+                    container.appendChild(canvas);
+                    
+                    canvas.addEventListener('click', () => {
+                        const link = document.createElement('a');
+                        link.download = `sound_object_composite_${freq}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    });
+                    
+                    canvasGrid.appendChild(container);
+                    
+                    // Add to statistics table
+                    if (redShapes.length > 0) {
+                        const validationStatus = getValidationStatus(redShapes);
+                        const row = createStatRow(freq, 'Red', redAvg, validationStatus);
                         statsBody.appendChild(row);
                     }
                     
-                    if (blueData.length > 0) {
-                        const blueAvg = calculateAverageShape(blueData);
-                        const row = document.createElement('tr');
-                        row.className = 'hover:bg-gray-50';
-                        row.innerHTML = `
-                            <td class="px-4 py-3 text-sm font-semibold text-gray-800">${freq}</td>
-                            <td class="px-4 py-3"><span class="inline-block w-4 h-4 rounded-full bg-blue-500"></span> Blue</td>
-                            <td class="px-4 py-3 text-sm font-semibold">${blueData.length}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${blueAvg.meanRadius.toFixed(3)}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${blueAvg.sdRadius.toFixed(3)}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${blueAvg.meanArea.toFixed(3)}</td>
-                            <td class="px-4 py-3 text-sm font-mono">${blueAvg.sdArea.toFixed(3)}</td>
-                        `;
+                    if (blueShapes.length > 0) {
+                        const validationStatus = getValidationStatus(blueShapes);
+                        const row = createStatRow(freq, 'Blue', blueAvg, validationStatus);
                         statsBody.appendChild(row);
                     }
                 });
                 
-                const summaryContent = document.getElementById('summary-content');
-                summaryContent.innerHTML = '';
+                updateProgress(90, 'Finalizing...');
                 
-                const totalParticipants = new Set();
-                const totalImages = processedData.length;
-                let frequenciesWithData = 0;
-                
-                FREQUENCIES.forEach(freq => {
-                    const redData = participantData[freq].red;
-                    const blueData = participantData[freq].blue;
-                    
-                    if (redData.length > 0 || blueData.length > 0) {
-                        frequenciesWithData++;
-                    }
-                    
-                    redData.forEach(d => totalParticipants.add(d.participant));
-                    blueData.forEach(d => totalParticipants.add(d.participant));
-                });
-                
+                // Show results
                 const processingTime = ((Date.now() - processingStats.startTime) / 1000).toFixed(1);
-                const avgSpeed = (totalImages / processingTime).toFixed(1);
-                
-                summaryContent.innerHTML = `
-                    <div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
-                        <div class="text-3xl font-bold text-blue-700">${totalParticipants.size}</div>
-                        <div class="text-sm text-gray-600 font-semibold">Unique Participants</div>
-                    </div>
-                    <div class="bg-emerald-50 p-4 rounded-lg border-2 border-emerald-200">
-                        <div class="text-3xl font-bold text-emerald-700">${totalImages}</div>
-                        <div class="text-sm text-gray-600 font-semibold">Total Images Processed</div>
-                    </div>
-                    <div class="bg-purple-50 p-4 rounded-lg border-2 border-purple-200">
-                        <div class="text-3xl font-bold text-purple-700">${frequenciesWithData}</div>
-                        <div class="text-sm text-gray-600 font-semibold">Frequencies with Data</div>
-                    </div>
-                    <div class="bg-amber-50 p-4 rounded-lg border-2 border-amber-200 col-span-1 md:col-span-3">
-                        <div class="text-2xl font-bold text-amber-700">⚡ ${processingTime}s total • ${avgSpeed} img/s average</div>
-                        <div class="text-sm text-gray-600 font-semibold">Processing Performance</div>
-                    </div>
-                `;
-                
-                updateProgress(100, `Complete! Processed ${totalImages} images in ${processingTime}s`);
                 
                 document.getElementById('data-summary').classList.remove('hidden');
                 document.getElementById('visualization-container').classList.remove('hidden');
                 document.getElementById('statistics-container').classList.remove('hidden');
                 
+                if (sheetsValidationEnabled) {
+                    document.getElementById('validation-summary').classList.remove('hidden');
+                    showValidationSummary();
+                }
+                
+                updateProgress(100, `Complete! Processed ${processingStats.processedCount} images in ${processingTime}s`);
+                
                 setTimeout(() => {
-                    updateProgress(0, '');
                     document.getElementById('progress-container').classList.add('hidden');
                 }, 3000);
                 
             } catch (err) {
-                if (err.message === 'Processing cancelled by user') {
-                    updateProgress(0, '❌ Processing cancelled by user');
-                    setTimeout(() => {
-                        document.getElementById('progress-container').classList.add('hidden');
-                    }, 2000);
+                if (err.message === 'Processing cancelled') {
+                    updateProgress(0, '❌ Processing cancelled');
                 } else {
                     showError(err.message);
                     console.error('Analysis error:', err);
@@ -1352,17 +1991,77 @@ self.onmessage = async function(e) {
                 activeWorkers.forEach(worker => worker.terminate());
                 activeWorkers.clear();
                 
-                const cancelBtn = document.getElementById('cancel-btn');
-                const analyzeBtn = document.getElementById('analyze-btn');
-                
-                cancelBtn.classList.add('hidden');
-                analyzeBtn.classList.remove('hidden');
+                document.getElementById('cancel-btn').classList.add('hidden');
+                document.getElementById('analyze-btn').classList.remove('hidden');
                 
                 const files = document.getElementById('image-upload').files;
                 if (files && files.length > 0) {
-                    analyzeBtn.disabled = false;
+                    document.getElementById('analyze-btn').disabled = false;
                 }
             }
+        }
+        
+        function getValidationStatus(shapes) {
+            const validated = shapes.filter(s => s.validation && s.validation.valid).length;
+            const total = shapes.length;
+            const percentage = total > 0 ? (validated / total) * 100 : 0;
+            
+            return { validated, total, percentage };
+        }
+        
+        function createStatRow(freq, color, avgData, validationStatus) {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50';
+            
+            const colorDot = color === 'Red' ? 'bg-red-500' : 'bg-blue-500';
+            const validationBadge = getValidationBadge(validationStatus);
+            
+            row.innerHTML = `
+                <td class="px-4 py-3 text-sm font-semibold text-gray-800">${freq}</td>
+                <td class="px-4 py-3"><span class="inline-block w-4 h-4 rounded-full ${colorDot}"></span> ${color}</td>
+                <td class="px-4 py-3 text-sm font-semibold">${avgData.nShapes}</td>
+                <td class="px-4 py-3 text-sm font-mono text-amber-600">${avgData.outliersRemoved}</td>
+                <td class="px-4 py-3 text-sm font-mono">${avgData.meanRadius.toFixed(3)}</td>
+                <td class="px-4 py-3 text-sm font-mono">${avgData.sdRadius.toFixed(3)}</td>
+                <td class="px-4 py-3 text-sm font-mono">${avgData.meanArea.toFixed(3)}</td>
+                <td class="px-4 py-3">${validationBadge}</td>
+            `;
+            
+            return row;
+        }
+        
+        function getValidationBadge(validationStatus) {
+            if (!sheetsValidationEnabled) {
+                return '<span class="validation-badge bg-gray-100 text-gray-600">N/A</span>';
+            }
+            
+            const { validated, total, percentage } = validationStatus;
+            
+            if (percentage >= 90) {
+                return `<span class="validation-badge validation-pass">✓ ${validated}/${total}</span>`;
+            } else if (percentage >= 70) {
+                return `<span class="validation-badge validation-warn">⚠ ${validated}/${total}</span>`;
+            } else {
+                return `<span class="validation-badge validation-fail">✗ ${validated}/${total}</span>`;
+            }
+        }
+        
+        function showValidationSummary() {
+            const content = document.getElementById('validation-content');
+            content.innerHTML = `
+                <div class="bg-green-50 p-4 rounded-lg border-2 border-green-200">
+                    <div class="text-3xl font-bold text-green-700">${processingStats.validatedCount}</div>
+                    <div class="text-sm text-gray-600 font-semibold">Shapes Validated</div>
+                </div>
+                <div class="bg-amber-50 p-4 rounded-lg border-2 border-amber-200">
+                    <div class="text-3xl font-bold text-amber-700">${processingStats.outliersFiltered}</div>
+                    <div class="text-sm text-gray-600 font-semibold">Outliers Filtered (MAD)</div>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+                    <div class="text-3xl font-bold text-blue-700">${sheetsValidationEnabled ? 'Enabled' : 'Disabled'}</div>
+                    <div class="text-sm text-gray-600 font-semibold">Google Sheets Validation</div>
+                </div>
+            `;
         }
         
         // ============================================
@@ -1409,22 +2108,32 @@ self.onmessage = async function(e) {
         
         document.getElementById('cancel-btn').addEventListener('click', function() {
             processingCancelled = true;
-            
             activeWorkers.forEach(worker => worker.terminate());
             activeWorkers.clear();
-            
             this.disabled = true;
             this.innerHTML = '⏳ Cancelling...';
         });
         
-        document.getElementById('toggle-batch-details').addEventListener('click', function() {
-            const details = document.getElementById('batch-details');
-            if (details.classList.contains('hidden')) {
-                details.classList.remove('hidden');
-                this.textContent = 'Hide Details';
-            } else {
-                details.classList.add('hidden');
-                this.textContent = 'Show Details';
+        document.getElementById('validate-sheets-btn').addEventListener('click', async function() {
+            await connectToGoogleSheets();
+        });
+        
+        document.getElementById('test-sheets-btn').addEventListener('click', async function() {
+            const sheetsUrl = document.getElementById('sheets-url').value.trim();
+            const apiKey = document.getElementById('api-key').value.trim();
+            
+            if (!sheetsUrl || !apiKey) {
+                showSheetsStatus('error', 'Please enter both URL and API key');
+                return;
+            }
+            
+            showSheetsStatus('loading', 'Testing connection...');
+            
+            const success = await connectToGoogleSheets();
+            
+            if (success) {
+                showSheetsStatus('success', `✓ Test successful! Found ${googleSheetsData.length} records`);
+                console.log('[Test] Sample records:', googleSheetsData.slice(0, 3));
             }
         });
         
@@ -1446,26 +2155,12 @@ self.onmessage = async function(e) {
             URL.revokeObjectURL(workerBlobUrl);
         });
         
-        console.log('%c🎵 Sound Object Analyzer v2.1.1 ENHANCED UI + FIXED', 'color: #8B5CF6; font-size: 16px; font-weight: bold');
-        console.log(`%c✓ Initialized with ${CPU_CORES} CPU cores, ${MAX_PARALLEL_WORKERS} max workers`, 'color: #10B981');
-        console.log('%c✓ Robust filename parsing enabled', 'color: #10B981');
-        console.log('%c✓ Memory leak protection active', 'color: #10B981');
-        console.log('%c✓ Enhanced worker error handling enabled', 'color: #10B981');
-        console.log('%c✓ Enhanced UI with real-time metrics', 'color: #10B981');
-        
-        // Test regex patterns at startup
-        const testFilenames = [
-            'Helen Z_62.5Hz_100dB.png',
-            'Kevin M_1000Hz_80dB.png',
-            'Test_31Hz_100dB.png'
-        ];
-        
-        console.log('%cTesting filename parsing...', 'color: #3B82F6');
-        testFilenames.forEach(filename => {
-            const parts = filename.split('_').map(p => p.trim());
-            const freqPart = parts.find(p => /^\d+(?:\.\d+)?hz$/i.test(p));
-            console.log(`  "${filename}" -> freq part: "${freqPart}" -> ${freqPart ? '✓' : '✗'}`);
-        });
+        console.log('%c🎵 Sound Object Analyzer v5.0 Complete', 'color: #8B5CF6; font-size: 16px; font-weight: bold');
+        console.log(`%c✓ ${CPU_CORES} cores, ${MAX_PARALLEL_WORKERS} workers`, 'color: #10B981');
+        console.log('%c✓ Advanced contour detection', 'color: #10B981');
+        console.log('%c✓ MAD outlier filtering', 'color: #10B981');
+        console.log('%c✓ Google Sheets validation ready', 'color: #10B981');
+        console.log('%c✓ Trial number normalization', 'color: #10B981');
     </script>
 </body>
 </html>
