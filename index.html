@@ -155,10 +155,14 @@
                 </svg>
                 Real-Time Performance Metrics
             </h2>
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                 <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
                     <div class="text-xs text-gray-500 font-semibold mb-1">Processing Speed</div>
                     <div id="speed-metric" class="text-xl sm:text-2xl font-bold text-purple-600 performance-metric">0 img/s</div>
+                </div>
+                <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
+                    <div class="text-xs text-gray-500 font-semibold mb-1">Time Elapsed</div>
+                    <div id="elapsed-metric" class="text-xl sm:text-2xl font-bold text-indigo-600 performance-metric">0s</div>
                 </div>
                 <div class="bg-white p-3 sm:p-4 rounded-lg shadow">
                     <div class="text-xs text-gray-500 font-semibold mb-1">Time Remaining</div>
@@ -976,6 +980,18 @@
                 speedMetric.textContent = `${speed.toFixed(1)} img/s`;
             }
             
+            // Elapsed time
+            const elapsedMetric = document.getElementById('elapsed-metric');
+            if (elapsedMetric && !isNaN(elapsed) && isFinite(elapsed)) {
+                if (elapsed < 60) {
+                    elapsedMetric.textContent = `${elapsed.toFixed(1)}s`;
+                } else {
+                    const minutes = Math.floor(elapsed / 60);
+                    const seconds = Math.floor(elapsed % 60);
+                    elapsedMetric.textContent = `${minutes}m ${seconds}s`;
+                }
+            }
+            
             // ETA (estimated time remaining)
             const eta = remaining / speed;
             const etaMetric = document.getElementById('eta-metric');
@@ -1449,12 +1465,9 @@
                 meanArea,
                 sdArea,
                 n: dataArray.length,
-                // Store both normalized contour and avgRadius for drawing
+                // Contours are already normalized (relative to their own centroid) by the worker
                 individualData: dataArray.map(d => ({
-                    normalizedContour: d.contour.map(p => ({
-                        x: p.x - d.centroid.x,
-                        y: p.y - d.centroid.y
-                    })),
+                    normalizedContour: d.contour, // Already normalized!
                     avgRadius: d.avgRadius
                 }))
             };
@@ -1559,24 +1572,24 @@
             ctx.lineWidth = 1; // Thin lines for individual shapes
             ctx.globalAlpha = 0.5; // Semi-transparent
             
-            // Calculate scaling factor to normalize shape size relative to average
-            const scaleFactor = individualRadius > 0 ? avgRadius / individualRadius : 1.0;
+            // Don't scale - draw at original size, just centered at average centroid
+            const scaleFactor = 1.0;
             
-            // Draw as continuous path, scaled and centered at average centroid
+            // Draw as continuous path, centered at average centroid
             ctx.beginPath();
             
-            // Normalize to origin, scale, then place at average centroid
+            // Place at average centroid without scaling
             const firstPointNorm = {
-                x: (normalizedContour[0].x) * scaleFactor,
-                y: (normalizedContour[0].y) * scaleFactor
+                x: normalizedContour[0].x,
+                y: normalizedContour[0].y
             };
             const firstPoint = unitToCanvas(firstPointNorm.x + avgCentroid.x, firstPointNorm.y + avgCentroid.y, size);
             ctx.moveTo(firstPoint.x, firstPoint.y);
             
             for (let i = 1; i < normalizedContour.length; i++) {
                 const pointNorm = {
-                    x: (normalizedContour[i].x) * scaleFactor,
-                    y: (normalizedContour[i].y) * scaleFactor
+                    x: normalizedContour[i].x,
+                    y: normalizedContour[i].y
                 };
                 const point = unitToCanvas(pointNorm.x + avgCentroid.x, pointNorm.y + avgCentroid.y, size);
                 ctx.lineTo(point.x, point.y);
