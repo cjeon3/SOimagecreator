@@ -1879,9 +1879,21 @@ self.onmessage = function(e) {
                         continue;
                     }
                     
+                    // CRITICAL: Explicitly preserve color detection flags from workers
                     parsedData.push({
-                        ...data,
-                        ...parsed
+                        filename: data.filename,
+                        imageData: data.imageData,
+                        sourceZip: data.sourceZip,
+                        zipOrderNumber: data.zipOrderNumber,
+                        zipParticipant: data.zipParticipant,
+                        hasRed: data.hasRed,           // ← Explicitly preserve
+                        hasBlue: data.hasBlue,         // ← Explicitly preserve
+                        redPixels: data.redPixels,     // ← Explicitly preserve
+                        bluePixels: data.bluePixels,   // ← Explicitly preserve
+                        participant: parsed.participant,
+                        frequency: parsed.frequency,
+                        frequencyNumber: parsed.frequencyNumber,
+                        trialNumber: parsed.trialNumber
                     });
                 }
                 
@@ -2307,6 +2319,7 @@ self.onmessage = function(e) {
         
         console.log('%c🎵 Sound Object Analyzer v5.0 Complete', 'color: #8B5CF6; font-size: 16px; font-weight: bold');
         console.log(`%c📅 Last Updated: ${timestamp}`, 'color: #6B7280; font-size: 12px; font-style: italic');
+        console.log(`%c⚠️ CRITICAL FIX: Color flags explicitly preserved`, 'color: #F59E0B; font-size: 11px; font-weight: bold');
         console.log(`%c✓ ${CPU_CORES} cores, ${MAX_PARALLEL_WORKERS} workers`, 'color: #10B981');
         console.log('%c✓ Advanced contour detection', 'color: #10B981');
         console.log('%c✓ MAD outlier filtering', 'color: #10B981');
