@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sound Object Analyzer - Complete v5.0 with Google Sheets Validation</title>
+    <title>Sound Object Analyzer v5.0 - ROBUST EDITION - BUILD 4</title>
     <meta name="version" content="5.0.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -1953,27 +1953,58 @@ self.onmessage = function(e) {
                 
                 console.log(`[Main] ✓ Processed ${processedData.length} images with workers`);
                 
+                // CRITICAL: Create on-screen diagnostic panel (won't be lost like console logs)
+                const diagnosticDiv = document.createElement('div');
+                diagnosticDiv.id = 'worker-diagnostic-panel';
+                diagnosticDiv.className = 'fixed top-20 right-4 bg-yellow-50 border-4 border-red-500 p-4 rounded-lg shadow-2xl z-50 max-w-2xl max-h-96 overflow-auto';
+                diagnosticDiv.innerHTML = '<h2 class="text-xl font-bold text-red-600 mb-3">🔍 WORKER DIAGNOSTIC</h2>';
+                
+                let diagHTML = '<div class="space-y-3 text-sm">';
+                
                 // CRITICAL DIAGNOSTIC: Check what workers returned
-                console.log(`[Worker] 🔍 DIAGNOSTIC: First 3 worker results`);
+                console.log('%c╔══════════════════════════════════════════════════════════╗', 'color: #EF4444; font-size: 14px; font-weight: bold');
+                console.log('%c║  🔍 WORKER DIAGNOSTIC - CHECK THIS FIRST!              ║', 'color: #EF4444; font-size: 14px; font-weight: bold');
+                console.log('%c╚══════════════════════════════════════════════════════════╝', 'color: #EF4444; font-size: 14px; font-weight: bold');
+                
                 for (let i = 0; i < Math.min(3, processedData.length); i++) {
                     const sample = processedData[i];
-                    console.log(`[Worker]   File ${i+1}: ${sample.filename}`);
-                    console.log(`[Worker]     Has 'colors' property: ${!!sample.colors}`);
+                    console.log(`%c[Worker] File ${i+1}: ${sample.filename}`, 'color: #3B82F6; font-weight: bold');
+                    
+                    diagHTML += `<div class="bg-white p-3 rounded border-2 ${!sample.colors || sample.colors.length === 0 ? 'border-red-500' : 'border-green-500'}">`;
+                    diagHTML += `<strong class="text-blue-700">File ${i+1}:</strong> ${sample.filename}<br>`;
+                    
+                    console.log(`  ➤ Has 'colors' property: %c${!!sample.colors}`, 'font-weight: bold', !!sample.colors ? 'color: green' : 'color: red');
+                    diagHTML += `<strong>Has 'colors':</strong> <span class="${!!sample.colors ? 'text-green-600' : 'text-red-600'} font-bold">${!!sample.colors ? '✅ YES' : '❌ NO'}</span><br>`;
+                    
                     if (sample.colors) {
-                        console.log(`[Worker]     Colors array length: ${sample.colors.length}`);
+                        console.log(`  ➤ Colors array length: %c${sample.colors.length}`, 'font-weight: bold', sample.colors.length > 0 ? 'color: green' : 'color: red');
+                        diagHTML += `<strong>Colors length:</strong> <span class="${sample.colors.length > 0 ? 'text-green-600' : 'text-red-600'} font-bold">${sample.colors.length}</span><br>`;
+                        
                         if (sample.colors.length > 0) {
                             const top3 = sample.colors.slice(0, 3).map(c => 
                                 `${c.colorKey || 'undefined'} (${c.count || 0}px)`
                             ).join(', ');
-                            console.log(`[Worker]     Top 3 colors: ${top3}`);
+                            console.log(`  ➤ %cTop 3 colors: ${top3}`, 'color: #10B981; font-weight: bold');
+                            diagHTML += `<strong>Top colors:</strong> <span class="text-green-600">${top3}</span>`;
                         } else {
-                            console.log(`[Worker]     ⚠️ Colors array is EMPTY`);
+                            console.log(`  ➤ %c⚠️ Colors array is EMPTY!`, 'color: #EF4444; font-weight: bold; background: yellow');
+                            diagHTML += `<strong class="text-red-600 bg-yellow-200 px-2">⚠️ EMPTY array!</strong>`;
                         }
                     } else {
-                        console.log(`[Worker]     ⚠️ NO 'colors' property!`);
-                        console.log(`[Worker]     Available properties: ${Object.keys(sample).join(', ')}`);
+                        console.log(`  ➤ %c⚠️ NO 'colors' property!`, 'color: #EF4444; font-weight: bold; background: yellow');
+                        console.log(`  ➤ Available properties: ${Object.keys(sample).join(', ')}`);
+                        diagHTML += `<strong class="text-red-600 bg-yellow-200 px-2">⚠️ NO 'colors'!</strong><br>`;
+                        diagHTML += `<small>Available: ${Object.keys(sample).slice(0, 6).join(', ')}</small>`;
                     }
+                    diagHTML += '</div>';
                 }
+                
+                diagHTML += '</div>';
+                diagHTML += '<button onclick="this.parentElement.remove()" class="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-bold">Close</button>';
+                diagnosticDiv.innerHTML += diagHTML;
+                document.body.appendChild(diagnosticDiv);
+                
+                console.log('%c══════════════════════════════════════════════════════════', 'color: #EF4444; font-size: 14px; font-weight: bold');
                 
                 if (processedData.length === 0) {
                     throw new Error('No valid data extracted');
@@ -2048,37 +2079,35 @@ self.onmessage = function(e) {
                     console.warn(`[Parse] ⚠ Failed to parse ${parseFailures} filenames`);
                 }
                 
-                // DIAGNOSTIC: Check color detection results
-                console.log(`[Parse] Checking color detection results...`);
-                const sampleParsed = parsedData[0];
-                console.log(`[Parse] Sample parsed data:`, {
-                    filename: sampleParsed.filename,
-                    participant: sampleParsed.participant,
-                    frequency: sampleParsed.frequency,
-                    hasRed: sampleParsed.hasRed,
-                    hasBlue: sampleParsed.hasBlue,
-                    redColorKey: sampleParsed.redColorKey,
-                    blueColorKey: sampleParsed.blueColorKey,
-                    totalColors: sampleParsed.colors ? sampleParsed.colors.length : 0,
-                    normalizedTrial: sampleParsed.normalizedTrial
-                });
+                // DIAGNOSTIC: Check color detection results - IMPOSSIBLE TO MISS
+                console.log('%c╔══════════════════════════════════════════════════════════╗', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
+                console.log('%c║  🎨 PARSE DIAGNOSTIC - DID WE FIND RED/BLUE?          ║', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
+                console.log('%c╚══════════════════════════════════════════════════════════╝', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
                 
                 // Show sample of colors found in first 3 files
-                console.log(`[Parse] 🎨 Colors found in first 3 files:`);
+                console.log('%c🎨 Colors found in first 3 files:', 'color: #3B82F6; font-weight: bold; font-size: 13px');
                 for (let i = 0; i < Math.min(3, parsedData.length); i++) {
                     const file = parsedData[i];
+                    console.log(`%c  File ${i+1}: ${file.filename}`, 'color: #6366F1; font-weight: bold');
                     if (file.colors && file.colors.length > 0) {
                         const topColors = file.colors.slice(0, 5).map(c => 
                             `${c.colorKey} (${c.percentage.toFixed(1)}%)`
                         ).join(', ');
-                        console.log(`[Parse]   ${file.filename}: ${topColors}`);
+                        console.log(`    ➤ Colors: %c${topColors}`, 'color: #10B981');
+                        console.log(`    ➤ Has RED: %c${file.hasRed}`, file.hasRed ? 'color: green; font-weight: bold' : 'color: red; font-weight: bold');
+                        console.log(`    ➤ Has BLUE: %c${file.hasBlue}`, file.hasBlue ? 'color: green; font-weight: bold' : 'color: red; font-weight: bold');
+                    } else {
+                        console.log(`    ➤ %c⚠️ NO COLORS IN ARRAY!`, 'color: #EF4444; font-weight: bold; background: yellow');
                     }
                 }
                 
                 const hasRedInParsed = parsedData.filter(d => d.hasRed === true).length;
                 const hasBlueInParsed = parsedData.filter(d => d.hasBlue === true).length;
-                console.log(`[Parse] Files with RED detected: ${hasRedInParsed}`);
-                console.log(`[Parse] Files with BLUE detected: ${hasBlueInParsed}`);
+                
+                console.log('%c══════════════════════════════════════════════════════════', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
+                console.log(`%c📊 FINAL COUNT: Files with RED detected: ${hasRedInParsed}`, hasRedInParsed > 0 ? 'color: green; font-weight: bold; font-size: 14px' : 'color: red; font-weight: bold; font-size: 14px; background: yellow');
+                console.log(`%c📊 FINAL COUNT: Files with BLUE detected: ${hasBlueInParsed}`, hasBlueInParsed > 0 ? 'color: green; font-weight: bold; font-size: 14px' : 'color: red; font-weight: bold; font-size: 14px; background: yellow');
+                console.log('%c══════════════════════════════════════════════════════════', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
                 
                 // Normalize trial numbers
                 console.log('[Trial] Starting trial number normalization...');
@@ -2505,14 +2534,28 @@ self.onmessage = function(e) {
         const minutes = String(now.getMinutes()).padStart(2, '0');
         const timestamp = `${year}-${month}-${day} ${hours}:${minutes} PST`;
         
-        console.log('%c🎵 Sound Object Analyzer v5.0 - ROBUST EDITION', 'color: #8B5CF6; font-size: 16px; font-weight: bold');
+        console.log('%c═══════════════════════════════════════════════════════════', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
+        console.log('%c🎵 Sound Object Analyzer v5.0 - ROBUST EDITION - BUILD 5', 'color: #8B5CF6; font-size: 18px; font-weight: bold');
+        console.log('%c═══════════════════════════════════════════════════════════', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
         console.log(`%c📅 Last Updated: ${timestamp}`, 'color: #6B7280; font-size: 12px; font-style: italic');
+        console.log(`%c🔧 BUILD 5: ON-SCREEN diagnostic panel (won't be lost!)`, 'color: #F59E0B; font-size: 13px; font-weight: bold');
         console.log(`%c✅ v2.1.1 PROVEN color detection (collect ALL colors, search flexibly)`, 'color: #10B981; font-size: 12px; font-weight: bold');
         console.log(`%c✅ ROBUST radial scanning (proven shape extraction method)`, 'color: #10B981; font-size: 12px; font-weight: bold');
         console.log(`%c✓ ${CPU_CORES} cores, ${MAX_PARALLEL_WORKERS} workers - parallel processing`, 'color: #10B981');
         console.log('%c✓ ZIP folder trial mapping', 'color: #10B981');
         console.log('%c✓ MAD outlier filtering (optional)', 'color: #10B981');
         console.log('%c✓ Google Sheets validation (optional)', 'color: #10B981');
+        console.log('%c═══════════════════════════════════════════════════════════', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
+        console.log('%c📋 CONSOLE BUFFER TIPS:', 'color: #3B82F6; font-size: 13px; font-weight: bold');
+        console.log('%c  • Chrome: F12 → Console → Settings (gear) → "Preserve log" ✓', 'color: #6B7280; font-size: 11px');
+        console.log('%c  • Firefox: F12 → Console → Settings (gear) → Increase "Max logged messages"', 'color: #6B7280; font-size: 11px');
+        console.log('%c  • Safari: Develop → Show Web Inspector → Console → Preserve Log', 'color: #6B7280; font-size: 11px');
+        console.log('%c═══════════════════════════════════════════════════════════', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
+        console.log('%c💡 TIP: When you analyze, a YELLOW DIAGNOSTIC BOX will appear on screen!', 'color: #F59E0B; font-size: 13px; font-weight: bold; background: yellow; padding: 5px');
+        console.log('%c    Screenshot it before closing - it shows what the worker returned!', 'color: #F59E0B; font-size: 12px; font-weight: bold');
+        console.log('%c═══════════════════════════════════════════════════════════', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
+        console.log('%c⚠️  IF YOU DON\'T SEE "BUILD 5" ABOVE, HARD REFRESH (Ctrl+Shift+R)', 'color: #EF4444; font-size: 14px; font-weight: bold; background: yellow; padding: 5px');
+        console.log('%c═══════════════════════════════════════════════════════════', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
     </script>
 </body>
 </html>
