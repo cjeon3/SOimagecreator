@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sound Object Analyzer v9.0 - Enhanced Smoothing</title>
+    <title>Sound Object Analyzer v9.0 - Enhanced Contours & Outlier Filtering</title>
     <meta name="version" content="9.0.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -35,129 +35,373 @@
 <body>
     <div class="max-w-7xl mx-auto p-6">
         <!-- Header -->
-        <div class="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-xl shadow-xl mb-6">
+        <div class="bg-gradient-to-r from-blue-600 to-purple-700 text-white p-6 rounded-xl shadow-xl mb-6">
             <h1 class="text-4xl font-bold mb-2">Sound Object Analyzer v9.0</h1>
-            <p class="text-purple-100 text-lg">Enhanced Version - Radial Contours & Aggressive Outlier Filtering</p>
+            <p class="text-blue-100 text-lg">Radial Contours & Enhanced Outlier Filtering</p>
             <div class="mt-4 flex flex-wrap gap-2">
-                <span class="bg-white/20 px-3 py-1 rounded-full text-sm">✓ Radial Contour Extraction</span>
-                <span class="bg-white/20 px-3 py-1 rounded-full text-sm">✓ Proper Closed Shapes</span>
-                <span class="bg-white/20 px-3 py-1 rounded-full text-sm">✓ Enhanced Outlier Filtering</span>
+                <span class="bg-white/20 px-3 py-1 rounded-full text-sm">✓ Fixed Worm-Like Shapes</span>
+                <span class="bg-white/20 px-3 py-1 rounded-full text-sm">✓ MAD Outlier Filtering</span>
                 <span class="bg-white/20 px-3 py-1 rounded-full text-sm">✓ Gaussian Smoothing</span>
+                <span class="bg-white/20 px-3 py-1 rounded-full text-sm">✓ Clean Closed Contours</span>
             </div>
         </div>
         
         <!-- Instructions -->
-        <div class="bg-purple-50 p-6 rounded-xl mb-6 border-2 border-purple-200">
-            <h2 class="text-xl font-bold text-purple-900 mb-3">📋 Instructions</h2>
-            <ol class="list-decimal list-inside space-y-2 text-purple-800">
-                <li>Upload your <strong>participant_drawings.zip</strong> file containing all images</li>
-                <li>The analyzer will extract red (in-phase) and blue (out-of-phase) shapes</li>
-                <li>Composite images will be generated for each frequency (31-16000 Hz)</li>
-                <li><strong>v9.0 Improvements:</strong> Radial contour sampling creates proper closed shapes (no more worms!), enhanced outlier removal for smoother averages</li>
-                <li>Click any composite to download as PNG</li>
-            </ol>
+        <div class="bg-blue-50 p-6 rounded-xl mb-6 border-2 border-blue-200">
+            <h2 class="text-xl font-bold text-blue-900 mb-3">Key Improvements in v9.0</h2>
+            <ul class="space-y-2 text-gray-700">
+                <li><strong>🎯 Radial Contour Extraction:</strong> Clean closed shapes, no more worm-like appendages</li>
+                <li><strong>📊 MAD-based Outlier Filtering:</strong> Removes shapes by area, radial profile, and centroid distance</li>
+                <li><strong>✨ Gaussian Smoothing:</strong> Smoother averaged contours for publication quality</li>
+                <li><strong>📈 Robust Statistics:</strong> Shows filtered/total counts (e.g., "15/20")</li>
+            </ul>
         </div>
         
-        <!-- Upload Section -->
+        <!-- File Upload -->
         <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Upload Images</h2>
-            <input type="file" id="zipInput" accept=".zip" 
-                   class="block w-full text-gray-700 border-2 border-gray-300 rounded-lg p-3 cursor-pointer hover:border-purple-500 transition">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Upload Participant Images</h2>
+            <input 
+                type="file" 
+                id="image-upload" 
+                accept="image/png,.zip,application/zip" 
+                multiple
+                class="block w-full text-sm text-gray-700 mb-4
+                    file:mr-4 file:py-3 file:px-6
+                    file:rounded-xl file:border-0
+                    file:text-sm file:font-bold
+                    file:bg-gradient-to-r file:from-blue-500 file:to-blue-600
+                    file:text-white
+                    hover:file:from-blue-600 hover:file:to-blue-700
+                    cursor-pointer"
+            />
+            
+            <div id="file-status" class="text-sm text-gray-600 mb-4"></div>
+            
+            <button 
+                id="analyze-btn" 
+                class="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 px-6 rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled>
+                🔬 Analyze & Generate Visualizations
+            </button>
         </div>
         
-        <!-- Progress Section -->
-        <div id="progress-container" class="bg-white p-6 rounded-xl shadow-lg mb-6 hidden">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Processing...</h3>
-            <div class="w-full bg-gray-200 rounded-full h-6">
-                <div id="progress-bar" class="bg-gradient-to-r from-purple-500 to-pink-500 h-6 rounded-full transition-all duration-300" style="width: 0%"></div>
+        <!-- Progress -->
+        <div id="progress-container" class="hidden bg-white p-6 rounded-xl shadow-lg mb-6">
+            <div class="flex justify-between text-sm text-gray-600 mb-2">
+                <span id="progress-text">Processing...</span>
+                <span id="progress-percentage">0%</span>
             </div>
-            <p id="progress-text" class="text-gray-600 mt-2"></p>
+            <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-green-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
         </div>
         
-        <!-- Visualization Section -->
+        <!-- Results -->
         <div id="visualization-container" class="hidden">
-            <h2 class="text-3xl font-bold text-gray-800 mb-4">Composite Visualizations</h2>
-            <div id="visualization-grid" class="analysis-grid"></div>
+            <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">📊 Composite Visualizations</h2>
+                <p class="text-gray-600 mb-4">Click any image to download as PNG</p>
+                <div id="visualizations" class="analysis-grid"></div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">📈 Summary Statistics</h2>
+                <div id="summary" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
         </div>
     </div>
     
     <script>
         // ============================================
-        // CONSTANTS
+        // CONFIGURATION & CONSTANTS
+        // ============================================
+        const CANVAS_SIZE = 1000; // Drawing app canvas is 1000x1000
+        const SCALE = 50; // 50 pixels per unit
+        const GRID_RANGE = 10; // -10 to +10 units
+        const CENTER_X = 500; // Center at (500, 500) in pixel coordinates
+        const CENTER_Y = 500;
+        const HEAD_RADIUS = 3; // Head circle radius in units
+        
+        let allProcessedData = new Map(); // Store all processed data by frequency
+        
+        // ============================================
+        // FILE HANDLING
         // ============================================
         
-        const CANVAS_SIZE = 600;
-        const GRID_RANGE = 6; // -6 to +6 units
-        const SCALE = CANVAS_SIZE / (2 * GRID_RANGE); // pixels per unit
-        const CENTER_X = CANVAS_SIZE / 2;
-        const CENTER_Y = CANVAS_SIZE / 2;
-        const HEAD_CIRCLE_RADIUS = 3; // units
-        
-        const FREQUENCIES = ['31', '62.5', '125', '250', '500', '1000', '2000', '4000', '8000', '16000'];
-        
-        // ============================================
-        // RADIAL CONTOUR EXTRACTION - NO MORE WORMS!
-        // ============================================
-        
-        function extractRadialContour(pixels) {
-            if (pixels.length === 0) return [];
+        document.getElementById('image-upload').addEventListener('change', (event) => {
+            const files = Array.from(event.target.files);
+            const fileStatus = document.getElementById('file-status');
+            const analyzeBtn = document.getElementById('analyze-btn');
             
-            // First, find the centroid of all pixels
-            const centroid = {
-                x: pixels.reduce((sum, p) => sum + p.x, 0) / pixels.length,
-                y: pixels.reduce((sum, p) => sum + p.y, 0) / pixels.length
-            };
+            const zipCount = files.filter(f => f.name.toLowerCase().endsWith('.zip')).length;
+            const pngCount = files.filter(f => f.name.toLowerCase().endsWith('.png')).length;
             
-            // Sample radially from centroid at many angles
-            const numAngles = 360;
-            const contourPoints = [];
+            fileStatus.textContent = `Selected: ${pngCount} PNG files, ${zipCount} ZIP archives`;
+            analyzeBtn.disabled = files.length === 0;
+        });
+        
+        document.getElementById('analyze-btn').addEventListener('click', analyzeImages);
+        
+        async function analyzeImages() {
+            const fileInput = document.getElementById('image-upload');
+            const files = Array.from(fileInput.files);
             
-            for (let i = 0; i < numAngles; i++) {
-                const angle = (i / numAngles) * 2 * Math.PI;
-                const direction = { x: Math.cos(angle), y: Math.sin(angle) };
-                
-                // Find the furthest pixel in this direction
-                let maxDist = 0;
-                let furthestPixel = null;
-                
-                pixels.forEach(pixel => {
-                    const dx = pixel.x - centroid.x;
-                    const dy = pixel.y - centroid.y;
+            if (files.length === 0) {
+                alert('Please select images to analyze');
+                return;
+            }
+            
+            // Show progress
+            document.getElementById('progress-container').classList.remove('hidden');
+            updateProgress('Extracting files...', 0);
+            
+            // Extract all PNG files (from direct upload and from ZIPs)
+            const pngFiles = await extractAllPNGs(files);
+            
+            if (pngFiles.length === 0) {
+                alert('No PNG files found');
+                document.getElementById('progress-container').classList.add('hidden');
+                return;
+            }
+            
+            // Process images
+            await processImages(pngFiles);
+            
+            // Hide progress and show results
+            document.getElementById('progress-container').classList.add('hidden');
+            document.getElementById('visualization-container').classList.remove('hidden');
+        }
+        
+        async function extractAllPNGs(files) {
+            const pngFiles = [];
+            
+            for (const file of files) {
+                if (file.name.toLowerCase().endsWith('.png')) {
+                    pngFiles.push(file);
+                } else if (file.name.toLowerCase().endsWith('.zip')) {
+                    const zip = new JSZip();
+                    const zipContent = await zip.loadAsync(file);
                     
-                    // Project onto direction vector
-                    const projection = dx * direction.x + dy * direction.y;
-                    
-                    // Check if this pixel is roughly in this direction (within 5 degrees)
-                    const pixelAngle = Math.atan2(dy, dx);
-                    let angleDiff = Math.abs(pixelAngle - angle);
-                    if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
-                    
-                    if (angleDiff < Math.PI / 36 && projection > maxDist) { // Within ~5 degrees
-                        maxDist = projection;
-                        furthestPixel = pixel;
+                    for (const [filename, fileData] of Object.entries(zipContent.files)) {
+                        if (filename.toLowerCase().endsWith('.png') && !fileData.dir) {
+                            const blob = await fileData.async('blob');
+                            pngFiles.push(new File([blob], filename, { type: 'image/png' }));
+                        }
                     }
-                });
-                
-                if (furthestPixel) {
-                    contourPoints.push(furthestPixel);
-                } else {
-                    // Interpolate from neighbors if no pixel found
-                    contourPoints.push({ x: centroid.x, y: centroid.y });
                 }
             }
             
-            // Smooth the contour with moving average
-            return smoothContour(contourPoints, 5);
+            return pngFiles;
+        }
+        
+        // ============================================
+        // IMAGE PROCESSING - RADIAL CONTOUR EXTRACTION
+        // ============================================
+        
+        async function processImages(pngFiles) {
+            allProcessedData.clear();
+            const frequencyMap = new Map();
+            
+            // Group files by frequency
+            pngFiles.forEach(file => {
+                const match = file.name.match(/(\d+)hz/i);
+                if (match) {
+                    const freq = match[1];
+                    if (!frequencyMap.has(freq)) {
+                        frequencyMap.set(freq, []);
+                    }
+                    frequencyMap.get(freq).push(file);
+                }
+            });
+            
+            let processed = 0;
+            const total = pngFiles.length;
+            
+            for (const [frequency, files] of frequencyMap) {
+                updateProgress(`Processing ${frequency}Hz...`, (processed / total) * 100);
+                
+                const redShapes = [];
+                const blueShapes = [];
+                
+                for (const file of files) {
+                    const shapes = await extractShapesFromImage(file);
+                    shapes.forEach(shape => {
+                        if (shape.phase === 'red') {
+                            redShapes.push(shape);
+                        } else if (shape.phase === 'blue') {
+                            blueShapes.push(shape);
+                        }
+                    });
+                    processed++;
+                    updateProgress(`Processing ${frequency}Hz...`, (processed / total) * 100);
+                }
+                
+                // Filter outliers and calculate averages
+                const filteredRed = filterOutliers(redShapes);
+                const filteredBlue = filterOutliers(blueShapes);
+                
+                const redAvg = calculateAverageShape(filteredRed);
+                const blueAvg = calculateAverageShape(filteredBlue);
+                
+                allProcessedData.set(frequency, {
+                    redShapes: redShapes,
+                    blueShapes: blueShapes,
+                    filteredRed: filteredRed,
+                    filteredBlue: filteredBlue,
+                    redAvg: redAvg,
+                    blueAvg: blueAvg
+                });
+                
+                // Create visualization
+                createVisualization(frequency, redShapes, blueShapes, redAvg, blueAvg);
+            }
+            
+            // Update summary
+            updateSummary();
+        }
+        
+        async function extractShapesFromImage(file) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    img.onload = () => {
+                        const shapes = processImageData(img);
+                        resolve(shapes);
+                    };
+                    img.src = e.target.result;
+                };
+                
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        function processImageData(img) {
+            const canvas = document.createElement('canvas');
+            canvas.width = CANVAS_SIZE;
+            canvas.height = CANVAS_SIZE;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.drawImage(img, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
+            const imageData = ctx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+            const data = imageData.data;
+            
+            // Extract colored pixels
+            const redPixels = [];
+            const bluePixels = [];
+            
+            for (let y = 0; y < CANVAS_SIZE; y++) {
+                for (let x = 0; x < CANVAS_SIZE; x++) {
+                    const idx = (y * CANVAS_SIZE + x) * 4;
+                    const r = data[idx];
+                    const g = data[idx + 1];
+                    const b = data[idx + 2];
+                    
+                    // Blue detection (must be dominant)
+                    if (b > r + 20 && b > g + 20) {
+                        bluePixels.push({ x, y });
+                    }
+                    // Red detection (must be dominant)
+                    else if (r > b + 20 && r > g + 20) {
+                        redPixels.push({ x, y });
+                    }
+                }
+            }
+            
+            const shapes = [];
+            
+            // Process red shape with radial extraction
+            if (redPixels.length > 100) {
+                const redContour = extractRadialContour(redPixels);
+                if (redContour.length > 0) {
+                    const redCentroid = calculateCentroid(redPixels);
+                    shapes.push({
+                        phase: 'red',
+                        contour: redContour,
+                        centroid: redCentroid,
+                        area: calculateContourArea(redContour),
+                        radialProfile: calculateRadialProfile(redContour, redCentroid)
+                    });
+                }
+            }
+            
+            // Process blue shape with radial extraction
+            if (bluePixels.length > 100) {
+                const blueContour = extractRadialContour(bluePixels);
+                if (blueContour.length > 0) {
+                    const blueCentroid = calculateCentroid(bluePixels);
+                    shapes.push({
+                        phase: 'blue',
+                        contour: blueContour,
+                        centroid: blueCentroid,
+                        area: calculateContourArea(blueContour),
+                        radialProfile: calculateRadialProfile(blueContour, blueCentroid)
+                    });
+                }
+            }
+            
+            return shapes;
+        }
+        
+        // NEW: Radial contour extraction - no more worms!
+        function extractRadialContour(pixels) {
+            if (pixels.length === 0) return [];
+            
+            // Calculate centroid of all pixels
+            const centroid = calculateCentroid(pixels);
+            
+            // Create a map of pixels for fast lookup
+            const pixelMap = new Map();
+            pixels.forEach(p => {
+                const key = `${p.x},${p.y}`;
+                pixelMap.set(key, p);
+            });
+            
+            // Sample radially from centroid
+            const contour = [];
+            const numAngles = 360;
+            
+            for (let i = 0; i < numAngles; i++) {
+                const angle = (i / numAngles) * 2 * Math.PI;
+                const dx = Math.cos(angle);
+                const dy = Math.sin(angle);
+                
+                // Find furthest pixel in this direction
+                let maxDist = 0;
+                let furthestPoint = null;
+                
+                // Search along ray from centroid
+                for (let dist = 0; dist < 1000; dist += 1) {
+                    const x = Math.round(centroid.x + dx * dist);
+                    const y = Math.round(centroid.y + dy * dist);
+                    const key = `${x},${y}`;
+                    
+                    if (pixelMap.has(key)) {
+                        maxDist = dist;
+                        furthestPoint = { x, y };
+                    }
+                }
+                
+                if (furthestPoint) {
+                    contour.push(furthestPoint);
+                }
+            }
+            
+            // Smooth the contour
+            return smoothContour(contour, 3);
         }
         
         function smoothContour(contour, windowSize) {
-            if (contour.length < windowSize) return contour;
+            if (contour.length < 3) return contour;
             
             const smoothed = [];
             const halfWindow = Math.floor(windowSize / 2);
             
             for (let i = 0; i < contour.length; i++) {
-                let sumX = 0, sumY = 0, count = 0;
+                let sumX = 0;
+                let sumY = 0;
+                let count = 0;
                 
                 for (let j = -halfWindow; j <= halfWindow; j++) {
                     const idx = (i + j + contour.length) % contour.length;
@@ -175,97 +419,15 @@
             return smoothed;
         }
         
-        // ============================================
-        // SHAPE EXTRACTION
-        // ============================================
-        
-        function extractShapesFromImage(imageData, filename) {
-            const width = imageData.width;
-            const height = imageData.height;
-            const data = imageData.data;
+        function calculateCentroid(points) {
+            if (points.length === 0) return { x: CENTER_X, y: CENTER_Y };
             
-            const redPixels = [];
-            const bluePixels = [];
-            
-            // Identify colored pixels
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                    const idx = (y * width + x) * 4;
-                    const r = data[idx];
-                    const g = data[idx + 1];
-                    const b = data[idx + 2];
-                    
-                    // Skip white pixels
-                    if (r > 240 && g > 240 && b > 240) continue;
-                    
-                    // Skip gray pixels (grid lines and reference circle)
-                    if (Math.abs(r - g) < 30 && Math.abs(g - b) < 30) {
-                        if (r < 100 && g < 100 && b < 100) continue; // Black circle
-                        if (r > 140 && r < 200) continue; // Grid lines
-                    }
-                    
-                    // Better color detection
-                    if (b > r + 20 && b > g + 20) {
-                        bluePixels.push({ x, y });
-                    }
-                    else if (r > b + 20 && r > g + 20) {
-                        redPixels.push({ x, y });
-                    }
-                }
-            }
-            
-            console.log(`${filename}: Found ${redPixels.length} red pixels, ${bluePixels.length} blue pixels`);
-            
-            const shapes = [];
-            
-            // Process red shape with radial sampling
-            if (redPixels.length > 100) {
-                const redContour = extractRadialContour(redPixels);
-                if (redContour.length > 0) {
-                    const redCentroid = calculateCentroid(redContour);
-                    const area = calculateContourArea(redContour);
-                    const radialProfile = calculateRadialProfile(redContour, redCentroid);
-                    
-                    shapes.push({
-                        phase: 'red',
-                        contour: redContour,
-                        centroid: redCentroid,
-                        area: area,
-                        radialProfile: radialProfile
-                    });
-                }
-            }
-            
-            // Process blue shape with radial sampling
-            if (bluePixels.length > 100) {
-                const blueContour = extractRadialContour(bluePixels);
-                if (blueContour.length > 0) {
-                    const blueCentroid = calculateCentroid(blueContour);
-                    const area = calculateContourArea(blueContour);
-                    const radialProfile = calculateRadialProfile(blueContour, blueCentroid);
-                    
-                    shapes.push({
-                        phase: 'blue',
-                        contour: blueContour,
-                        centroid: blueCentroid,
-                        area: area,
-                        radialProfile: radialProfile
-                    });
-                }
-            }
-            
-            return shapes;
-        }
-        
-        function calculateCentroid(contour) {
-            if (contour.length === 0) return { x: CENTER_X, y: CENTER_Y };
-            
-            const sumX = contour.reduce((sum, p) => sum + p.x, 0);
-            const sumY = contour.reduce((sum, p) => sum + p.y, 0);
+            const sumX = points.reduce((sum, p) => sum + p.x, 0);
+            const sumY = points.reduce((sum, p) => sum + p.y, 0);
             
             return {
-                x: sumX / contour.length,
-                y: sumY / contour.length
+                x: sumX / points.length,
+                y: sumY / points.length
             };
         }
         
@@ -284,32 +446,31 @@
         }
         
         function calculateRadialProfile(contour, centroid) {
-            // Calculate variation in radial distance
             const radii = contour.map(p => {
                 const dx = p.x - centroid.x;
                 const dy = p.y - centroid.y;
                 return Math.sqrt(dx * dx + dy * dy);
             });
             
-            const meanRadius = radii.reduce((sum, r) => sum + r, 0) / radii.length;
-            const variance = radii.reduce((sum, r) => sum + Math.pow(r - meanRadius, 2), 0) / radii.length;
+            const mean = radii.reduce((sum, r) => sum + r, 0) / radii.length;
+            const variance = radii.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / radii.length;
             const stdDev = Math.sqrt(variance);
             
             return {
-                mean: meanRadius,
+                mean: mean,
                 stdDev: stdDev,
-                coefficientOfVariation: stdDev / meanRadius
+                coefficientOfVariation: stdDev / mean
             };
         }
         
         // ============================================
-        // ENHANCED OUTLIER FILTERING
+        // OUTLIER FILTERING WITH MAD
         // ============================================
         
         function filterOutliers(shapes) {
-            if (shapes.length < 3) return shapes; // Need at least 3 for meaningful filtering
+            if (shapes.length < 3) return shapes;
             
-            console.log(`Filtering ${shapes.length} shapes...`);
+            console.log(`Starting outlier filtering with ${shapes.length} shapes`);
             
             // Step 1: Remove shapes with extreme areas
             const areas = shapes.map(s => s.area);
@@ -324,37 +485,41 @@
             console.log(`After area filtering: ${filtered.length} shapes`);
             
             // Step 2: Remove shapes with irregular radial profiles
-            const cvs = filtered.map(s => s.radialProfile.coefficientOfVariation);
-            const medianCV = median(cvs);
-            const cvMAD = medianAbsoluteDeviation(cvs);
-            
-            filtered = filtered.filter(shape => {
-                const cvDiff = Math.abs(shape.radialProfile.coefficientOfVariation - medianCV);
-                return cvDiff < 3 * cvMAD; // Keep within 3 MAD
-            });
-            
-            console.log(`After radial profile filtering: ${filtered.length} shapes`);
+            if (filtered.length > 0) {
+                const cvs = filtered.map(s => s.radialProfile.coefficientOfVariation);
+                const medianCV = median(cvs);
+                const cvMAD = medianAbsoluteDeviation(cvs);
+                
+                filtered = filtered.filter(shape => {
+                    const cvDiff = Math.abs(shape.radialProfile.coefficientOfVariation - medianCV);
+                    return cvDiff < 3 * cvMAD; // Keep within 3 MAD
+                });
+                
+                console.log(`After radial profile filtering: ${filtered.length} shapes`);
+            }
             
             // Step 3: Remove shapes whose centroids are far from median
-            const centroidXs = filtered.map(s => s.centroid.x);
-            const centroidYs = filtered.map(s => s.centroid.y);
-            const medianX = median(centroidXs);
-            const medianY = median(centroidYs);
-            
-            const centroidDistances = filtered.map(s => {
-                const dx = s.centroid.x - medianX;
-                const dy = s.centroid.y - medianY;
-                return Math.sqrt(dx * dx + dy * dy);
-            });
-            
-            const medianDist = median(centroidDistances);
-            const distMAD = medianAbsoluteDeviation(centroidDistances);
-            
-            filtered = filtered.filter((shape, idx) => {
-                return centroidDistances[idx] < medianDist + 3 * distMAD;
-            });
-            
-            console.log(`After centroid filtering: ${filtered.length} shapes`);
+            if (filtered.length > 0) {
+                const centroidXs = filtered.map(s => s.centroid.x);
+                const centroidYs = filtered.map(s => s.centroid.y);
+                const medianX = median(centroidXs);
+                const medianY = median(centroidYs);
+                
+                const centroidDistances = filtered.map(s => {
+                    const dx = s.centroid.x - medianX;
+                    const dy = s.centroid.y - medianY;
+                    return Math.sqrt(dx * dx + dy * dy);
+                });
+                
+                const medianDist = median(centroidDistances);
+                const distMAD = medianAbsoluteDeviation(centroidDistances);
+                
+                filtered = filtered.filter((shape, idx) => {
+                    return centroidDistances[idx] < medianDist + 3 * distMAD;
+                });
+                
+                console.log(`After centroid filtering: ${filtered.length} shapes`);
+            }
             
             return filtered;
         }
@@ -363,60 +528,62 @@
             if (values.length === 0) return 0;
             const sorted = [...values].sort((a, b) => a - b);
             const mid = Math.floor(sorted.length / 2);
-            return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+            return sorted.length % 2 === 0 ?
+                (sorted[mid - 1] + sorted[mid]) / 2 :
+                sorted[mid];
         }
         
         function medianAbsoluteDeviation(values) {
+            if (values.length === 0) return 0;
             const med = median(values);
             const deviations = values.map(v => Math.abs(v - med));
-            return median(deviations);
+            return median(deviations) * 1.4826; // Scale factor for normal distribution
         }
         
         // ============================================
-        // AVERAGING WITH SMOOTHING
+        // AVERAGING WITH GAUSSIAN SMOOTHING
         // ============================================
         
         function calculateAverageShape(shapes) {
             if (shapes.length === 0) return null;
             
-            // Apply outlier filtering
-            const filteredShapes = filterOutliers(shapes);
-            
-            if (filteredShapes.length === 0) return null;
-            
-            console.log(`Averaging ${filteredShapes.length} shapes (filtered from ${shapes.length})`);
-            
             // Calculate average centroid
             const avgCentroid = {
-                x: filteredShapes.reduce((sum, s) => sum + s.centroid.x, 0) / filteredShapes.length,
-                y: filteredShapes.reduce((sum, s) => sum + s.centroid.y, 0) / filteredShapes.length
+                x: shapes.reduce((sum, s) => sum + s.centroid.x, 0) / shapes.length,
+                y: shapes.reduce((sum, s) => sum + s.centroid.y, 0) / shapes.length
             };
             
-            // Convert all contours to polar coordinates relative to average centroid
-            const numBins = 360;
-            const bins = new Array(numBins).fill(null).map(() => []);
+            // Normalize contours relative to average centroid and convert to polar
+            const polarData = [];
             
-            filteredShapes.forEach(shape => {
+            shapes.forEach(shape => {
                 shape.contour.forEach(point => {
                     const dx = point.x - avgCentroid.x;
                     const dy = point.y - avgCentroid.y;
                     const angle = Math.atan2(dy, dx);
                     const radius = Math.sqrt(dx * dx + dy * dy);
-                    
-                    let binIndex = Math.floor(((angle + Math.PI) / (2 * Math.PI)) * numBins);
-                    binIndex = (binIndex + numBins) % numBins;
-                    bins[binIndex].push(radius);
+                    polarData.push({ angle, radius });
                 });
             });
             
-            // Create averaged contour with median instead of mean (more robust)
+            // Bin by angle and use median (more robust than mean)
+            const numBins = 360;
+            const bins = new Array(numBins).fill(null).map(() => []);
+            
+            polarData.forEach(point => {
+                let binIndex = Math.floor(((point.angle + Math.PI) / (2 * Math.PI)) * numBins);
+                binIndex = (binIndex + numBins) % numBins;
+                bins[binIndex].push(point.radius);
+            });
+            
+            // Create averaged contour using median for robustness
             const avgContour = [];
             for (let i = 0; i < numBins; i++) {
                 const angle = (i / numBins) * 2 * Math.PI - Math.PI;
                 
                 let radius;
                 if (bins[i].length > 0) {
-                    radius = median(bins[i]); // Use median instead of mean
+                    radius = median(bins[i]); // Use median instead of mean for robustness
                 } else {
                     // Interpolate from neighbors
                     let prevIdx = (i - 1 + numBins) % numBins;
@@ -460,39 +627,86 @@
                 contour: smoothedContour,
                 centroid: avgCentroid,
                 meanRadius: meanRadius,
-                n: filteredShapes.length,
-                nTotal: shapes.length
+                n: shapes.length,
+                nTotal: shapes.length // Will be updated by caller with original count
             };
         }
         
         function gaussianSmooth(contour, sigma) {
+            if (contour.length < 3) return contour;
+            
             const smoothed = [];
             const kernelSize = Math.ceil(sigma * 3);
             
+            // Create Gaussian kernel
+            const kernel = [];
+            let kernelSum = 0;
+            for (let i = -kernelSize; i <= kernelSize; i++) {
+                const weight = Math.exp(-(i * i) / (2 * sigma * sigma));
+                kernel.push(weight);
+                kernelSum += weight;
+            }
+            
+            // Normalize kernel
+            for (let i = 0; i < kernel.length; i++) {
+                kernel[i] /= kernelSum;
+            }
+            
+            // Apply convolution
             for (let i = 0; i < contour.length; i++) {
-                let sumX = 0, sumY = 0, weightSum = 0;
+                let sumX = 0;
+                let sumY = 0;
                 
                 for (let j = -kernelSize; j <= kernelSize; j++) {
                     const idx = (i + j + contour.length) % contour.length;
-                    const weight = Math.exp(-(j * j) / (2 * sigma * sigma));
-                    
+                    const weight = kernel[j + kernelSize];
                     sumX += contour[idx].x * weight;
                     sumY += contour[idx].y * weight;
-                    weightSum += weight;
                 }
                 
-                smoothed.push({
-                    x: sumX / weightSum,
-                    y: sumY / weightSum
-                });
+                smoothed.push({ x: sumX, y: sumY });
             }
             
             return smoothed;
         }
         
         // ============================================
-        // DRAWING FUNCTIONS
+        // DRAWING FUNCTIONS - WITH HEAD CIRCLE
         // ============================================
+        
+        function createVisualization(frequency, redShapes, blueShapes, redAvg, blueAvg) {
+            const container = document.getElementById('visualizations');
+            
+            // Create canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = CANVAS_SIZE;
+            canvas.height = CANVAS_SIZE;
+            canvas.className = 'canvas-container';
+            
+            // Draw composite
+            drawCompositeVisualization(canvas, frequency, redShapes, blueShapes, redAvg, blueAvg);
+            
+            // Create wrapper with frequency label
+            const wrapper = document.createElement('div');
+            wrapper.className = 'text-center';
+            
+            const label = document.createElement('p');
+            label.className = 'text-lg font-semibold text-gray-700 mb-2';
+            label.textContent = `${frequency} Hz`;
+            
+            wrapper.appendChild(label);
+            wrapper.appendChild(canvas);
+            
+            // Add download functionality
+            canvas.addEventListener('click', () => {
+                const link = document.createElement('a');
+                link.download = `composite_${frequency}Hz.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+            
+            container.appendChild(wrapper);
+        }
         
         function drawCompositeVisualization(canvas, frequency, redShapes, blueShapes, redAvg, blueAvg) {
             const ctx = canvas.getContext('2d');
@@ -512,8 +726,13 @@
             ctx.lineWidth = 1;
             ctx.globalAlpha = 0.3;
             
-            // Draw red individual shapes
-            redShapes.forEach(shape => {
+            // Get filtered shapes from the stored data
+            const data = allProcessedData.get(frequency);
+            const filteredRed = data ? data.filteredRed : redShapes;
+            const filteredBlue = data ? data.filteredBlue : blueShapes;
+            
+            // Draw filtered red individual shapes
+            filteredRed.forEach(shape => {
                 if (shape.contour && shape.contour.length > 2) {
                     ctx.beginPath();
                     ctx.moveTo(shape.contour[0].x, shape.contour[0].y);
@@ -527,8 +746,8 @@
                 }
             });
             
-            // Draw blue individual shapes
-            blueShapes.forEach(shape => {
+            // Draw filtered blue individual shapes
+            filteredBlue.forEach(shape => {
                 if (shape.contour && shape.contour.length > 2) {
                     ctx.beginPath();
                     ctx.moveTo(shape.contour[0].x, shape.contour[0].y);
@@ -576,248 +795,138 @@
                 
                 ctx.closePath();
                 ctx.stroke();
-                ctx.setLineDash([]);
             }
             
-            // Add frequency label
-            ctx.fillStyle = 'black';
-            ctx.font = 'bold 32px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(frequency, canvas.width / 2, 40);
+            ctx.setLineDash([]);
             
-            // Add statistics
-            const redN = redAvg ? `${redAvg.n}/${redAvg.nTotal}` : '0';
-            const blueN = blueAvg ? `${blueAvg.n}/${blueAvg.nTotal}` : '0';
-            const meanRadius = redAvg ? redAvg.meanRadius.toFixed(2) : 
-                              (blueAvg ? blueAvg.meanRadius.toFixed(2) : '0.00');
+            // Add frequency label and statistics
+            ctx.fillStyle = '#333333';
+            ctx.font = 'bold 24px sans-serif';
+            ctx.fillText(`${frequency} Hz`, 50, 50);
             
-            ctx.font = '14px Arial';
-            ctx.fillText(`Red: ${redN} | Blue: ${blueN} | Mean r=${meanRadius}`, canvas.width / 2, canvas.height - 20);
+            ctx.font = '16px sans-serif';
+            let statsY = 80;
+            
+            if (redAvg) {
+                // Update with total count
+                redAvg.nTotal = redShapes.length;
+                ctx.fillStyle = '#FF0000';
+                ctx.fillText(
+                    `In-phase: N=${redAvg.n}/${redAvg.nTotal}, Mean R=${redAvg.meanRadius.toFixed(2)} units`,
+                    50,
+                    statsY
+                );
+                statsY += 25;
+            }
+            
+            if (blueAvg) {
+                // Update with total count
+                blueAvg.nTotal = blueShapes.length;
+                ctx.fillStyle = '#0000FF';
+                ctx.fillText(
+                    `Out-of-phase: N=${blueAvg.n}/${blueAvg.nTotal}, Mean R=${blueAvg.meanRadius.toFixed(2)} units`,
+                    50,
+                    statsY
+                );
+            }
         }
         
         function drawGrid(ctx) {
-            const size = CANVAS_SIZE;
-            const gridSize = size / (2 * GRID_RANGE);
-            
             ctx.strokeStyle = '#e0e0e0';
             ctx.lineWidth = 1;
             
-            // Grid lines
-            for (let i = 0; i <= 2 * GRID_RANGE; i++) {
-                const pos = i * gridSize;
-                
+            // Vertical lines
+            for (let i = 0; i <= 20; i++) {
+                const x = i * SCALE;
                 ctx.beginPath();
-                ctx.moveTo(pos, 0);
-                ctx.lineTo(pos, size);
-                ctx.stroke();
-                
-                ctx.beginPath();
-                ctx.moveTo(0, pos);
-                ctx.lineTo(size, pos);
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, CANVAS_SIZE);
                 ctx.stroke();
             }
             
-            // Center axes
+            // Horizontal lines
+            for (let i = 0; i <= 20; i++) {
+                const y = i * SCALE;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(CANVAS_SIZE, y);
+                ctx.stroke();
+            }
+            
+            // Draw axes (thicker lines at center)
             ctx.strokeStyle = '#999999';
             ctx.lineWidth = 2;
             
+            // X-axis
             ctx.beginPath();
-            ctx.moveTo(size / 2, 0);
-            ctx.lineTo(size / 2, size);
+            ctx.moveTo(0, CENTER_Y);
+            ctx.lineTo(CANVAS_SIZE, CENTER_Y);
             ctx.stroke();
             
+            // Y-axis
             ctx.beginPath();
-            ctx.moveTo(0, size / 2);
-            ctx.lineTo(size, size / 2);
+            ctx.moveTo(CENTER_X, 0);
+            ctx.lineTo(CENTER_X, CANVAS_SIZE);
             ctx.stroke();
         }
         
         function drawHeadCircle(ctx) {
+            // Draw reference head circle at radius 3 units
             ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 1;
+            ctx.lineWidth = 2;
             ctx.setLineDash([]);
             
             ctx.beginPath();
-            ctx.arc(CENTER_X, CENTER_Y, HEAD_CIRCLE_RADIUS * SCALE, 0, 2 * Math.PI);
+            ctx.arc(CENTER_X, CENTER_Y, HEAD_RADIUS * SCALE, 0, 2 * Math.PI);
             ctx.stroke();
         }
         
         // ============================================
-        // FILE PROCESSING
+        // UI UPDATES
         // ============================================
         
-        async function loadImagesFromZip(file) {
-            const zip = await JSZip.loadAsync(file);
-            const imageFiles = [];
-            
-            zip.forEach((relativePath, zipEntry) => {
-                if (!zipEntry.dir && (relativePath.toLowerCase().endsWith('.png') || 
-                                     relativePath.toLowerCase().endsWith('.jpg') ||
-                                     relativePath.toLowerCase().endsWith('.jpeg'))) {
-                    imageFiles.push({ path: relativePath, entry: zipEntry });
-                }
-            });
-            
-            const images = [];
-            for (const file of imageFiles) {
-                const blob = await file.entry.async('blob');
-                const imageData = await loadImage(blob);
-                images.push({ filename: file.path, imageData: imageData });
-            }
-            
-            return images;
+        function updateProgress(text, percentage) {
+            document.getElementById('progress-text').textContent = text;
+            document.getElementById('progress-percentage').textContent = `${Math.round(percentage)}%`;
+            document.getElementById('progress-bar').style.width = `${percentage}%`;
         }
         
-        function loadImage(blob) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                const url = URL.createObjectURL(blob);
-                
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    
-                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    URL.revokeObjectURL(url);
-                    resolve(imageData);
-                };
-                
-                img.onerror = reject;
-                img.src = url;
+        function updateSummary() {
+            const summaryContainer = document.getElementById('summary');
+            summaryContainer.innerHTML = '';
+            
+            let totalRed = 0;
+            let totalBlue = 0;
+            let filteredRed = 0;
+            let filteredBlue = 0;
+            
+            allProcessedData.forEach((data, freq) => {
+                totalRed += data.redShapes.length;
+                totalBlue += data.blueShapes.length;
+                filteredRed += data.filteredRed.length;
+                filteredBlue += data.filteredBlue.length;
+            });
+            
+            const stats = [
+                { label: 'Total Frequencies Analyzed', value: allProcessedData.size },
+                { label: 'Total Red Shapes', value: `${filteredRed}/${totalRed} (${Math.round(filteredRed/totalRed*100)}% retained)` },
+                { label: 'Total Blue Shapes', value: `${filteredBlue}/${totalBlue} (${Math.round(filteredBlue/totalBlue*100)}% retained)` },
+                { label: 'Outlier Filtering', value: 'MAD-based (3σ threshold)' }
+            ];
+            
+            stats.forEach(stat => {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-50 p-4 rounded-lg';
+                div.innerHTML = `
+                    <p class="text-sm text-gray-600">${stat.label}</p>
+                    <p class="text-xl font-bold text-gray-800">${stat.value}</p>
+                `;
+                summaryContainer.appendChild(div);
             });
         }
         
-        function updateProgress(percent, text) {
-            const progressBar = document.getElementById('progress-bar');
-            const progressText = document.getElementById('progress-text');
-            
-            progressBar.style.width = percent + '%';
-            progressText.textContent = text;
-        }
-        
-        // ============================================
-        // MAIN ANALYSIS
-        // ============================================
-        
-        async function analyzeImages(zipFile) {
-            try {
-                document.getElementById('progress-container').classList.remove('hidden');
-                updateProgress(10, 'Loading images from ZIP...');
-                
-                const images = await loadImagesFromZip(zipFile);
-                console.log(`Loaded ${images.length} images`);
-                
-                updateProgress(30, 'Extracting shapes from images...');
-                
-                // Group shapes by frequency
-                const shapesByFreq = {};
-                FREQUENCIES.forEach(freq => {
-                    shapesByFreq[freq] = { red: [], blue: [] };
-                });
-                
-                images.forEach((img, idx) => {
-                    const shapes = extractShapesFromImage(img.imageData, img.filename);
-                    
-                    // Determine frequency from filename
-                    let freq = null;
-                    for (const f of FREQUENCIES) {
-                        if (img.filename.includes(f)) {
-                            freq = f;
-                            break;
-                        }
-                    }
-                    
-                    if (freq) {
-                        shapes.forEach(shape => {
-                            if (shape.phase === 'red') {
-                                shapesByFreq[freq].red.push(shape);
-                            } else if (shape.phase === 'blue') {
-                                shapesByFreq[freq].blue.push(shape);
-                            }
-                        });
-                    }
-                    
-                    const progress = 30 + (idx / images.length) * 40;
-                    updateProgress(progress, `Processing image ${idx + 1}/${images.length}...`);
-                });
-                
-                updateProgress(70, 'Creating composite visualizations...');
-                
-                // Create composites
-                const vizGrid = document.getElementById('visualization-grid');
-                vizGrid.innerHTML = '';
-                
-                FREQUENCIES.forEach((freq, idx) => {
-                    const redShapes = shapesByFreq[freq].red;
-                    const blueShapes = shapesByFreq[freq].blue;
-                    
-                    console.log(`\nFrequency ${freq}Hz: ${redShapes.length} red shapes, ${blueShapes.length} blue shapes`);
-                    
-                    const redAvg = redShapes.length > 0 ? calculateAverageShape(redShapes) : null;
-                    const blueAvg = blueShapes.length > 0 ? calculateAverageShape(blueShapes) : null;
-                    
-                    // Create canvas
-                    const canvas = document.createElement('canvas');
-                    canvas.width = CANVAS_SIZE;
-                    canvas.height = CANVAS_SIZE;
-                    
-                    drawCompositeVisualization(canvas, freq + ' Hz', redShapes, blueShapes, redAvg, blueAvg);
-                    
-                    // Create container
-                    const container = document.createElement('div');
-                    container.className = 'canvas-container p-4';
-                    container.style.cursor = 'pointer';
-                    
-                    canvas.style.width = '100%';
-                    canvas.style.height = 'auto';
-                    
-                    container.appendChild(canvas);
-                    
-                    // Add click to download
-                    container.addEventListener('click', () => {
-                        const link = document.createElement('a');
-                        link.download = `composite_${freq}Hz.png`;
-                        link.href = canvas.toDataURL();
-                        link.click();
-                    });
-                    
-                    vizGrid.appendChild(container);
-                    
-                    const progress = 70 + ((idx + 1) / FREQUENCIES.length) * 25;
-                    updateProgress(progress, `Creating composite ${idx + 1}/${FREQUENCIES.length}...`);
-                });
-                
-                updateProgress(100, 'Analysis complete!');
-                
-                // Show results
-                document.getElementById('visualization-container').classList.remove('hidden');
-                
-                setTimeout(() => {
-                    document.getElementById('progress-container').classList.add('hidden');
-                }, 2000);
-                
-            } catch (error) {
-                console.error('Analysis error:', error);
-                alert(`Error: ${error.message}`);
-            }
-        }
-        
-        // ============================================
-        // INITIALIZATION
-        // ============================================
-        
-        document.getElementById('zipInput').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                await analyzeImages(file);
-            }
-        });
-        
-        console.log('Sound Object Analyzer v9.0 - Ready!');
+        // Initialize
+        console.log('Sound Object Analyzer v9.0 loaded');
         console.log('Improvements:');
         console.log('  ✓ Radial contour extraction (no more worms!)');
         console.log('  ✓ Enhanced outlier filtering (area, radial profile, centroid)');
