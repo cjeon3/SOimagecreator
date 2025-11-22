@@ -3,1857 +3,530 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sound Object Analyzer v5.0 - ROBUST EDITION - BUILD 4</title>
-    <meta name="version" content="5.0.0">
+    <title>Sound Object Analyzer v8.0 - Final Fixed Version</title>
+    <meta name="version" content="8.0.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         body {
             font-family: ui-sans-serif, system-ui, sans-serif;
             background-color: #f3f4f6;
-            zoom: 0.75;
-            -moz-transform: scale(0.75);
-            -moz-transform-origin: 0 0;
-            min-height: 100vh;
-            overflow-x: hidden;
         }
         
         .canvas-container {
             background: white;
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+        
+        .canvas-container:hover {
+            transform: scale(1.02);
+            transition: transform 0.2s;
         }
         
         .analysis-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 1.5rem;
-        }
-        
-        @media (max-width: 768px) {
-            body {
-                zoom: 1;
-                -moz-transform: scale(1);
-                padding: 0.75rem;
-                width: 100vw;
-            }
-            
-            .analysis-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-            
-            .max-w-7xl {
-                max-width: 100%;
-                width: 100%;
-                padding: 0;
-                margin: 0;
-            }
-            
-            button {
-                min-height: 44px;
-                touch-action: manipulation;
-            }
-            
-            input[type="file"] {
-                font-size: 16px;
-            }
-        }
-        
-        @media (min-width: 769px) and (max-width: 1024px) {
-            body {
-                zoom: 0.9;
-                -moz-transform: scale(0.9);
-                -moz-transform-origin: 0 0;
-                width: 100vw;
-                padding: 1rem;
-            }
-            
-            .analysis-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .max-w-7xl {
-                max-width: 100%;
-                width: 100%;
-            }
-        }
-        
-        @media (min-width: 1920px) {
-            body {
-                zoom: 0.8;
-                -moz-transform: scale(0.8);
-            }
-        }
-        
-        .metrics-dropdown {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-            opacity: 0;
-        }
-        
-        .metrics-dropdown.open {
-            max-height: 800px;
-            opacity: 1;
-        }
-        
-        .validation-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        
-        .validation-pass {
-            background-color: #d1fae5;
-            color: #065f46;
-        }
-        
-        .validation-warn {
-            background-color: #fef3c7;
-            color: #92400e;
-        }
-        
-        .validation-fail {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
-        
-        .progress-bar-fill {
-            transition: width 0.2s ease-out;
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    
-    <div class="max-w-7xl mx-auto">
+<body>
+    <div class="max-w-7xl mx-auto p-6">
         <!-- Header -->
-        <header class="text-center mb-8">
-            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-blue-800 mb-2">
-                Sound Object Average Shape Analyzer
-                <span class="inline-block ml-2 px-3 py-1 text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full shadow-lg">
-                    ⚡ COMPLETE v5.0
-                </span>
-            </h1>
-            <p class="text-lg sm:text-xl font-semibold text-gray-600">UCI Hearing & Speech Lab</p>
-            <p class="text-xs sm:text-sm text-gray-500 mt-2">
-                Advanced contour detection • Overlap handling • MAD outlier filtering • Google Sheets validation
-            </p>
-        </header>
-        
-        <!-- Google Sheets Configuration Section -->
-        <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 sm:p-6 rounded-xl shadow-lg mb-6 border border-green-200">
-            <h2 class="text-lg sm:text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                Google Sheets Validation (Optional)
-            </h2>
-            <p class="text-sm text-gray-700 mb-4">
-                Enable continuous validation against your Google Sheets data containing participant ID, frequency, color, centroid coordinates, and area measurements.
-                <strong class="text-green-700">✅ COMPLETELY FREE</strong> - Choose either method below.
-            </p>
-            
-            <div class="mb-3 p-3 bg-blue-50 border-l-4 border-blue-400 rounded">
-                <p class="text-xs font-semibold text-blue-800">📌 Two Methods (Both Free):</p>
-                <p class="text-xs text-gray-700 mt-1">
-                    <strong>Option 1 (Easiest):</strong> Deploy your Apps Script → Paste web app URL below (no API key needed!)
-                    <a href="#" onclick="showAppsScriptGuide(); return false;" class="text-blue-600 hover:underline ml-1">Setup guide →</a>
-                </p>
-                <p class="text-xs text-gray-700 mt-1">
-                    <strong>Option 2:</strong> Use Google Sheets API → Need both URL and API key
-                    <a href="#" onclick="showSheetsInstructions(); return false;" class="text-blue-600 hover:underline ml-1">Instructions →</a>
-                </p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                        Google Sheets URL or Apps Script URL
-                    </label>
-                    <input 
-                        type="text" 
-                        id="sheets-url" 
-                        placeholder="https://docs.google.com/spreadsheets/... OR https://script.google.com/macros/..."
-                        class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-green-400 focus:outline-none"
-                    >
-                    <p class="text-xs text-gray-500 mt-1">Paste either your Sheet URL or Apps Script web app URL</p>
-                </div>
-                <div>
-                    <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                        Google API Key <span class="text-xs font-normal text-gray-500">(only if using Option 2)</span>
-                    </label>
-                    <input 
-                        type="password" 
-                        id="api-key" 
-                        placeholder="Leave blank if using Apps Script"
-                        class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-green-400 focus:outline-none"
-                    >
-                    <p class="text-xs text-gray-500 mt-1">Not needed for Apps Script web app</p>
-                </div>
-            </div>
-            
-            <div class="flex gap-3">
-                <button 
-                    id="validate-sheets-btn" 
-                    class="px-4 py-2 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 transition-all shadow"
-                >
-                    🔗 Connect & Validate
-                </button>
-                <button 
-                    id="test-sheets-btn" 
-                    class="px-4 py-2 rounded-lg font-bold text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 transition-all"
-                >
-                    🧪 Test Connection
-                </button>
-            </div>
-            
-            <div id="sheets-status" class="mt-4 hidden">
-                <div class="p-3 rounded-lg border-2" id="sheets-status-content"></div>
+        <div class="bg-gradient-to-r from-blue-600 to-purple-700 text-white p-6 rounded-xl shadow-xl mb-6">
+            <h1 class="text-4xl font-bold mb-2">Sound Object Analyzer v8.0</h1>
+            <p class="text-blue-100 text-lg">Final Version - Proper Blue Extraction & Reference Circle</p>
+            <div class="mt-4 flex flex-wrap gap-2">
+                <span class="bg-white/20 px-3 py-1 rounded-full text-sm">✓ Fixed Blue Shape Detection</span>
+                <span class="bg-white/20 px-3 py-1 rounded-full text-sm">✓ Reference Head Circle</span>
+                <span class="bg-white/20 px-3 py-1 rounded-full text-sm">✓ Proper Contours</span>
+                <span class="bg-white/20 px-3 py-1 rounded-full text-sm">✓ Accurate Translation</span>
             </div>
         </div>
         
         <!-- Instructions -->
-        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:p-6 rounded-xl shadow-lg mb-6 border border-blue-200">
-            <h2 class="text-lg sm:text-xl font-bold text-blue-800 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                How to Use - Enhanced Features
-            </h2>
-            <ol class="list-decimal list-inside space-y-2 text-sm sm:text-base text-gray-700">
-                <li><strong>Upload Files:</strong> Select PNG files OR ZIP files (even nested ZIPs!) from the Sound Object tool</li>
-                <li><strong>Auto-Detection:</strong> Frequency, phase (Red/Blue), and participant ID parsed from filenames</li>
-                <li><strong>Trial Mapping:</strong> Inconsistent trial numbers auto-corrected (lowest→1, middle→2, highest→3)</li>
-                <li><strong>Overlap Handling:</strong> Advanced contour detection reconstructs shapes where blue overlaps red</li>
-                <li><strong>Outlier Filtering:</strong> MAD (Median Absolute Deviation) removes statistical outliers while preserving natural variation</li>
-                <li><strong>Google Sheets Validation:</strong> Optional continuous validation against ground truth data</li>
-                <li><strong>View Results:</strong> Publication-ready composite figures with individual gray shapes + averaged red/blue lines</li>
+        <div class="bg-blue-50 p-6 rounded-xl mb-6 border-2 border-blue-200">
+            <h2 class="text-xl font-bold text-blue-900 mb-3">How to Use</h2>
+            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                <li><strong>Upload Images:</strong> Select PNG files or ZIP archives from the drawing tool</li>
+                <li><strong>Process:</strong> Click "Analyze & Generate Visualizations"</li>
+                <li><strong>View Results:</strong> Composites with head reference circle, gray individual shapes, red/blue averages</li>
+                <li><strong>Download:</strong> Click any image to save as PNG</li>
             </ol>
         </div>
         
-        <!-- File Upload Section -->
-        <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg mb-6 border border-gray-100">
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 sm:w-7 sm:h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                </svg>
-                Upload Participant Images
-            </h2>
+        <!-- File Upload -->
+        <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Upload Participant Images</h2>
+            <input 
+                type="file" 
+                id="image-upload" 
+                accept="image/png,.zip,application/zip" 
+                multiple
+                class="block w-full text-sm text-gray-700 mb-4
+                    file:mr-4 file:py-3 file:px-6
+                    file:rounded-xl file:border-0
+                    file:text-sm file:font-bold
+                    file:bg-gradient-to-r file:from-blue-500 file:to-blue-600
+                    file:text-white
+                    hover:file:from-blue-600 hover:file:to-blue-700
+                    cursor-pointer"
+            />
             
-            <div class="mb-4">
-                <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                    Select PNG files OR ZIP files containing PNGs (multiple files/folders allowed)
-                </label>
-                <input 
-                    type="file" 
-                    id="image-upload" 
-                    accept="image/png,.zip,application/zip" 
-                    multiple
-                    class="block w-full text-xs sm:text-sm text-gray-700
-                        file:mr-4 file:py-2 sm:file:py-3 file:px-4 sm:file:px-6
-                        file:rounded-xl file:border-0
-                        file:text-xs sm:file:text-sm file:font-bold
-                        file:bg-gradient-to-r file:from-blue-500 file:to-indigo-600
-                        file:text-white file:cursor-pointer
-                        hover:file:from-blue-600 hover:file:to-indigo-700
-                        border-2 border-gray-200 rounded-xl
-                        hover:border-blue-300 transition-all p-2 sm:p-3 bg-gray-50"
-                >
-            </div>
+            <div id="file-status" class="text-sm text-gray-600 mb-4"></div>
             
-            <div id="file-list" class="mt-4 text-xs sm:text-sm text-gray-600"></div>
-            
-            <div class="mt-6 flex flex-col sm:flex-row gap-3">
-                <button 
-                    id="analyze-btn" 
-                    disabled
-                    class="flex-1 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold text-sm sm:text-base text-white 
-                        bg-gradient-to-r from-purple-500 to-pink-600 
-                        hover:from-purple-600 hover:to-pink-700 
-                        disabled:from-gray-300 disabled:to-gray-400 
-                        disabled:cursor-not-allowed transition-all transform 
-                        hover:scale-105 disabled:hover:scale-100 shadow-lg"
-                >
-                    🚀 Analyze & Generate Visualizations
-                </button>
-                
-                <button 
-                    id="cancel-btn" 
-                    class="hidden flex-1 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold text-sm sm:text-base text-white 
-                        bg-gradient-to-r from-red-500 to-red-600 
-                        hover:from-red-600 hover:to-red-700 
-                        transition-all shadow-lg"
-                >
-                    ⛔ Cancel Processing
-                </button>
+            <button 
+                id="analyze-btn" 
+                class="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 px-6 rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled>
+                🔬 Analyze & Generate Visualizations
+            </button>
+        </div>
+        
+        <!-- Progress -->
+        <div id="progress-container" class="hidden bg-white p-6 rounded-xl shadow-lg mb-6">
+            <div class="flex justify-between text-sm text-gray-600 mb-2">
+                <span id="progress-text">Processing...</span>
+                <span id="progress-percentage">0%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-green-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
             </div>
         </div>
         
-        <!-- Progress Container with Metrics Dropdown -->
-        <div id="progress-container" class="hidden bg-white p-6 rounded-xl shadow-lg mb-6 border border-gray-200">
-            <div class="mb-2 flex justify-between items-center">
-                <h3 class="text-lg font-bold text-gray-800">Processing Progress</h3>
-                <span id="progress-percentage" class="text-sm font-mono font-bold text-purple-600">0%</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
-                <div id="progress-bar" class="progress-bar-fill h-4 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full" style="width: 0%"></div>
-            </div>
-            <p id="progress-text" class="mt-2 text-sm text-gray-600 font-semibold"></p>
-            
-            <!-- Real-Time Metrics Dropdown -->
-            <div class="mt-4">
-                <button 
-                    id="toggle-metrics" 
-                    class="w-full flex items-center justify-between px-4 py-2 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 rounded-lg border border-purple-200 transition-all"
-                >
-                    <span class="text-sm font-bold text-purple-800 flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                        Real-Time Performance Metrics
-                    </span>
-                    <svg id="metrics-arrow" class="w-5 h-5 text-purple-600 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                </button>
-                
-                <div id="metrics-dropdown" class="metrics-dropdown mt-3">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-                        <div class="bg-white p-3 rounded-lg shadow">
-                            <div class="flex justify-between items-center mb-2">
-                                <div class="text-xs text-gray-500 font-semibold">Processing Speed</div>
-                                <div id="speed-metric" class="text-lg font-bold text-purple-600">0 img/s</div>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                                <div id="speed-progress" class="h-2 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white p-3 rounded-lg shadow">
-                            <div class="flex justify-between items-center mb-2">
-                                <div class="text-xs text-gray-500 font-semibold">Time Remaining</div>
-                                <div id="eta-metric" class="text-lg font-bold text-blue-600">--</div>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                                <div id="eta-progress" class="h-2 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white p-3 rounded-lg shadow">
-                            <div class="flex justify-between items-center mb-2">
-                                <div class="text-xs text-gray-500 font-semibold">Shapes Validated</div>
-                                <div id="validation-metric" class="text-lg font-bold text-green-600">0/0</div>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                                <div id="validation-progress" class="h-2 bg-gradient-to-r from-green-400 to-green-600 rounded-full" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white p-3 rounded-lg shadow">
-                            <div class="flex justify-between items-center mb-2">
-                                <div class="text-xs text-gray-500 font-semibold">Outliers Filtered</div>
-                                <div id="outlier-metric" class="text-lg font-bold text-amber-600">0</div>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                                <div id="outlier-progress" class="h-2 bg-gradient-to-r from-amber-400 to-amber-600 rounded-full" style="width: 0%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <!-- Results -->
+        <div id="visualization-container" class="hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Composite Visualizations</h2>
+            <div id="viz-grid" class="analysis-grid"></div>
         </div>
-        
-        <!-- Validation Summary -->
-        <div id="validation-summary" class="hidden bg-white p-6 rounded-xl shadow-lg mb-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Validation Summary</h2>
-            <div id="validation-content" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-        </div>
-        
-        <!-- Data Summary -->
-        <div id="data-summary" class="hidden bg-white p-6 rounded-xl shadow-lg mb-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Analysis Summary</h2>
-            <div id="summary-content" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-        </div>
-        
-        <!-- Visualization Results -->
-        <div id="visualization-container" class="hidden mb-6">
-            <div class="bg-white p-6 rounded-xl shadow-lg mb-4">
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">Averaged Shape Visualizations</h2>
-                <p class="text-sm text-gray-600 mb-4">Click on any figure to download as PNG</p>
-            </div>
-            <div id="canvas-grid" class="analysis-grid"></div>
-        </div>
-        
-        <!-- Statistics Table -->
-        <div id="statistics-container" class="hidden bg-white p-6 rounded-xl shadow-lg mb-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Statistical Summary</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gradient-to-r from-blue-50 to-indigo-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Frequency</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Color</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">N</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Outliers</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Mean Radius</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">SD Radius</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Mean Area</th>
-                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Validation</th>
-                        </tr>
-                    </thead>
-                    <tbody id="statistics-body" class="bg-white divide-y divide-gray-200"></tbody>
-                </table>
-            </div>
-        </div>
-        
-        <!-- Footer -->
-        <footer class="text-center text-sm text-gray-500 mt-8 pb-4">
-            <p class="font-semibold">UCI Hearing & Speech Lab - Sound Object Analyzer v5.0 Complete</p>
-            <p class="mt-1">Contour Detection • Overlap Reconstruction • MAD Outlier Filtering • Google Sheets Validation</p>
-        </footer>
     </div>
     
     <script>
         // ============================================
-        // GLOBAL CONSTANTS & CONFIGURATION
+        // CONFIGURATION - EXACT FROM DRAWING APP
         // ============================================
         
-        const FREQUENCIES = ['31Hz', '62.5Hz', '125Hz', '250Hz', '500Hz', '1000Hz', '2000Hz', '4000Hz', '8000Hz', '12000Hz', '16000Hz'];
-        const FREQUENCY_NUMBERS = [31, 62.5, 125, 250, 500, 1000, 2000, 4000, 8000, 12000, 16000];
-        const CPU_CORES = navigator.hardwareConcurrency || 4;
-        const MAX_PARALLEL_WORKERS = Math.max(2, Math.min(CPU_CORES, 6));
+        const CANVAS_SIZE = 1000;
+        const GRID_RANGE = 10; // -10 to +10 units
+        const CENTER_X = 500;
+        const CENTER_Y = 500;
+        const SCALE = 50; // pixels per unit (500px / 10 units = 50)
+        const HEAD_CIRCLE_RADIUS = 3; // units
         
-        // Canvas/Grid constants (from original drawing tool)
-        const CANVAS_SIZE = 1000;  // 1000x1000 pixels
-        const GRID_RANGE = 10;     // -10 to +10 units
-        const SCALE_FACTOR = CANVAS_SIZE / (2 * GRID_RANGE); // 50 pixels per unit
-        const CENTER_X = CANVAS_SIZE / 2;  // 500
-        const CENTER_Y = CANVAS_SIZE / 2;  // 500
-        const REFERENCE_CIRCLE_RADIUS = 3; // 3 units
+        // Conversion functions matching original drawing tool
+        const pixelsToUnits = (pixels) => pixels / SCALE;
+        const unitsToPixels = (units) => units * SCALE;
         
-        // Processing state
-        let processingCancelled = false;
-        let activeWorkers = new Set();
-        let googleSheetsData = null;
-        let sheetsValidationEnabled = false;
+        const canvasToUnit = (canvasX, canvasY) => ({
+            x: (canvasX - CENTER_X) / SCALE,
+            y: (CENTER_Y - canvasY) / SCALE  // Y inverted for proper coordinate system
+        });
         
-        const processingStats = {
-            startTime: 0,
-            processedCount: 0,
-            totalCount: 0,
-            speedHistory: [],
-            maxSpeed: 0,
-            validatedCount: 0,
-            outliersFiltered: 0
-        };
+        const unitToCanvas = (unitX, unitY) => ({
+            x: CENTER_X + unitX * SCALE,
+            y: CENTER_Y - unitY * SCALE  // Y inverted
+        });
         
         // ============================================
-        // GOOGLE SHEETS INTEGRATION (READ-ONLY)
+        // INITIALIZATION
         // ============================================
         
-        async function connectToGoogleSheets() {
-            const url = document.getElementById('sheets-url').value.trim();
-            const apiKey = document.getElementById('api-key').value.trim();
+        document.addEventListener('DOMContentLoaded', () => {
+            const uploadInput = document.getElementById('image-upload');
+            const analyzeBtn = document.getElementById('analyze-btn');
             
-            if (!url) {
-                showSheetsStatus('error', 'Please enter a Google Sheets URL or Apps Script URL');
-                return false;
+            uploadInput.addEventListener('change', handleFileUpload);
+            analyzeBtn.addEventListener('click', startAnalysis);
+        });
+        
+        function handleFileUpload(event) {
+            const files = Array.from(event.target.files);
+            if (files.length === 0) return;
+            
+            const statusDiv = document.getElementById('file-status');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            
+            const zipCount = files.filter(f => f.name.toLowerCase().endsWith('.zip')).length;
+            const pngCount = files.filter(f => f.name.toLowerCase().endsWith('.png')).length;
+            
+            statusDiv.innerHTML = `✅ ${files.length} file(s) uploaded (${zipCount} ZIP, ${pngCount} PNG)`;
+            
+            analyzeBtn.disabled = false;
+            analyzeBtn.classList.remove('disabled:opacity-50', 'disabled:cursor-not-allowed');
+        }
+        
+        async function startAnalysis() {
+            const uploadInput = document.getElementById('image-upload');
+            const files = Array.from(uploadInput.files);
+            
+            if (files.length === 0) {
+                alert('Please upload files first');
+                return;
             }
             
             try {
-                // Detect which method: Apps Script or Direct API
-                const isAppsScript = url.includes('script.google.com');
-                
-                if (isAppsScript) {
-                    // **METHOD 1: Apps Script (No API Key Needed)** ✅ FREE
-                    console.log('[Sheets] Using Apps Script web app (no API key needed)');
-                    showSheetsStatus('loading', 'Connecting via Apps Script...');
-                    
-                    const response = await fetch(`${url}?action=getAllData`);
-                    
-                    if (!response.ok) {
-                        throw new Error(`Apps Script request failed: ${response.status}`);
-                    }
-                    
-                    const data = await response.json();
-                    
-                    if (data.error) {
-                        throw new Error(data.error);
-                    }
-                    
-                    if (!data.success || !data.shapes || data.shapes.length === 0) {
-                        throw new Error('No data found in Apps Script response');
-                    }
-                    
-                    // Convert Apps Script format to our internal format
-                    googleSheetsData = data.shapes.map(shape => ({
-                        participantId: String(shape.participant).trim(),
-                        frequency: parseFloat(shape.frequency),
-                        color: String(shape.color).toLowerCase(),
-                        trial: parseInt(shape.trial),
-                        centroidX: parseFloat(shape.centroid.x),
-                        centroidY: parseFloat(shape.centroid.y),
-                        area: parseFloat(shape.area)
-                    }));
-                    
-                    sheetsValidationEnabled = true;
-                    showSheetsStatus('success', `✅ Connected via Apps Script! Loaded ${googleSheetsData.length} records (FREE - no API key)`);
-                    console.log('[Sheets] Loaded', googleSheetsData.length, 'records from Apps Script');
-                    return true;
-                    
-                } else {
-                    // **METHOD 2: Direct Google Sheets API** ✅ Also FREE (within generous limits)
-                    if (!apiKey) {
-                        showSheetsStatus('error', 'API key required for direct API access (or use Apps Script URL)');
-                        return false;
-                    }
-                    
-                    console.log('[Sheets] Using Google Sheets API (with API key)');
-                    showSheetsStatus('loading', 'Connecting via Google Sheets API...');
-                    
-                    // Extract spreadsheet ID
-                    const spreadsheetId = extractSpreadsheetId(url);
-                    if (!spreadsheetId) {
-                        throw new Error('Invalid Google Sheets URL');
-                    }
-                    
-                    // Fetch from "Data" tab
-                    const range = 'Data!A:I';
-                    const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
-                    
-                    const response = await fetch(apiUrl);
-                    if (!response.ok) {
-                        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-                    }
-                    
-                    const data = await response.json();
-                    
-                    if (!data.values || data.values.length === 0) {
-                        throw new Error('No data found in "Data" tab');
-                    }
-                    
-                    // Parse sheet data (existing function)
-                    googleSheetsData = parseGoogleSheetsData(data.values);
-                    sheetsValidationEnabled = true;
-                    
-                    showSheetsStatus('success', `✅ Connected via API! Loaded ${googleSheetsData.length} records (FREE - within quota)`);
-                    console.log('[Sheets] Loaded', googleSheetsData.length, 'records from API');
-                    return true;
-                }
-                
+                await analyzeData(files);
             } catch (error) {
-                showSheetsStatus('error', `Connection failed: ${error.message}`);
-                console.error('[Sheets] Error:', error);
-                return false;
+                console.error('Analysis error:', error);
+                alert(`Analysis failed: ${error.message}`);
             }
-        }
-        
-        function extractSpreadsheetId(url) {
-            const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-            return match ? match[1] : null;
-        }
-        
-        function parseGoogleSheetsData(values) {
-            // Expected columns: Participant ID | Frequency | Color | Trial | Centroid X | Centroid Y | Area | ... 
-            const headers = values[0].map(h => h.toLowerCase().trim());
-            const data = [];
-            
-            for (let i = 1; i < values.length; i++) {
-                const row = values[i];
-                if (row.length < 7) continue; // Skip incomplete rows
-                
-                const record = {
-                    participantId: row[headers.indexOf('participant id')] || row[headers.indexOf('participant')] || row[0],
-                    frequency: parseFloat(row[headers.indexOf('frequency')]) || parseFloat(row[1]),
-                    color: (row[headers.indexOf('color')] || row[2]).toLowerCase(),
-                    trial: parseInt(row[headers.indexOf('trial')]) || parseInt(row[3]),
-                    centroidX: parseFloat(row[headers.indexOf('centroid x')] || row[headers.indexOf('centroid_x')] || row[4]),
-                    centroidY: parseFloat(row[headers.indexOf('centroid y')] || row[headers.indexOf('centroid_y')] || row[5]),
-                    area: parseFloat(row[headers.indexOf('area')] || row[6])
-                };
-                
-                // Validate required fields
-                if (record.participantId && !isNaN(record.frequency) && record.color && 
-                    !isNaN(record.centroidX) && !isNaN(record.centroidY) && !isNaN(record.area)) {
-                    data.push(record);
-                }
-            }
-            
-            return data;
-        }
-        
-        function showSheetsStatus(type, message) {
-            const container = document.getElementById('sheets-status');
-            const content = document.getElementById('sheets-status-content');
-            
-            container.classList.remove('hidden');
-            
-            let bgColor, borderColor, textColor, icon;
-            
-            if (type === 'success') {
-                bgColor = 'bg-green-50';
-                borderColor = 'border-green-300';
-                textColor = 'text-green-800';
-                icon = '✓';
-            } else if (type === 'error') {
-                bgColor = 'bg-red-50';
-                borderColor = 'border-red-300';
-                textColor = 'text-red-800';
-                icon = '✗';
-            } else if (type === 'loading') {
-                bgColor = 'bg-blue-50';
-                borderColor = 'border-blue-300';
-                textColor = 'text-blue-800';
-                icon = '⏳';
-            } else {
-                bgColor = 'bg-yellow-50';
-                borderColor = 'border-yellow-300';
-                textColor = 'text-yellow-800';
-                icon = '⚠';
-            }
-            
-            content.className = `p-3 rounded-lg border-2 ${bgColor} ${borderColor}`;
-            content.innerHTML = `<p class="text-sm font-semibold ${textColor}">${icon} ${message}</p>`;
-        }
-        
-        function validateShapeAgainstSheets(participantId, frequency, color, trial, centroid, area) {
-            if (!sheetsValidationEnabled || !googleSheetsData) {
-                return { valid: true, confidence: 0, message: 'Validation disabled' };
-            }
-            
-            // Find matching record in sheets
-            const matchingRecords = googleSheetsData.filter(record => 
-                record.participantId === participantId &&
-                Math.abs(record.frequency - frequency) < 0.1 &&
-                record.color === color.toLowerCase() &&
-                record.trial === trial
-            );
-            
-            if (matchingRecords.length === 0) {
-                return { valid: true, confidence: 0, message: 'No sheet data for comparison' };
-            }
-            
-            const sheetRecord = matchingRecords[0];
-            
-            // Calculate deviations
-            const centroidErrorX = Math.abs(centroid.x - sheetRecord.centroidX);
-            const centroidErrorY = Math.abs(centroid.y - sheetRecord.centroidY);
-            const centroidError = Math.sqrt(centroidErrorX * centroidErrorX + centroidErrorY * centroidErrorY);
-            const areaError = Math.abs((area - sheetRecord.area) / sheetRecord.area) * 100; // Percentage
-            
-            // Validation thresholds
-            const CENTROID_THRESHOLD = 0.5; // 0.5 units
-            const AREA_THRESHOLD = 15; // 15% difference
-            
-            let valid = true;
-            let confidence = 100;
-            let warnings = [];
-            
-            if (centroidError > CENTROID_THRESHOLD) {
-                valid = false;
-                confidence -= 30;
-                warnings.push(`Centroid mismatch: ${centroidError.toFixed(2)} units`);
-            }
-            
-            if (areaError > AREA_THRESHOLD) {
-                valid = false;
-                confidence -= 30;
-                warnings.push(`Area mismatch: ${areaError.toFixed(1)}%`);
-            }
-            
-            // If minor deviations, still pass but with lower confidence
-            if (centroidError > CENTROID_THRESHOLD / 2 && centroidError <= CENTROID_THRESHOLD) {
-                confidence -= 10;
-            }
-            if (areaError > AREA_THRESHOLD / 2 && areaError <= AREA_THRESHOLD) {
-                confidence -= 10;
-            }
-            
-            processingStats.validatedCount++;
-            updateValidationMetric();
-            
-            return {
-                valid,
-                confidence: Math.max(0, confidence),
-                centroidError,
-                areaError,
-                warnings: warnings.length > 0 ? warnings.join('; ') : 'Validation passed',
-                sheetData: sheetRecord
-            };
         }
         
         // ============================================
-        // TRIAL NUMBER RE-MAPPING
+        // FIXED: PROPER SHAPE EXTRACTION
         // ============================================
         
-        function normalizeTrialNumbers(participantFiles) {
-            // Group files by participant and frequency (NOT color, since each file has both colors)
-            const grouped = {};
-            
-            participantFiles.forEach(file => {
-                const key = `${file.participant}_${file.frequency}`;
-                if (!grouped[key]) {
-                    grouped[key] = [];
-                }
-                grouped[key].push(file);
-            });
-            
-            // For each group, re-map trial numbers based on ZIP order
-            Object.keys(grouped).forEach(key => {
-                const files = grouped[key];
-                
-                // Check if files have ZIP order numbers
-                const hasZipOrder = files.some(f => f.zipOrderNumber !== null && f.zipOrderNumber !== undefined);
-                
-                if (hasZipOrder) {
-                    // Sort by ZIP order number (lowest first)
-                    files.sort((a, b) => {
-                        const orderA = a.zipOrderNumber !== null ? a.zipOrderNumber : 999;
-                        const orderB = b.zipOrderNumber !== null ? b.zipOrderNumber : 999;
-                        return orderA - orderB;
-                    });
-                    
-                    console.log(`[Trial] ${key}: Sorting by ZIP order numbers`);
-                } else {
-                    // Fallback: Sort alphabetically by filename
-                    files.sort((a, b) => a.filename.localeCompare(b.filename));
-                    console.log(`[Trial] ${key}: No ZIP order found, sorting alphabetically`);
-                }
-                
-                // Re-map: lowest → 1, second-lowest → 2, highest → 3
-                if (files.length >= 1) files[0].normalizedTrial = 1;
-                if (files.length >= 2) files[1].normalizedTrial = 2;
-                if (files.length >= 3) files[2].normalizedTrial = 3;
-                
-                // Handle cases with more than 3 files (use only first 3)
-                for (let i = 3; i < files.length; i++) {
-                    files[i].normalizedTrial = null; // Mark as extra/invalid
-                    const zipInfo = files[i].sourceZip ? ` from ${files[i].sourceZip}` : '';
-                    console.warn(`[Trial] ${key}: File ${files[i].filename}${zipInfo} is position #${i+1} (>3), will be ignored`);
-                }
-                
-                // Log the mapping for transparency
-                if (files.length > 0 && files.length <= 3) {
-                    console.log(`[Trial] ${key}: Assigned trials:`);
-                    files.forEach((f, idx) => {
-                        const zipInfo = f.sourceZip ? ` (from ${f.sourceZip}, ZIP order=${f.zipOrderNumber})` : ' (direct PNG)';
-                        console.log(`[Trial]   → Trial ${idx + 1}: ${f.filename}${zipInfo}`);
-                    });
-                }
-            });
-            
-            return participantFiles;
-        }
-        
-        // ============================================
-        // ADVANCED EDGE DETECTION & CONTOUR TRACING
-        // ============================================
-        
-        function detectEdges(imageData, targetColor) {
+        async function extractShapesFromImage(imageData, filename) {
             const width = imageData.width;
             const height = imageData.height;
             const data = imageData.data;
-            const edges = [];
             
-            // Convert target color string to RGB
-            const [tr, tg, tb] = targetColor.split(',').map(Number);
+            // Collect colored pixels - FIXED color detection
+            const redPixels = [];
+            const bluePixels = [];
             
-            // Scan for edge pixels (pixels of target color adjacent to non-target pixels)
-            for (let y = 1; y < height - 1; y++) {
-                for (let x = 1; x < width - 1; x++) {
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
                     const idx = (y * width + x) * 4;
                     const r = data[idx];
                     const g = data[idx + 1];
                     const b = data[idx + 2];
                     const a = data[idx + 3];
                     
-                    // Skip if not target color
-                    if (Math.abs(r - tr) > 5 || Math.abs(g - tg) > 5 || Math.abs(b - tb) > 5 || a < 128) {
-                        continue;
+                    // Skip transparent pixels
+                    if (a < 128) continue;
+                    
+                    // Skip white pixels
+                    if (r > 240 && g > 240 && b > 240) continue;
+                    
+                    // Skip gray pixels (grid lines and reference circle)
+                    if (Math.abs(r - g) < 30 && Math.abs(g - b) < 30) {
+                        // Check if it's actually a black reference circle (darker gray/black)
+                        if (r < 100 && g < 100 && b < 100) continue;
+                        // Check if it's a grid line (lighter gray)
+                        if (r > 140 && r < 200) continue;
                     }
                     
-                    // Check if this is an edge pixel (has non-target neighbor)
-                    let isEdge = false;
-                    for (let dy = -1; dy <= 1; dy++) {
-                        for (let dx = -1; dx <= 1; dx++) {
-                            if (dx === 0 && dy === 0) continue;
-                            
-                            const nx = x + dx;
-                            const ny = y + dy;
-                            const nidx = (ny * width + nx) * 4;
-                            const nr = data[nidx];
-                            const ng = data[nidx + 1];
-                            const nb = data[nidx + 2];
-                            const na = data[nidx + 3];
-                            
-                            if (Math.abs(nr - tr) > 5 || Math.abs(ng - tg) > 5 || Math.abs(nb - tb) > 5 || na < 128) {
-                                isEdge = true;
-                                break;
-                            }
-                        }
-                        if (isEdge) break;
+                    // FIXED: Better color detection
+                    // Blue pixels: blue channel dominant
+                    if (b > r + 20 && b > g + 20) {
+                        bluePixels.push({ x, y });
                     }
-                    
-                    if (isEdge) {
-                        edges.push({ x, y });
+                    // Red pixels: red channel dominant  
+                    else if (r > b + 20 && r > g + 20) {
+                        redPixels.push({ x, y });
                     }
                 }
             }
             
-            return edges;
-        }
-        
-        function traceContour(edges) {
-            if (edges.length === 0) return [];
+            console.log(`${filename}: Found ${redPixels.length} red pixels, ${bluePixels.length} blue pixels`);
             
-            // Sort edges by angle from center
-            const sortedEdges = edges.map(edge => {
-                const dx = edge.x - CENTER_X;
-                const dy = edge.y - CENTER_Y;
-                const angle = Math.atan2(dy, dx);
-                const radius = Math.sqrt(dx * dx + dy * dy);
-                return { ...edge, angle, radius };
-            });
+            const shapes = [];
             
-            sortedEdges.sort((a, b) => a.angle - b.angle);
-            
-            return sortedEdges;
-        }
-        
-        // ============================================
-        // ROBUST RADIAL SHAPE EXTRACTION (v2.1.1 PROVEN METHOD)
-        // ============================================
-        
-        function extractShapeRadial(imageData, targetColorKey, participantName) {
-            try {
-                const centerX = 500;
-                const centerY = 500;
-                const numAngles = 360;
-                const radialData = [];
-                
-                // Parse target color
-                const [targetR, targetG, targetB] = targetColorKey.split(',').map(Number);
-                
-                // For each angle, scan outward from center to find the shape boundary
-                for (let angle = 0; angle < numAngles; angle++) {
-                    const rad = (angle * Math.PI) / 180;
-                    const cos = Math.cos(rad);
-                    const sin = Math.sin(rad);
-                    
-                    let maxDist = 0;
-                    
-                    // Scan from center outward
-                    for (let r = 0; r < 500; r += 1) { // Step by 1 pixel for accuracy
-                        const x = Math.round(centerX + r * cos);
-                        const y = Math.round(centerY + r * sin);
-                        
-                        // Boundary check
-                        if (x < 0 || x >= imageData.width || y < 0 || y >= imageData.height) {
-                            break;
-                        }
-                        
-                        const pixelIndex = (y * imageData.width + x) * 4;
-                        const r_val = imageData.data[pixelIndex];
-                        const g_val = imageData.data[pixelIndex + 1];
-                        const b_val = imageData.data[pixelIndex + 2];
-                        const a_val = imageData.data[pixelIndex + 3];
-                        
-                        // Skip transparent pixels
-                        if (a_val < 128) continue;
-                        
-                        // Check if pixel matches target color (with small tolerance)
-                        if (Math.abs(r_val - targetR) <= 3 && 
-                            Math.abs(g_val - targetG) <= 3 && 
-                            Math.abs(b_val - targetB) <= 3) {
-                            maxDist = r;
-                        }
-                    }
-                    
-                    radialData.push(maxDist);
-                }
-                
-                return radialData;
-                
-            } catch (err) {
-                console.error(`[Shape] Error in radial extraction for ${participantName}:`, err);
-                // Return zero array as fallback
-                return Array(360).fill(0);
-            }
-        }
-        
-        function calculateCentroidFromRadial(radialData) {
-            // Calculate centroid from radial data
-            // Convert radial coordinates to cartesian and average
-            let sumX = 0;
-            let sumY = 0;
-            let count = 0;
-            
-            const centerX = 500;
-            const centerY = 500;
-            
-            for (let angle = 0; angle < radialData.length; angle++) {
-                const radius = radialData[angle];
-                if (radius > 0) {
-                    const rad = (angle * Math.PI) / 180;
-                    const x = centerX + radius * Math.cos(rad);
-                    const y = centerY + radius * Math.sin(rad);
-                    sumX += x;
-                    sumY += y;
-                    count++;
-                }
-            }
-            
-            if (count === 0) return { x: centerX, y: centerY };
-            
-            return {
-                x: sumX / count,
-                y: sumY / count
-            };
-        }
-        
-        function calculateAreaFromRadial(radialData) {
-            // Calculate area using trapezoidal rule in polar coordinates
-            // Area = 0.5 * sum(r_i^2 * dθ) where dθ = 2π/n
-            let area = 0;
-            const dTheta = (2 * Math.PI) / radialData.length;
-            
-            for (let i = 0; i < radialData.length; i++) {
-                const r = radialData[i];
-                area += 0.5 * r * r * dTheta;
-            }
-            
-            return area;
-        }
-        
-        // ============================================
-        // COMPLEX CONTOUR EXTRACTION (OPTIONAL FALLBACK)
-        // ============================================
-        
-        function extractCompleteShapeContour(imageData, targetColorString) {
-            // Detect edges
-            const edges = detectEdges(imageData, targetColorString);
-            
-            if (edges.length === 0) {
-                console.warn('[Contour] No edges found for color:', targetColorString);
-                return [];
-            }
-            
-            // Trace contour
-            const contour = traceContour(edges);
-            
-            // Fill gaps using interpolation
-            const completeContour = fillContourGaps(contour);
-            
-            return completeContour;
-        }
-        
-        function fillContourGaps(contour) {
-            if (contour.length < 2) return contour;
-            
-            const filled = [];
-            const angleThreshold = 0.05; // ~3 degrees
-            
-            for (let i = 0; i < contour.length; i++) {
-                const current = contour[i];
-                const next = contour[(i + 1) % contour.length];
-                
-                filled.push(current);
-                
-                // Check if there's a gap
-                const angleDiff = Math.abs(next.angle - current.angle);
-                
-                if (angleDiff > angleThreshold) {
-                    // Interpolate between current and next
-                    const steps = Math.ceil(angleDiff / angleThreshold);
-                    
-                    for (let step = 1; step < steps; step++) {
-                        const t = step / steps;
-                        const interpolatedAngle = current.angle + (next.angle - current.angle) * t;
-                        const interpolatedRadius = current.radius + (next.radius - current.radius) * t;
-                        
-                        const x = CENTER_X + interpolatedRadius * Math.cos(interpolatedAngle);
-                        const y = CENTER_Y + interpolatedRadius * Math.sin(interpolatedAngle);
-                        
-                        filled.push({
-                            x: Math.round(x),
-                            y: Math.round(y),
-                            angle: interpolatedAngle,
-                            radius: interpolatedRadius,
-                            interpolated: true
-                        });
-                    }
-                }
-            }
-            
-            return filled;
-        }
-        
-        // ============================================
-        // MAD (MEDIAN ABSOLUTE DEVIATION) OUTLIER DETECTION
-        // ============================================
-        
-        function calculateMedian(values) {
-            if (values.length === 0) return 0;
-            const sorted = [...values].sort((a, b) => a - b);
-            const mid = Math.floor(sorted.length / 2);
-            return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
-        }
-        
-        function calculateMAD(values) {
-            const median = calculateMedian(values);
-            const absoluteDeviations = values.map(v => Math.abs(v - median));
-            return calculateMedian(absoluteDeviations);
-        }
-        
-        function filterOutliersMAD(values, threshold = 3.5) {
-            if (values.length < 3) return { valid: values, outliers: [] };
-            
-            const median = calculateMedian(values);
-            const mad = calculateMAD(values);
-            
-            const valid = [];
-            const outliers = [];
-            
-            values.forEach((value, index) => {
-                const modifiedZScore = mad === 0 ? 0 : (0.6745 * (value - median)) / mad;
-                
-                if (Math.abs(modifiedZScore) < threshold) {
-                    valid.push({ value, index });
-                } else {
-                    outliers.push({ value, index, zScore: modifiedZScore });
-                    processingStats.outliersFiltered++;
-                }
-            });
-            
-            updateOutlierMetric();
-            
-            return { valid, outliers };
-        }
-        
-        function filterRadialOutliers(participantShapes) {
-            const numAngles = 360;
-            const filteredShapes = participantShapes.map(shape => ({ ...shape, radialData: [...shape.radialData] }));
-            
-            // For each angle, detect outliers across all participants
-            for (let angle = 0; angle < numAngles; angle++) {
-                const radiiAtAngle = participantShapes.map((shape, idx) => ({
-                    value: shape.radialData[angle],
-                    shapeIndex: idx
-                }));
-                
-                const values = radiiAtAngle.map(r => r.value);
-                const { valid, outliers } = filterOutliersMAD(values);
-                
-                // For outliers, replace with median value
-                if (outliers.length > 0) {
-                    const median = calculateMedian(valid.map(v => v.value));
-                    
-                    outliers.forEach(outlier => {
-                        const shapeIdx = radiiAtAngle[outlier.index].shapeIndex;
-                        filteredShapes[shapeIdx].radialData[angle] = median;
-                        
-                        if (!filteredShapes[shapeIdx].outlierCount) {
-                            filteredShapes[shapeIdx].outlierCount = 0;
-                        }
-                        filteredShapes[shapeIdx].outlierCount++;
+            // Process red shape
+            if (redPixels.length > 100) { // Minimum threshold
+                const redContour = traceContour(redPixels);
+                if (redContour.length > 0) {
+                    const redCentroid = calculateCentroid(redContour);
+                    shapes.push({
+                        phase: 'red',
+                        contour: redContour,
+                        centroid: redCentroid,
+                        area: calculateContourArea(redContour)
                     });
                 }
             }
             
-            // Remove shapes with too many outliers (>25% of angles)
-            const validShapes = filteredShapes.filter(shape => {
-                const outlierPercentage = ((shape.outlierCount || 0) / numAngles) * 100;
-                return outlierPercentage < 25;
-            });
-            
-            console.log(`[MAD Filter] Kept ${validShapes.length}/${participantShapes.length} shapes`);
-            
-            return validShapes;
-        }
-        
-        // ============================================
-        // SHAPE ANALYSIS WITH CONTOUR & VALIDATION
-        // ============================================
-        
-        function pixelsToUnits(pixels) {
-            return pixels / SCALE_FACTOR;
-        }
-        
-        function unitsToPixels(units) {
-            return units * SCALE_FACTOR;
-        }
-        
-        function calculateCentroid(contour) {
-            if (contour.length === 0) return { x: 0, y: 0 };
-            
-            let sumX = 0;
-            let sumY = 0;
-            
-            contour.forEach(point => {
-                sumX += point.x;
-                sumY += point.y;
-            });
-            
-            const centroidX = sumX / contour.length;
-            const centroidY = sumY / contour.length;
-            
-            // Convert to units relative to center
-            return {
-                x: pixelsToUnits(centroidX - CENTER_X),
-                y: pixelsToUnits(CENTER_Y - centroidY) // Flip Y axis
-            };
-        }
-        
-        function calculateAreaFromContour(contour) {
-            if (contour.length < 3) return 0;
-            
-            // Use shoelace formula
-            let area = 0;
-            
-            for (let i = 0; i < contour.length; i++) {
-                const current = contour[i];
-                const next = contour[(i + 1) % contour.length];
-                area += current.x * next.y - next.x * current.y;
-            }
-            
-            area = Math.abs(area) / 2;
-            
-            // Convert from pixels² to units²
-            const areaInUnits = area / (SCALE_FACTOR * SCALE_FACTOR);
-            
-            return areaInUnits;
-        }
-        
-        function contourToRadialData(contour) {
-            const numAngles = 360;
-            const radialData = new Array(numAngles).fill(0);
-            
-            // For each angle, find the maximum radius
-            contour.forEach(point => {
-                const dx = point.x - CENTER_X;
-                const dy = point.y - CENTER_Y;
-                const angle = Math.atan2(dy, dx);
-                const angleIndex = Math.round(((angle + Math.PI) / (2 * Math.PI)) * numAngles) % numAngles;
-                const radius = pixelsToUnits(Math.sqrt(dx * dx + dy * dy));
-                
-                radialData[angleIndex] = Math.max(radialData[angleIndex], radius);
-            });
-            
-            // Fill zero values with interpolation
-            for (let i = 0; i < numAngles; i++) {
-                if (radialData[i] === 0) {
-                    // Find nearest non-zero values
-                    let before = i - 1;
-                    let after = i + 1;
-                    
-                    while (before >= 0 && radialData[before] === 0) before--;
-                    while (after < numAngles && radialData[after] === 0) after++;
-                    
-                    if (before >= 0 && after < numAngles) {
-                        radialData[i] = (radialData[before] + radialData[after]) / 2;
-                    } else if (before >= 0) {
-                        radialData[i] = radialData[before];
-                    } else if (after < numAngles) {
-                        radialData[i] = radialData[after];
-                    }
+            // Process blue shape
+            if (bluePixels.length > 100) { // Minimum threshold
+                const blueContour = traceContour(bluePixels);
+                if (blueContour.length > 0) {
+                    const blueCentroid = calculateCentroid(blueContour);
+                    shapes.push({
+                        phase: 'blue',
+                        contour: blueContour,
+                        centroid: blueCentroid,
+                        area: calculateContourArea(blueContour)
+                    });
                 }
             }
             
-            return radialData;
+            return shapes;
         }
         
-        // ============================================
-        // METRICS UPDATE FUNCTIONS
-        // ============================================
-        
-        function updateProgress(percentage, message) {
-            const progressBar = document.getElementById('progress-bar');
-            const progressText = document.getElementById('progress-text');
-            const progressPercentage = document.getElementById('progress-percentage');
+        function traceContour(pixels) {
+            if (pixels.length === 0) return [];
             
-            progressBar.style.width = `${percentage}%`;
-            progressText.textContent = message;
-            progressPercentage.textContent = `${Math.round(percentage)}%`;
+            // Find boundary pixels
+            const pixelSet = new Set(pixels.map(p => `${p.x},${p.y}`));
+            const boundaryPixels = [];
             
-            if (percentage > 0 && percentage < 100) {
-                document.getElementById('progress-container').classList.remove('hidden');
-            }
-        }
-        
-        function updateSpeedMetric() {
-            const elapsed = (Date.now() - processingStats.startTime) / 1000;
-            const speed = elapsed > 0 ? (processingStats.processedCount / elapsed) : 0;
-            
-            processingStats.speedHistory.push(speed);
-            if (processingStats.speedHistory.length > 10) {
-                processingStats.speedHistory.shift();
-            }
-            
-            const avgSpeed = processingStats.speedHistory.reduce((a, b) => a + b, 0) / processingStats.speedHistory.length;
-            processingStats.maxSpeed = Math.max(processingStats.maxSpeed, avgSpeed);
-            
-            document.getElementById('speed-metric').textContent = `${avgSpeed.toFixed(1)} img/s`;
-            
-            const speedProgress = processingStats.maxSpeed > 0 ? (avgSpeed / processingStats.maxSpeed) * 100 : 0;
-            document.getElementById('speed-progress').style.width = `${speedProgress}%`;
-        }
-        
-        function updateETAMetric() {
-            const elapsed = (Date.now() - processingStats.startTime) / 1000;
-            const remaining = processingStats.totalCount - processingStats.processedCount;
-            
-            if (elapsed > 0 && processingStats.processedCount > 0) {
-                const speed = processingStats.processedCount / elapsed;
-                const eta = speed > 0 ? remaining / speed : 0;
+            pixels.forEach(pixel => {
+                // Check if this is a boundary pixel
+                let isBoundary = false;
                 
-                if (eta < 60) {
-                    document.getElementById('eta-metric').textContent = `${Math.round(eta)}s`;
-                } else {
-                    const minutes = Math.floor(eta / 60);
-                    const seconds = Math.round(eta % 60);
-                    document.getElementById('eta-metric').textContent = `${minutes}m ${seconds}s`;
-                }
-                
-                const totalEstimated = processingStats.totalCount / speed;
-                const etaProgress = totalEstimated > 0 ? (elapsed / totalEstimated) * 100 : 0;
-                document.getElementById('eta-progress').style.width = `${Math.min(etaProgress, 100)}%`;
-            } else {
-                document.getElementById('eta-metric').textContent = '--';
-                document.getElementById('eta-progress').style.width = '0%';
-            }
-        }
-        
-        function updateValidationMetric() {
-            const validated = processingStats.validatedCount;
-            const total = processingStats.totalCount;
-            
-            document.getElementById('validation-metric').textContent = `${validated}/${total}`;
-            
-            const progress = total > 0 ? (validated / total) * 100 : 0;
-            document.getElementById('validation-progress').style.width = `${progress}%`;
-        }
-        
-        function updateOutlierMetric() {
-            const filtered = processingStats.outliersFiltered;
-            
-            document.getElementById('outlier-metric').textContent = filtered;
-            
-            // Progress bar shows relative filtering rate
-            const maxOutliers = Math.max(processingStats.totalCount * 0.1, 10); // Assume max 10% outliers
-            const progress = Math.min((filtered / maxOutliers) * 100, 100);
-            document.getElementById('outlier-progress').style.width = `${progress}%`;
-        }
-        
-        function updateAllMetrics() {
-            updateSpeedMetric();
-            updateETAMetric();
-            updateValidationMetric();
-            updateOutlierMetric();
-        }
-        
-        // ============================================
-        // UTILITY FUNCTIONS
-        // ============================================
-        
-        function parseFilename(filename) {
-            try {
-                const cleanFilename = filename.replace(/[\uFEFF\u200B-\u200D\uFFFE]/g, '').trim();
-                const parts = cleanFilename.split('_').map(p => p.trim());
-                
-                if (parts.length < 2) {
-                    console.warn(`Invalid filename format: ${filename}`);
-                    return null;
-                }
-                
-                // Extract frequency
-                let freqPart = null;
-                let frequencyNum = null;
-                
-                freqPart = parts.find(p => /^\d+(?:\.\d+)?hz$/i.test(p));
-                
-                if (freqPart) {
-                    const match = freqPart.match(/^(\d+(?:\.\d+)?)hz$/i);
-                    if (match) {
-                        frequencyNum = parseFloat(match[1]);
-                    }
-                }
-                
-                if (!frequencyNum || !freqPart) {
-                    for (const part of parts) {
-                        const match = part.match(/(\d+(?:\.\d+)?)hz/i);
-                        if (match) {
-                            frequencyNum = parseFloat(match[1]);
-                            freqPart = part;
+                // Check 8 neighbors
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        if (dx === 0 && dy === 0) continue;
+                        
+                        const neighbor = `${pixel.x + dx},${pixel.y + dy}`;
+                        if (!pixelSet.has(neighbor)) {
+                            isBoundary = true;
                             break;
                         }
                     }
+                    if (isBoundary) break;
                 }
                 
-                if (!frequencyNum || !freqPart) {
-                    console.warn(`Frequency not found in: ${filename}`);
-                    return null;
+                if (isBoundary) {
+                    boundaryPixels.push(pixel);
                 }
-                
-                const frequency = frequencyNum.toString() + 'Hz';
-                
-                const validFrequencies = ['31Hz', '62.5Hz', '125Hz', '250Hz', '500Hz', '1000Hz', '2000Hz', '4000Hz', '8000Hz', '12000Hz', '16000Hz'];
-                if (!validFrequencies.includes(frequency)) {
-                    console.warn(`Unknown frequency ${frequency} in: ${filename}`);
-                    return null;
-                }
-                
-                // Get participant name
-                const freqIndex = parts.indexOf(freqPart);
-                const participant = parts.slice(0, freqIndex).join(' ').trim() || 'Unknown';
-                
-                // Extract trial number (if present)
-                let trialNumber = 1; // Default
-                const trialMatch = cleanFilename.match(/trial[\s_-]?(\d+)/i) || cleanFilename.match(/_(\d+)\.png$/i);
-                if (trialMatch) {
-                    trialNumber = parseInt(trialMatch[1]);
-                }
-                
-                return { participant, frequency, frequencyNumber: frequencyNum, trialNumber };
-            } catch (err) {
-                console.error(`Error parsing filename ${filename}:`, err);
-                return null;
-            }
-        }
-        
-        function showError(message) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'fixed top-4 right-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-lg z-50 max-w-md';
-            errorDiv.innerHTML = `
-                <div class="flex items-start">
-                    <svg class="w-6 h-6 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-                    </svg>
-                    <div>
-                        <p class="font-bold">Error</p>
-                        <p class="text-sm">${message}</p>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(errorDiv);
-            setTimeout(() => errorDiv.remove(), 5000);
-        }
-        
-        // ============================================
-        // WEB WORKER FOR IMAGE PROCESSING
-        // ============================================
-        
-        const workerCode = `
-self.onmessage = function(e) {
-    try {
-        const data = e.data;
-        
-        // Validate input
-        if (!data) {
-            self.postMessage({
-                success: false,
-                filename: 'unknown',
-                error: 'No data received'
             });
-            return;
-        }
-        
-        const { imageData, filename } = data;
-        
-        if (!imageData || !imageData.data || !imageData.width || !imageData.height) {
-            self.postMessage({
-                success: false,
-                filename: filename || 'unknown',
-                error: 'Invalid image data structure'
-            });
-            return;
-        }
-        
-        const width = imageData.width;
-        const height = imageData.height;
-        const pixelData = imageData.data;
-        const pixelCount = width * height;
-        
-        // PROVEN v2.1.1 APPROACH: Collect ALL colors, don't filter!
-        const colors = new Map();
-        
-        for (let i = 0; i < pixelData.length; i += 4) {
-            const r = pixelData[i];
-            const g = pixelData[i + 1];
-            const b = pixelData[i + 2];
-            const a = pixelData[i + 3];
             
-            // Skip transparent or white pixels only
-            if (a < 10 || (r > 250 && g > 250 && b > 250)) {
-                continue;
-            }
+            if (boundaryPixels.length === 0) return [];
             
-            // Store ALL colors found (key format: "r,g,b")
-            const colorKey = r + ',' + g + ',' + b;
-            colors.set(colorKey, (colors.get(colorKey) || 0) + 1);
-        }
-        
-        // Convert to array with percentages
-        const colorData = Array.from(colors.entries()).map(([color, count]) => {
-            const [r, g, b] = color.split(',').map(Number);
-            return {
-                color: 'rgb(' + r + ',' + g + ',' + b + ')',
-                colorKey: color,  // Keep the "r,g,b" format for easy matching
-                count: count,
-                percentage: (count / pixelCount) * 100
-            };
-        });
-        
-        // Send ALL colors found - main thread will search for red/blue
-        self.postMessage({
-            success: true,
-            filename: filename,
-            colors: colorData,
-            totalPixels: pixelCount
-        });
-        
-    } catch (error) {
-        // Send error response
-        self.postMessage({
-            success: false,
-            filename: e.data && e.data.filename ? e.data.filename : 'unknown',
-            error: error.message || 'Unknown worker error'
-        });
-    }
-};
-`;
-        
-        const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
-        const workerBlobUrl = URL.createObjectURL(workerBlob);
-        
-        // ============================================
-        // FILE LOADING
-        // ============================================
-        
-        async function loadImagesFromZip(file) {
-            try {
-                console.log(`[ZIP] Extracting from: ${file.name}`);
+            // Order boundary points to form a contour
+            const ordered = [];
+            const remaining = new Set(boundaryPixels);
+            
+            // Start with leftmost point
+            let current = boundaryPixels.reduce((min, p) => p.x < min.x ? p : min);
+            ordered.push(current);
+            remaining.delete(current);
+            
+            // Trace contour by finding nearest neighbors
+            while (remaining.size > 0) {
+                let nearest = null;
+                let minDist = Infinity;
                 
-                // Extract ordering number from ZIP name (e.g., "Michael D_07_Drawings.zip" → 7)
-                const zipOrderMatch = file.name.match(/_(\d+)_/);
-                const zipOrderNumber = zipOrderMatch ? parseInt(zipOrderMatch[1]) : null;
+                remaining.forEach(point => {
+                    const dist = Math.sqrt(
+                        Math.pow(point.x - current.x, 2) + 
+                        Math.pow(point.y - current.y, 2)
+                    );
+                    
+                    if (dist < minDist && dist < 20) { // Max gap of 20 pixels
+                        minDist = dist;
+                        nearest = point;
+                    }
+                });
                 
-                // Extract participant name from ZIP name (before first underscore+number pattern)
-                const nameWithoutExt = file.name.replace(/\.zip$/i, '');
-                const zipParticipantMatch = nameWithoutExt.match(/^(.+?)_\d+/);
-                const zipParticipant = zipParticipantMatch ? zipParticipantMatch[1].trim() : null;
-                
-                if (zipOrderNumber !== null && zipParticipant !== null) {
-                    console.log(`[ZIP]   ✓ Participant="${zipParticipant}", Order=${zipOrderNumber}`);
+                if (nearest) {
+                    ordered.push(nearest);
+                    remaining.delete(nearest);
+                    current = nearest;
                 } else {
-                    console.warn(`[ZIP]   ⚠ Could not extract order/participant from: ${file.name}`);
-                }
-                
-                const zip = await JSZip.loadAsync(file);
-                const images = [];
-                let pngCount = 0;
-                let nestedZipCount = 0;
-            
-            for (const [path, zipEntry] of Object.entries(zip.files)) {
-                if (zipEntry.dir) continue;
-                
-                if (path.toLowerCase().endsWith('.zip')) {
-                    try {
-                        nestedZipCount++;
-                        const nestedZipBlob = await zipEntry.async('blob');
-                        const nestedZipFile = new File([nestedZipBlob], path.split('/').pop());
-                        
-                        console.log(`[ZIP]   → Processing nested ZIP: ${path.split('/').pop()}`);
-                        const nestedImages = await loadImagesFromZip(nestedZipFile);
-                        console.log(`[ZIP]   → Got ${nestedImages.length} images from nested ZIP`);
-                        
-                        images.push(...nestedImages);
-                        console.log(`[ZIP]   → Total images so far: ${images.length}`);
-                    } catch (err) {
-                        console.error(`[ZIP] ✖ Error processing nested ZIP ${path}:`, err);
-                    }
-                    continue;
-                }
-                
-                if (path.toLowerCase().endsWith('.png')) {
-                    try {
-                        pngCount++;
-                        const blobData = await zipEntry.async('blob');
-                        const pngBlob = new Blob([blobData], { type: 'image/png' });
-                        const filename = path.split('/').pop();
-                        
-                        images.push({
-                            name: filename,
-                            blob: pngBlob,
-                            fullPath: `${file.name}/${path}`,
-                            sourceZip: file.name,
-                            zipOrderNumber: zipOrderNumber,
-                            zipParticipant: zipParticipant
-                        });
-                    } catch (err) {
-                        console.error(`[ZIP] ✖ Error extracting PNG ${path}:`, err);
-                    }
+                    break; // Gap too large
                 }
             }
             
-            // Log summary for this ZIP
-            console.log(`[ZIP] === Summary for ${file.name} ===`);
-            if (pngCount > 0) {
-                console.log(`[ZIP]   → Direct PNGs: ${pngCount}`);
-            }
-            if (nestedZipCount > 0) {
-                console.log(`[ZIP]   → Nested ZIPs processed: ${nestedZipCount}`);
-            }
-            console.log(`[ZIP]   → Returning ${images.length} total images from this ZIP`);
-            console.log(`[ZIP] =====================================`);
-            
-            if (pngCount === 0 && nestedZipCount === 0) {
-                console.warn(`[ZIP]   ⚠ No PNG or ZIP files found in ${file.name}`);
-            }
-            
-            return images;
-            
-            } catch (zipError) {
-                console.error(`[ZIP] ✖✖✖ FATAL ERROR in ${file.name}:`, zipError);
-                console.error(`[ZIP] Error type:`, zipError.name);
-                console.error(`[ZIP] Error message:`, zipError.message);
-                console.error(`[ZIP] Stack:`, zipError.stack);
-                // Return empty array to allow processing to continue
-                return [];
-            }
+            return ordered;
         }
         
-        async function loadImageToCanvas(file) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                let objectUrl = null;
-                
-                const loadTimeout = setTimeout(() => {
-                    if (objectUrl) URL.revokeObjectURL(objectUrl);
-                    reject(new Error(`Image load timeout: ${file.name}`));
-                }, 10000);
-                
-                img.onload = function() {
-                    clearTimeout(loadTimeout);
-                    try {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        
-                        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-                        if (!ctx) {
-                            reject(new Error('Failed to get canvas context'));
-                            return;
-                        }
-                        
-                        ctx.drawImage(img, 0, 0);
-                        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                        resolve(imgData);
-                    } catch (err) {
-                        reject(err);
-                    } finally {
-                        if (objectUrl) URL.revokeObjectURL(objectUrl);
-                    }
-                };
-                
-                img.onerror = function() {
-                    clearTimeout(loadTimeout);
-                    if (objectUrl) URL.revokeObjectURL(objectUrl);
-                    reject(new Error(`Failed to load image: ${file.name}`));
-                };
-                
-                try {
-                    if (!file.blob) {
-                        reject(new Error(`No blob data for ${file.name}`));
-                        return;
-                    }
-                    
-                    objectUrl = URL.createObjectURL(file.blob);
-                    img.crossOrigin = 'anonymous';
-                    img.src = objectUrl;
-                } catch (err) {
-                    clearTimeout(loadTimeout);
-                    if (objectUrl) URL.revokeObjectURL(objectUrl);
-                    reject(new Error(`Failed to create object URL for ${file.name}: ${err.message}`));
-                }
-            });
-        }
-        
-        // ============================================
-        // MAIN PROCESSING PIPELINE
-        // ============================================
-        
-        async function processImage(file) {
-            const imageData = await loadImageToCanvas(file);
+        function calculateCentroid(contour) {
+            if (contour.length === 0) return { x: CENTER_X, y: CENTER_Y };
             
-            const worker = new Worker(workerBlobUrl);
-            activeWorkers.add(worker);
-            
-            return new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => {
-                    activeWorkers.delete(worker);
-                    worker.terminate();
-                    reject(new Error(`Worker timeout for ${file.name}`));
-                }, 30000);
-                
-                worker.onmessage = function(e) {
-                    clearTimeout(timeout);
-                    activeWorkers.delete(worker);
-                    worker.terminate();
-                    
-                    processingStats.processedCount++;
-                    updateAllMetrics();
-                    
-                    if (e.data.success) {
-                        resolve({
-                            filename: file.name,
-                            imageData,
-                            sourceZip: file.sourceZip,
-                            zipOrderNumber: file.zipOrderNumber,
-                            zipParticipant: file.zipParticipant,
-                            ...e.data
-                        });
-                    } else {
-                        reject(new Error(e.data.error));
-                    }
-                };
-                
-                worker.onerror = function(error) {
-                    clearTimeout(timeout);
-                    activeWorkers.delete(worker);
-                    worker.terminate();
-                    reject(error);
-                };
-                
-                worker.postMessage({ imageData, filename: file.name });
-            });
-        }
-        
-        async function processImagesParallel(files) {
-            const results = [];
-            const batchSize = MAX_PARALLEL_WORKERS * 3;
-            
-            for (let i = 0; i < files.length; i += batchSize) {
-                if (processingCancelled) {
-                    throw new Error('Processing cancelled by user');
-                }
-                
-                const batch = files.slice(i, i + batchSize);
-                
-                const batchPromises = batch.map(async (file) => {
-                    try {
-                        const result = await processImage(file);
-                        return result;
-                    } catch (err) {
-                        console.warn(`Skipping ${file.name}:`, err.message);
-                        return null;
-                    }
-                });
-                
-                const batchResults = await Promise.all(batchPromises);
-                
-                batchResults.forEach(result => {
-                    if (result !== null) {
-                        results.push(result);
-                    }
-                });
-                
-                const progress = 10 + ((processingStats.processedCount / processingStats.totalCount) * 40);
-                updateProgress(progress, `Processing images (${processingStats.processedCount}/${processingStats.totalCount})`);
-                
-                await new Promise(resolve => setTimeout(resolve, 50));
-            }
-            
-            return results;
-        }
-        
-        // ============================================
-        // SHAPE AVERAGING WITH ADVANCED FEATURES
-        // ============================================
-        
-        function calculateAverageShape(participantShapes) {
-            if (participantShapes.length === 0) {
-                return { radialData: [], meanRadius: 0, sdRadius: 0, meanArea: 0, sdArea: 0, nShapes: 0, outliersRemoved: 0 };
-            }
-            
-            // Filter outliers using MAD
-            const validShapes = filterRadialOutliers(participantShapes);
-            const outliersRemoved = participantShapes.length - validShapes.length;
-            
-            const numAngles = 360;
-            const avgRadii = new Array(numAngles).fill(0);
-            
-            // Calculate median radius at each angle (more robust than mean)
-            for (let angle = 0; angle < numAngles; angle++) {
-                const radiiAtAngle = validShapes.map(shape => shape.radialData[angle]);
-                avgRadii[angle] = calculateMedian(radiiAtAngle);
-            }
-            
-            // Light smoothing (window size 3) to preserve hand-drawn characteristics
-            const smoothedRadii = [...avgRadii];
-            for (let angle = 0; angle < numAngles; angle++) {
-                const prev = avgRadii[(angle - 1 + numAngles) % numAngles];
-                const curr = avgRadii[angle];
-                const next = avgRadii[(angle + 1) % numAngles];
-                smoothedRadii[angle] = (prev + curr + next) / 3;
-            }
-            
-            // Calculate statistics
-            const meanRadius = smoothedRadii.reduce((a, b) => a + b, 0) / numAngles;
-            const radiusVariances = smoothedRadii.map(r => Math.pow(r - meanRadius, 2));
-            const sdRadius = Math.sqrt(radiusVariances.reduce((a, b) => a + b, 0) / numAngles);
-            
-            // Calculate areas
-            const areas = validShapes.map(shape => shape.area);
-            const meanArea = calculateMedian(areas);
-            const areaDeviations = areas.map(a => Math.abs(a - meanArea));
-            const sdArea = calculateMedian(areaDeviations) * 1.4826; // MAD to SD conversion
+            const sumX = contour.reduce((sum, p) => sum + p.x, 0);
+            const sumY = contour.reduce((sum, p) => sum + p.y, 0);
             
             return {
-                radialData: smoothedRadii,
-                meanRadius,
-                sdRadius,
-                meanArea,
-                sdArea,
-                nShapes: validShapes.length,
-                outliersRemoved
+                x: sumX / contour.length,
+                y: sumY / contour.length
             };
         }
         
-        // ============================================
-        // DRAWING FUNCTIONS
-        // ============================================
-        
-        function drawGrid(ctx, size) {
-            const gridSize = size / (2 * GRID_RANGE); // pixels per unit
-            const center = size / 2;
+        function calculateContourArea(contour) {
+            if (contour.length < 3) return 0;
             
-            ctx.strokeStyle = '#e5e5e5';
-            ctx.lineWidth = 1;
-            
-            // Vertical lines
-            for (let i = -GRID_RANGE; i <= GRID_RANGE; i++) {
-                const x = center + i * gridSize;
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, size);
-                ctx.stroke();
+            // Shoelace formula
+            let area = 0;
+            for (let i = 0; i < contour.length; i++) {
+                const j = (i + 1) % contour.length;
+                area += contour[i].x * contour[j].y;
+                area -= contour[j].x * contour[i].y;
             }
             
-            // Horizontal lines
-            for (let i = -GRID_RANGE; i <= GRID_RANGE; i++) {
-                const y = center + i * gridSize;
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(size, y);
-                ctx.stroke();
-            }
-            
-            // Axes (darker)
-            ctx.strokeStyle = '#d0d0d0';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(center, 0);
-            ctx.lineTo(center, size);
-            ctx.moveTo(0, center);
-            ctx.lineTo(size, center);
-            ctx.stroke();
+            return Math.abs(area / 2) / (SCALE * SCALE); // Convert to square units
         }
         
-        function drawReferenceCircle(ctx, size) {
-            const center = size / 2;
-            const radius = unitsToPixels(REFERENCE_CIRCLE_RADIUS);
-            
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.arc(center, center, radius, 0, 2 * Math.PI);
-            ctx.stroke();
-        }
+        // ============================================
+        // AVERAGING FUNCTIONS
+        // ============================================
         
-        function drawIndividualShapes(ctx, shapes, color = '#999999') {
-            ctx.strokeStyle = color;
-            ctx.fillStyle = 'transparent'; // UNFILLED
-            ctx.lineWidth = 1;
-            ctx.globalAlpha = 0.5;
+        function calculateAverageShape(shapes) {
+            if (shapes.length === 0) return null;
+            
+            // Calculate average centroid
+            const avgCentroid = {
+                x: shapes.reduce((sum, s) => sum + s.centroid.x, 0) / shapes.length,
+                y: shapes.reduce((sum, s) => sum + s.centroid.y, 0) / shapes.length
+            };
+            
+            // Normalize contours relative to average centroid and convert to polar
+            const polarData = [];
             
             shapes.forEach(shape => {
-                ctx.beginPath();
-                shape.radialData.forEach((radius, angle) => {
-                    const rad = (angle * Math.PI) / 180;
-                    const x = CENTER_X + unitsToPixels(radius) * Math.cos(rad);
-                    const y = CENTER_Y + unitsToPixels(radius) * Math.sin(rad);
-                    
-                    if (angle === 0) {
-                        ctx.moveTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
+                shape.contour.forEach(point => {
+                    const dx = point.x - avgCentroid.x;
+                    const dy = point.y - avgCentroid.y;
+                    const angle = Math.atan2(dy, dx);
+                    const radius = Math.sqrt(dx * dx + dy * dy);
+                    polarData.push({ angle, radius });
                 });
-                ctx.closePath();
-                ctx.stroke(); // ONLY stroke, never fill
             });
             
-            ctx.globalAlpha = 1.0;
-        }
-        
-        function drawAveragedShape(ctx, radialData, color, dashed = false) {
-            ctx.strokeStyle = color;
-            ctx.fillStyle = 'transparent'; // UNFILLED
-            ctx.lineWidth = 3;
+            // Bin by angle and average
+            const numBins = 360;
+            const bins = new Array(numBins).fill(null).map(() => []);
             
-            if (dashed) {
-                ctx.setLineDash([10, 5]);
-            } else {
-                ctx.setLineDash([]);
+            polarData.forEach(point => {
+                let binIndex = Math.floor(((point.angle + Math.PI) / (2 * Math.PI)) * numBins);
+                binIndex = (binIndex + numBins) % numBins;
+                bins[binIndex].push(point.radius);
+            });
+            
+            // Create smooth averaged contour
+            const avgContour = [];
+            for (let i = 0; i < numBins; i++) {
+                const angle = (i / numBins) * 2 * Math.PI - Math.PI;
+                
+                let radius;
+                if (bins[i].length > 0) {
+                    radius = bins[i].reduce((sum, r) => sum + r, 0) / bins[i].length;
+                } else {
+                    // Interpolate from neighbors
+                    let prevIdx = (i - 1 + numBins) % numBins;
+                    let nextIdx = (i + 1) % numBins;
+                    
+                    while (bins[prevIdx].length === 0 && prevIdx !== i) {
+                        prevIdx = (prevIdx - 1 + numBins) % numBins;
+                    }
+                    while (bins[nextIdx].length === 0 && nextIdx !== i) {
+                        nextIdx = (nextIdx + 1) % numBins;
+                    }
+                    
+                    if (bins[prevIdx].length > 0 && bins[nextIdx].length > 0) {
+                        const prevRadius = bins[prevIdx].reduce((sum, r) => sum + r, 0) / bins[prevIdx].length;
+                        const nextRadius = bins[nextIdx].reduce((sum, r) => sum + r, 0) / bins[nextIdx].length;
+                        radius = (prevRadius + nextRadius) / 2;
+                    } else {
+                        continue; // Skip this angle
+                    }
+                }
+                
+                avgContour.push({
+                    x: avgCentroid.x + radius * Math.cos(angle),
+                    y: avgCentroid.y + radius * Math.sin(angle)
+                });
             }
             
-            ctx.beginPath();
-            radialData.forEach((radius, angle) => {
-                const rad = (angle * Math.PI) / 180;
-                const x = CENTER_X + unitsToPixels(radius) * Math.cos(rad);
-                const y = CENTER_Y + unitsToPixels(radius) * Math.sin(rad);
-                
-                if (angle === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
+            // Calculate mean radius in units
+            const radii = avgContour.map(p => {
+                const dx = p.x - avgCentroid.x;
+                const dy = p.y - avgCentroid.y;
+                return Math.sqrt(dx * dx + dy * dy) / SCALE;
             });
-            ctx.closePath();
-            ctx.stroke(); // ONLY stroke, never fill
             
-            ctx.setLineDash([]);
+            const meanRadius = radii.reduce((sum, r) => sum + r, 0) / radii.length;
+            
+            return {
+                contour: avgContour,
+                centroid: avgCentroid,
+                meanRadius: meanRadius,
+                n: shapes.length
+            };
         }
+        
+        // ============================================
+        // DRAWING FUNCTIONS - WITH HEAD CIRCLE
+        // ============================================
         
         function drawCompositeVisualization(canvas, frequency, redShapes, blueShapes, redAvg, blueAvg) {
             const ctx = canvas.getContext('2d');
             
-            // Clear and white background
+            // Clear with white background
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // Draw grid
-            drawGrid(ctx, canvas.width);
+            drawGrid(ctx);
             
-            // Draw reference circle
-            drawReferenceCircle(ctx, canvas.width);
+            // Draw reference head circle (radius = 3 units)
+            drawHeadCircle(ctx);
             
-            // Draw individual shapes in gray (background)
-            drawIndividualShapes(ctx, redShapes, '#999999');
-            drawIndividualShapes(ctx, blueShapes, '#999999');
+            // Draw individual shapes in gray (unfilled contours)
+            ctx.strokeStyle = '#999999';
+            ctx.lineWidth = 1;
+            ctx.globalAlpha = 0.3;
             
-            // Draw averaged shapes on top
-            if (redAvg && redAvg.radialData.length > 0) {
-                drawAveragedShape(ctx, redAvg.radialData, '#FF0000', false); // Solid red
+            // Draw red individual shapes
+            redShapes.forEach(shape => {
+                if (shape.contour && shape.contour.length > 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(shape.contour[0].x, shape.contour[0].y);
+                    
+                    for (let i = 1; i < shape.contour.length; i++) {
+                        ctx.lineTo(shape.contour[i].x, shape.contour[i].y);
+                    }
+                    
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+            });
+            
+            // Draw blue individual shapes
+            blueShapes.forEach(shape => {
+                if (shape.contour && shape.contour.length > 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(shape.contour[0].x, shape.contour[0].y);
+                    
+                    for (let i = 1; i < shape.contour.length; i++) {
+                        ctx.lineTo(shape.contour[i].x, shape.contour[i].y);
+                    }
+                    
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+            });
+            
+            ctx.globalAlpha = 1.0;
+            
+            // Draw averaged red shape (solid line)
+            if (redAvg && redAvg.contour && redAvg.contour.length > 0) {
+                ctx.strokeStyle = '#FF0000';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([]);
+                
+                ctx.beginPath();
+                ctx.moveTo(redAvg.contour[0].x, redAvg.contour[0].y);
+                
+                for (let i = 1; i < redAvg.contour.length; i++) {
+                    ctx.lineTo(redAvg.contour[i].x, redAvg.contour[i].y);
+                }
+                
+                ctx.closePath();
+                ctx.stroke();
             }
             
-            if (blueAvg && blueAvg.radialData.length > 0) {
-                drawAveragedShape(ctx, blueAvg.radialData, '#0000FF', true); // Dashed blue
+            // Draw averaged blue shape (dashed line)
+            if (blueAvg && blueAvg.contour && blueAvg.contour.length > 0) {
+                ctx.strokeStyle = '#0000FF';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([10, 5]);
+                
+                ctx.beginPath();
+                ctx.moveTo(blueAvg.contour[0].x, blueAvg.contour[0].y);
+                
+                for (let i = 1; i < blueAvg.contour.length; i++) {
+                    ctx.lineTo(blueAvg.contour[i].x, blueAvg.contour[i].y);
+                }
+                
+                ctx.closePath();
+                ctx.stroke();
+                ctx.setLineDash([]);
             }
             
             // Add frequency label
@@ -1862,15 +535,158 @@ self.onmessage = function(e) {
             ctx.textAlign = 'center';
             ctx.fillText(frequency, canvas.width / 2, 40);
             
-            // Add N and outlier info
-            const nRed = redShapes.length;
-            const nBlue = blueShapes.length;
-            const outliersRed = redAvg ? redAvg.outliersRemoved : 0;
-            const outliersBlue = blueAvg ? blueAvg.outliersRemoved : 0;
+            // Add statistics
+            const nTotal = redShapes.length + blueShapes.length;
+            const meanRadius = redAvg ? redAvg.meanRadius.toFixed(2) : 
+                              (blueAvg ? blueAvg.meanRadius.toFixed(2) : '0.00');
             
             ctx.font = '16px Arial';
-            ctx.fillText(`N(red)=${nRed}, outliers=${outliersRed}`, canvas.width / 2, canvas.height - 40);
-            ctx.fillText(`N(blue)=${nBlue}, outliers=${outliersBlue}`, canvas.width / 2, canvas.height - 20);
+            ctx.fillText(`N=${nTotal}, mean r=${meanRadius} (centroid avg)`, canvas.width / 2, canvas.height - 20);
+        }
+        
+        function drawGrid(ctx) {
+            const size = CANVAS_SIZE;
+            const gridSize = size / (2 * GRID_RANGE);
+            
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            
+            // Grid lines
+            for (let i = 0; i <= 2 * GRID_RANGE; i++) {
+                const pos = i * gridSize;
+                
+                ctx.beginPath();
+                ctx.moveTo(pos, 0);
+                ctx.lineTo(pos, size);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(0, pos);
+                ctx.lineTo(size, pos);
+                ctx.stroke();
+            }
+            
+            // Center axes
+            ctx.strokeStyle = '#999999';
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            ctx.moveTo(size / 2, 0);
+            ctx.lineTo(size / 2, size);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(0, size / 2);
+            ctx.lineTo(size, size / 2);
+            ctx.stroke();
+        }
+        
+        function drawHeadCircle(ctx) {
+            // Draw the reference circle (human head) at center with radius 3 units
+            ctx.strokeStyle = '#000000'; // Black
+            ctx.lineWidth = 1;
+            ctx.setLineDash([]);
+            
+            ctx.beginPath();
+            ctx.arc(CENTER_X, CENTER_Y, HEAD_CIRCLE_RADIUS * SCALE, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+        
+        // ============================================
+        // FILE PROCESSING
+        // ============================================
+        
+        async function loadImagesFromZip(file) {
+            const zip = await JSZip.loadAsync(file);
+            const images = [];
+            
+            for (const [path, zipEntry] of Object.entries(zip.files)) {
+                if (zipEntry.dir) continue;
+                
+                if (path.toLowerCase().endsWith('.png')) {
+                    const blob = await zipEntry.async('blob');
+                    images.push({
+                        name: path.split('/').pop(),
+                        blob: blob
+                    });
+                } else if (path.toLowerCase().endsWith('.zip')) {
+                    // Handle nested ZIPs
+                    const nestedBlob = await zipEntry.async('blob');
+                    const nestedFile = new File([nestedBlob], path.split('/').pop());
+                    const nestedImages = await loadImagesFromZip(nestedFile);
+                    images.push(...nestedImages);
+                }
+            }
+            
+            return images;
+        }
+        
+        async function processImage(imageFile) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    img.onload = async () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = CANVAS_SIZE;
+                        canvas.height = CANVAS_SIZE;
+                        const ctx = canvas.getContext('2d');
+                        
+                        ctx.drawImage(img, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
+                        const imageData = ctx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+                        
+                        const shapes = await extractShapesFromImage(imageData, imageFile.name);
+                        
+                        // Parse filename for metadata
+                        const parsed = parseFilename(imageFile.name);
+                        if (!parsed) {
+                            console.warn(`Skipping file with invalid name format: ${imageFile.name}`);
+                            resolve([]);
+                            return;
+                        }
+                        
+                        resolve(shapes.map(shape => ({
+                            ...shape,
+                            ...parsed,
+                            filename: imageFile.name
+                        })));
+                    };
+                    
+                    img.onerror = () => reject(new Error(`Failed to load: ${imageFile.name}`));
+                    img.src = e.target.result;
+                };
+                
+                reader.onerror = () => reject(new Error(`Failed to read: ${imageFile.name}`));
+                reader.readAsDataURL(imageFile.blob);
+            });
+        }
+        
+        function parseFilename(filename) {
+            const parts = filename.replace('.png', '').split('_');
+            if (parts.length < 2) return null;
+            
+            // Find frequency
+            let frequency = null;
+            for (const part of parts) {
+                const match = part.match(/(\d+(?:\.\d+)?)hz/i);
+                if (match) {
+                    frequency = parseFloat(match[1]) + 'Hz';
+                    break;
+                }
+            }
+            
+            if (!frequency) return null;
+            
+            const participant = parts[0];
+            return { participant, frequency };
+        }
+        
+        function updateProgress(percentage, message) {
+            document.getElementById('progress-container').classList.remove('hidden');
+            document.getElementById('progress-bar').style.width = `${percentage}%`;
+            document.getElementById('progress-text').textContent = message;
+            document.getElementById('progress-percentage').textContent = `${Math.round(percentage)}%`;
         }
         
         // ============================================
@@ -1879,683 +695,112 @@ self.onmessage = function(e) {
         
         async function analyzeData(inputFiles) {
             try {
-                processingCancelled = false;
-                processingStats.startTime = Date.now();
-                processingStats.processedCount = 0;
-                processingStats.speedHistory = [];
-                processingStats.maxSpeed = 0;
-                processingStats.validatedCount = 0;
-                processingStats.outliersFiltered = 0;
+                updateProgress(0, 'Starting analysis...');
                 
-                document.getElementById('analyze-btn').classList.add('hidden');
-                document.getElementById('cancel-btn').classList.remove('hidden');
-                document.getElementById('progress-container').classList.remove('hidden');
-                
-                updateProgress(0, 'Initializing...');
-                
-                document.getElementById('data-summary').classList.add('hidden');
-                document.getElementById('visualization-container').classList.add('hidden');
-                document.getElementById('statistics-container').classList.add('hidden');
-                document.getElementById('validation-summary').classList.add('hidden');
-                
-                console.log('[Main] Starting analysis with', inputFiles.length, 'files');
-                
+                // Extract all images
                 let allImages = [];
                 
-                updateProgress(5, 'Extracting files from ZIPs...');
-                
                 for (const file of inputFiles) {
-                    if (processingCancelled) throw new Error('Processing cancelled');
-                    
+                    if (file.name.toLowerCase().endsWith('.zip')) {
+                        const images = await loadImagesFromZip(file);
+                        allImages.push(...images);
+                    } else if (file.name.toLowerCase().endsWith('.png')) {
+                        allImages.push({ name: file.name, blob: file });
+                    }
+                }
+                
+                updateProgress(10, `Found ${allImages.length} images`);
+                
+                // Process all images
+                const processedData = [];
+                
+                for (let i = 0; i < allImages.length; i++) {
                     try {
-                        if (file.name.toLowerCase().endsWith('.zip')) {
-                            console.log(`[Main] Processing ZIP: ${file.name}`);
-                            const images = await loadImagesFromZip(file);
-                            console.log(`[Main] Got ${images.length} images from ${file.name}`);
-                            allImages.push(...images);
-                            console.log(`[Main] Total images so far: ${allImages.length}`);
-                        } else if (file.name.toLowerCase().endsWith('.png')) {
-                            allImages.push({
-                                name: file.name,
-                                blob: file,
-                                fullPath: file.name,
-                                sourceZip: null,
-                                zipOrderNumber: null,
-                                zipParticipant: null
-                            });
+                        const result = await processImage(allImages[i]);
+                        if (result && result.length > 0) {
+                            processedData.push(...result);
                         }
-                    } catch (extractError) {
-                        console.error(`[Main] Error processing ${file.name}:`, extractError);
-                        throw extractError;
-                    }
-                }
-                
-                console.log(`[Main] ========================================`);
-                console.log(`[Main] Extraction complete!`);
-                console.log(`[Main] Total images in allImages array: ${allImages.length}`);
-                console.log(`[Main] ========================================`);
-                
-                if (allImages.length === 0) {
-                    throw new Error('No valid PNG images found in any ZIP files');
-                }
-                
-                console.log(`[Main] ✓ Total PNGs extracted: ${allImages.length}`);
-                console.log(`[Main] Sample file:`, allImages[0]);
-                
-                processingStats.totalCount = allImages.length;
-                updateProgress(10, `Found ${allImages.length} images...`);
-                
-                const metricsInterval = setInterval(updateAllMetrics, 500);
-                
-                const processedData = await processImagesParallel(allImages);
-                
-                clearInterval(metricsInterval);
-                
-                console.log(`[Main] ✓ Processed ${processedData.length} images with workers`);
-                
-                // CRITICAL: Create on-screen diagnostic panel (won't be lost like console logs)
-                const diagnosticDiv = document.createElement('div');
-                diagnosticDiv.id = 'worker-diagnostic-panel';
-                diagnosticDiv.className = 'fixed top-20 right-4 bg-yellow-50 border-4 border-red-500 p-4 rounded-lg shadow-2xl z-50 max-w-2xl max-h-96 overflow-auto';
-                diagnosticDiv.innerHTML = '<h2 class="text-xl font-bold text-red-600 mb-3">🔍 WORKER DIAGNOSTIC</h2>';
-                
-                let diagHTML = '<div class="space-y-3 text-sm">';
-                
-                // CRITICAL DIAGNOSTIC: Check what workers returned
-                console.log('%c╔══════════════════════════════════════════════════════════╗', 'color: #EF4444; font-size: 14px; font-weight: bold');
-                console.log('%c║  🔍 WORKER DIAGNOSTIC - CHECK THIS FIRST!              ║', 'color: #EF4444; font-size: 14px; font-weight: bold');
-                console.log('%c╚══════════════════════════════════════════════════════════╝', 'color: #EF4444; font-size: 14px; font-weight: bold');
-                
-                for (let i = 0; i < Math.min(3, processedData.length); i++) {
-                    const sample = processedData[i];
-                    console.log(`%c[Worker] File ${i+1}: ${sample.filename}`, 'color: #3B82F6; font-weight: bold');
-                    
-                    diagHTML += `<div class="bg-white p-3 rounded border-2 ${!sample.colors || sample.colors.length === 0 ? 'border-red-500' : 'border-green-500'}">`;
-                    diagHTML += `<strong class="text-blue-700">File ${i+1}:</strong> ${sample.filename}<br>`;
-                    
-                    console.log(`  ➤ Has 'colors' property: %c${!!sample.colors}`, 'font-weight: bold', !!sample.colors ? 'color: green' : 'color: red');
-                    diagHTML += `<strong>Has 'colors':</strong> <span class="${!!sample.colors ? 'text-green-600' : 'text-red-600'} font-bold">${!!sample.colors ? '✅ YES' : '❌ NO'}</span><br>`;
-                    
-                    if (sample.colors) {
-                        console.log(`  ➤ Colors array length: %c${sample.colors.length}`, 'font-weight: bold', sample.colors.length > 0 ? 'color: green' : 'color: red');
-                        diagHTML += `<strong>Colors length:</strong> <span class="${sample.colors.length > 0 ? 'text-green-600' : 'text-red-600'} font-bold">${sample.colors.length}</span><br>`;
-                        
-                        if (sample.colors.length > 0) {
-                            const top3 = sample.colors.slice(0, 3).map(c => 
-                                `${c.colorKey || 'undefined'} (${c.count || 0}px)`
-                            ).join(', ');
-                            console.log(`  ➤ %cTop 3 colors: ${top3}`, 'color: #10B981; font-weight: bold');
-                            diagHTML += `<strong>Top colors:</strong> <span class="text-green-600">${top3}</span>`;
-                        } else {
-                            console.log(`  ➤ %c⚠️ Colors array is EMPTY!`, 'color: #EF4444; font-weight: bold; background: yellow');
-                            diagHTML += `<strong class="text-red-600 bg-yellow-200 px-2">⚠️ EMPTY array!</strong>`;
-                        }
-                    } else {
-                        console.log(`  ➤ %c⚠️ NO 'colors' property!`, 'color: #EF4444; font-weight: bold; background: yellow');
-                        console.log(`  ➤ Available properties: ${Object.keys(sample).join(', ')}`);
-                        diagHTML += `<strong class="text-red-600 bg-yellow-200 px-2">⚠️ NO 'colors'!</strong><br>`;
-                        diagHTML += `<small>Available: ${Object.keys(sample).slice(0, 6).join(', ')}</small>`;
-                    }
-                    diagHTML += '</div>';
-                }
-                
-                diagHTML += '</div>';
-                diagHTML += '<button onclick="this.parentElement.remove()" class="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-bold">Close</button>';
-                diagnosticDiv.innerHTML += diagHTML;
-                document.body.appendChild(diagnosticDiv);
-                
-                console.log('%c══════════════════════════════════════════════════════════', 'color: #EF4444; font-size: 14px; font-weight: bold');
-                
-                if (processedData.length === 0) {
-                    throw new Error('No valid data extracted');
-                }
-                
-                updateProgress(50, 'Parsing filenames and detecting colors...');
-                
-                // Parse filenames and normalize trial numbers
-                const parsedData = [];
-                let parseFailures = 0;
-                
-                for (const data of processedData) {
-                    const parsed = parseFilename(data.filename);
-                    if (!parsed) {
-                        parseFailures++;
-                        console.warn(`[Parse] ⚠ Failed to parse filename: ${data.filename}`);
-                        continue;
+                    } catch (error) {
+                        console.warn(`Skipping ${allImages[i].name}:`, error);
                     }
                     
-                    // v2.1.1 PROVEN APPROACH: Search for red/blue in color results
-                    // Flexible matching accepts variations like (255,0,0), (254,0,0), (253,0,0), etc.
-                    
-                    let redColor = null;
-                    let blueColor = null;
-                    
-                    // Defensive check: make sure colors array exists
-                    if (data.colors && Array.isArray(data.colors) && data.colors.length > 0) {
-                        redColor = data.colors.find(c => 
-                            c.colorKey && (
-                                c.colorKey.includes('255,0,0') || 
-                                c.colorKey.includes('254,0,0') ||
-                                c.colorKey.includes('253,0,0') ||
-                                c.colorKey.includes('252,0,0') ||
-                                (c.colorKey.startsWith('25') && c.colorKey.includes(',0,') && c.colorKey.endsWith(',0'))
-                            )
-                        );
-                        
-                        blueColor = data.colors.find(c => 
-                            c.colorKey && (
-                                c.colorKey.includes('0,0,255') || 
-                                c.colorKey.includes('0,0,254') ||
-                                c.colorKey.includes('0,0,253') ||
-                                c.colorKey.includes('0,0,252') ||
-                                (c.colorKey.includes(',0,25') && c.colorKey.startsWith('0,'))
-                            )
-                        );
-                    } else {
-                        console.warn(`[Parse] ⚠️ ${data.filename} has no colors array or it's empty!`);
-                    }
-                    
-                    // CRITICAL: Explicitly preserve color detection results
-                    parsedData.push({
-                        filename: data.filename,
-                        imageData: data.imageData,
-                        sourceZip: data.sourceZip,
-                        zipOrderNumber: data.zipOrderNumber,
-                        zipParticipant: data.zipParticipant,
-                        hasRed: !!redColor,              // ← Derived from color search
-                        hasBlue: !!blueColor,            // ← Derived from color search
-                        redColorKey: redColor ? redColor.colorKey : null,   // ← Store the actual color found
-                        blueColorKey: blueColor ? blueColor.colorKey : null, // ← Store the actual color found
-                        colors: data.colors,             // ← Keep all colors for reference
-                        participant: parsed.participant,
-                        frequency: parsed.frequency,
-                        frequencyNumber: parsed.frequencyNumber,
-                        trialNumber: parsed.trialNumber
-                    });
+                    const progress = 10 + ((i + 1) / allImages.length * 60);
+                    updateProgress(progress, `Processing image ${i + 1}/${allImages.length}`);
                 }
                 
-                console.log(`[Parse] ✓ Successfully parsed ${parsedData.length} filenames`);
-                if (parseFailures > 0) {
-                    console.warn(`[Parse] ⚠ Failed to parse ${parseFailures} filenames`);
-                }
+                // Organize by frequency
+                const organizedData = {};
+                const frequencies = ['31Hz', '62.5Hz', '125Hz', '250Hz', '500Hz', 
+                                   '1000Hz', '2000Hz', '4000Hz', '8000Hz', '12000Hz', '16000Hz'];
                 
-                // DIAGNOSTIC: Check color detection results - IMPOSSIBLE TO MISS
-                console.log('%c╔══════════════════════════════════════════════════════════╗', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
-                console.log('%c║  🎨 PARSE DIAGNOSTIC - DID WE FIND RED/BLUE?          ║', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
-                console.log('%c╚══════════════════════════════════════════════════════════╝', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
-                
-                // Show sample of colors found in first 3 files
-                console.log('%c🎨 Colors found in first 3 files:', 'color: #3B82F6; font-weight: bold; font-size: 13px');
-                for (let i = 0; i < Math.min(3, parsedData.length); i++) {
-                    const file = parsedData[i];
-                    console.log(`%c  File ${i+1}: ${file.filename}`, 'color: #6366F1; font-weight: bold');
-                    if (file.colors && file.colors.length > 0) {
-                        const topColors = file.colors.slice(0, 5).map(c => 
-                            `${c.colorKey} (${c.percentage.toFixed(1)}%)`
-                        ).join(', ');
-                        console.log(`    ➤ Colors: %c${topColors}`, 'color: #10B981');
-                        console.log(`    ➤ Has RED: %c${file.hasRed}`, file.hasRed ? 'color: green; font-weight: bold' : 'color: red; font-weight: bold');
-                        console.log(`    ➤ Has BLUE: %c${file.hasBlue}`, file.hasBlue ? 'color: green; font-weight: bold' : 'color: red; font-weight: bold');
-                    } else {
-                        console.log(`    ➤ %c⚠️ NO COLORS IN ARRAY!`, 'color: #EF4444; font-weight: bold; background: yellow');
-                    }
-                }
-                
-                const hasRedInParsed = parsedData.filter(d => d.hasRed === true).length;
-                const hasBlueInParsed = parsedData.filter(d => d.hasBlue === true).length;
-                
-                console.log('%c══════════════════════════════════════════════════════════', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
-                console.log(`%c📊 FINAL COUNT: Files with RED detected: ${hasRedInParsed}`, hasRedInParsed > 0 ? 'color: green; font-weight: bold; font-size: 14px' : 'color: red; font-weight: bold; font-size: 14px; background: yellow');
-                console.log(`%c📊 FINAL COUNT: Files with BLUE detected: ${hasBlueInParsed}`, hasBlueInParsed > 0 ? 'color: green; font-weight: bold; font-size: 14px' : 'color: red; font-weight: bold; font-size: 14px; background: yellow');
-                console.log('%c══════════════════════════════════════════════════════════', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
-                
-                // Normalize trial numbers
-                console.log('[Trial] Starting trial number normalization...');
-                normalizeTrialNumbers(parsedData);
-                console.log('[Trial] ✓ Trial normalization complete');
-                
-                // Group by participant, frequency, and extract contours
-                const participantShapes = {};
-                
-                FREQUENCIES.forEach(freq => {
-                    participantShapes[freq] = { red: [], blue: [] };
+                frequencies.forEach(freq => {
+                    organizedData[freq] = { red: [], blue: [] };
                 });
                 
-                console.log(`[Shapes] Starting contour extraction for ${parsedData.length} files...`);
-                
-                // CRITICAL DIAGNOSTIC - Check first 3 files
-                console.log(`[Shapes] 🔍 Checking first 3 files for color detection:`);
-                for (let i = 0; i < Math.min(3, parsedData.length); i++) {
-                    const sample = parsedData[i];
-                    console.log(`[Shapes]   File ${i+1}: ${sample.filename}`);
-                    console.log(`[Shapes]     hasRed: ${sample.hasRed}, colorKey: ${sample.redColorKey}`);
-                    console.log(`[Shapes]     hasBlue: ${sample.hasBlue}, colorKey: ${sample.blueColorKey}`);
-                    console.log(`[Shapes]     participant: ${sample.participant}, frequency: ${sample.frequency}`);
-                }
-                
-                let skippedExtraTrials = 0;
-                let processedFiles = 0;
-                let redContoursFound = 0;
-                let blueContoursFound = 0;
-                let redContoursEmpty = 0;
-                let blueContoursEmpty = 0;
-                let filesWithHasRedTrue = 0;
-                let filesWithHasBlueTrue = 0;
-                
-                for (const data of parsedData) {
-                    if (processingCancelled) throw new Error('Processing cancelled');
-                    
-                    // Skip files marked as extra trials (>3)
-                    if (data.normalizedTrial === null) {
-                        skippedExtraTrials++;
-                        continue;
+                processedData.forEach(data => {
+                    if (organizedData[data.frequency]) {
+                        organizedData[data.frequency][data.phase].push(data);
                     }
-                    
-                    processedFiles++;
-                    
-                    // Count how many have hasRed/hasBlue flags
-                    if (data.hasRed === true) filesWithHasRedTrue++;
-                    if (data.hasBlue === true) filesWithHasBlueTrue++;
-                    
-                    // Extract red shape using ROBUST RADIAL METHOD
-                    if (data.hasRed && data.redColorKey) {
-                        try {
-                            const radialData = extractShapeRadial(data.imageData, data.redColorKey, data.participant);
-                            
-                            if (radialData && radialData.length > 0 && radialData.some(r => r > 0)) {
-                                redContoursFound++;
-                                
-                                // Calculate centroid from radial data
-                                const centroid = calculateCentroidFromRadial(radialData);
-                                
-                                // Calculate area from radial data
-                                const area = calculateAreaFromRadial(radialData);
-                                
-                                // Validate against Google Sheets
-                                const validation = validateShapeAgainstSheets(
-                                    data.participant,
-                                    data.frequencyNumber,
-                                    'red',
-                                    data.normalizedTrial || data.trialNumber,
-                                    centroid,
-                                    area
-                                );
-                                
-                                participantShapes[data.frequency].red.push({
-                                    participant: data.participant,
-                                    trial: data.normalizedTrial || data.trialNumber,
-                                    radialData,
-                                    centroid,
-                                    area,
-                                    validation
-                                });
-                            } else {
-                                redContoursEmpty++;
-                                console.warn(`[Shapes] Empty radial data for RED in ${data.filename}`);
-                            }
-                        } catch (err) {
-                            redContoursEmpty++;
-                            console.error(`[Shapes] Error extracting RED shape from ${data.filename}:`, err);
-                        }
-                    }
-                    
-                    // Extract blue shape using ROBUST RADIAL METHOD
-                    if (data.hasBlue && data.blueColorKey) {
-                        try {
-                            const radialData = extractShapeRadial(data.imageData, data.blueColorKey, data.participant);
-                            
-                            if (radialData && radialData.length > 0 && radialData.some(r => r > 0)) {
-                                blueContoursFound++;
-                                
-                                const centroid = calculateCentroidFromRadial(radialData);
-                                const area = calculateAreaFromRadial(radialData);
-                                
-                                const validation = validateShapeAgainstSheets(
-                                    data.participant,
-                                    data.frequencyNumber,
-                                    'blue',
-                                    data.normalizedTrial || data.trialNumber,
-                                    centroid,
-                                    area
-                                );
-                                
-                                participantShapes[data.frequency].blue.push({
-                                    participant: data.participant,
-                                    trial: data.normalizedTrial || data.trialNumber,
-                                    radialData,
-                                    centroid,
-                                    area,
-                                    validation
-                                });
-                            } else {
-                                blueContoursEmpty++;
-                                console.warn(`[Shapes] Empty radial data for BLUE in ${data.filename}`);
-                            }
-                        } catch (err) {
-                            blueContoursEmpty++;
-                            console.error(`[Shapes] Error extracting BLUE shape from ${data.filename}:`, err);
-                        }
-                    }
-                }
-                
-                console.log(`[Shapes] Contour extraction diagnostics:`);
-                console.log(`[Shapes]   Files with shapes to process: ${processedFiles}`);
-                console.log(`[Shapes]   Skipped (extra trials): ${skippedExtraTrials}`);
-                console.log(`[Shapes]   Files where hasRed === true: ${filesWithHasRedTrue}`);
-                console.log(`[Shapes]   Files where hasBlue === true: ${filesWithHasBlueTrue}`);
-                console.log(`[Shapes]   Red contours found: ${redContoursFound}`);
-                console.log(`[Shapes]   Red contours empty: ${redContoursEmpty}`);
-                console.log(`[Shapes]   Blue contours found: ${blueContoursFound}`);
-                console.log(`[Shapes]   Blue contours empty: ${blueContoursEmpty}`);
-                
-                // Log shape extraction results
-                console.log('[Shapes] Extraction complete. Summary by frequency:');
-                let totalShapesExtracted = 0;
-                FREQUENCIES.forEach(freq => {
-                    const redCount = participantShapes[freq].red.length;
-                    const blueCount = participantShapes[freq].blue.length;
-                    totalShapesExtracted += redCount + blueCount;
-                    console.log(`[Shapes]   ${freq}: ${redCount} red, ${blueCount} blue`);
                 });
-                console.log(`[Shapes] ✓ Total shapes extracted: ${totalShapesExtracted}`);
                 
-                if (totalShapesExtracted === 0) {
-                    console.error('[Shapes] ✖✖✖ NO SHAPES EXTRACTED! This is a problem.');
-                    console.error('[Shapes] Possible causes:');
-                    console.error('[Shapes]   1. Contour extraction failing');
-                    console.error('[Shapes]   2. Color detection thresholds too strict');
-                    console.error('[Shapes]   3. Images not in expected format');
-                    throw new Error('No shapes were extracted from any images. Check console for details.');
-                }
+                updateProgress(75, 'Creating visualizations...');
                 
-                updateProgress(70, 'Calculating averaged shapes...');
+                // Generate visualizations
+                const vizGrid = document.getElementById('viz-grid');
+                vizGrid.innerHTML = '';
                 
-                // Calculate averages
-                const canvasGrid = document.getElementById('canvas-grid');
-                canvasGrid.innerHTML = '';
-                
-                const statsBody = document.getElementById('statistics-body');
-                statsBody.innerHTML = '';
-                
-                FREQUENCIES.forEach(freq => {
-                    if (processingCancelled) return;
-                    
-                    const redShapes = participantShapes[freq].red;
-                    const blueShapes = participantShapes[freq].blue;
+                frequencies.forEach(freq => {
+                    const redShapes = organizedData[freq].red;
+                    const blueShapes = organizedData[freq].blue;
                     
                     if (redShapes.length === 0 && blueShapes.length === 0) return;
                     
-                    const redAvg = calculateAverageShape(redShapes);
-                    const blueAvg = calculateAverageShape(blueShapes);
+                    // Calculate averages
+                    const redAvg = redShapes.length > 0 ? calculateAverageShape(redShapes) : null;
+                    const blueAvg = blueShapes.length > 0 ? calculateAverageShape(blueShapes) : null;
                     
-                    // Create visualization
-                    const container = document.createElement('div');
-                    container.className = 'canvas-container p-4 cursor-pointer hover:shadow-xl transition-shadow';
-                    
+                    // Create canvas
                     const canvas = document.createElement('canvas');
-                    canvas.width = 1000;
-                    canvas.height = 1000;
-                    canvas.className = 'w-full border border-gray-200 rounded';
+                    canvas.width = CANVAS_SIZE;
+                    canvas.height = CANVAS_SIZE;
                     
                     drawCompositeVisualization(canvas, freq, redShapes, blueShapes, redAvg, blueAvg);
                     
+                    // Create container
+                    const container = document.createElement('div');
+                    container.className = 'canvas-container p-4';
+                    container.style.cursor = 'pointer';
+                    
+                    canvas.style.width = '100%';
+                    canvas.style.height = 'auto';
+                    
                     container.appendChild(canvas);
                     
-                    canvas.addEventListener('click', () => {
+                    // Add click to download
+                    container.addEventListener('click', () => {
                         const link = document.createElement('a');
-                        link.download = `sound_object_composite_${freq}.png`;
-                        link.href = canvas.toDataURL('image/png');
+                        link.download = `composite_${freq}.png`;
+                        link.href = canvas.toDataURL();
                         link.click();
                     });
                     
-                    canvasGrid.appendChild(container);
-                    
-                    // Add to statistics table
-                    if (redShapes.length > 0) {
-                        const validationStatus = getValidationStatus(redShapes);
-                        const row = createStatRow(freq, 'Red', redAvg, validationStatus);
-                        statsBody.appendChild(row);
-                    }
-                    
-                    if (blueShapes.length > 0) {
-                        const validationStatus = getValidationStatus(blueShapes);
-                        const row = createStatRow(freq, 'Blue', blueAvg, validationStatus);
-                        statsBody.appendChild(row);
-                    }
+                    vizGrid.appendChild(container);
                 });
                 
-                updateProgress(90, 'Finalizing...');
+                updateProgress(100, 'Analysis complete!');
                 
                 // Show results
-                const processingTime = ((Date.now() - processingStats.startTime) / 1000).toFixed(1);
-                
-                document.getElementById('data-summary').classList.remove('hidden');
                 document.getElementById('visualization-container').classList.remove('hidden');
-                document.getElementById('statistics-container').classList.remove('hidden');
-                
-                if (sheetsValidationEnabled) {
-                    document.getElementById('validation-summary').classList.remove('hidden');
-                    showValidationSummary();
-                }
-                
-                updateProgress(100, `Complete! Processed ${processingStats.processedCount} images in ${processingTime}s`);
                 
                 setTimeout(() => {
                     document.getElementById('progress-container').classList.add('hidden');
-                }, 3000);
+                }, 2000);
                 
-            } catch (err) {
-                console.error('!!! ANALYSIS ERROR !!!');
-                console.error('Error type:', err.name);
-                console.error('Error message:', err.message);
-                console.error('Error stack:', err.stack);
-                console.error('!!!!!!!!!!!!!!!!!!!!!');
-                
-                if (err.message === 'Processing cancelled') {
-                    updateProgress(0, '❌ Processing cancelled');
-                } else {
-                    showError(err.message);
-                    console.error('Analysis error:', err);
-                }
-            } finally {
-                activeWorkers.forEach(worker => worker.terminate());
-                activeWorkers.clear();
-                
-                document.getElementById('cancel-btn').classList.add('hidden');
-                document.getElementById('analyze-btn').classList.remove('hidden');
-                
-                const files = document.getElementById('image-upload').files;
-                if (files && files.length > 0) {
-                    document.getElementById('analyze-btn').disabled = false;
-                }
+            } catch (error) {
+                console.error('Analysis error:', error);
+                alert(`Error: ${error.message}`);
             }
         }
-        
-        function getValidationStatus(shapes) {
-            const validated = shapes.filter(s => s.validation && s.validation.valid).length;
-            const total = shapes.length;
-            const percentage = total > 0 ? (validated / total) * 100 : 0;
-            
-            return { validated, total, percentage };
-        }
-        
-        function createStatRow(freq, color, avgData, validationStatus) {
-            const row = document.createElement('tr');
-            row.className = 'hover:bg-gray-50';
-            
-            const colorDot = color === 'Red' ? 'bg-red-500' : 'bg-blue-500';
-            const validationBadge = getValidationBadge(validationStatus);
-            
-            row.innerHTML = `
-                <td class="px-4 py-3 text-sm font-semibold text-gray-800">${freq}</td>
-                <td class="px-4 py-3"><span class="inline-block w-4 h-4 rounded-full ${colorDot}"></span> ${color}</td>
-                <td class="px-4 py-3 text-sm font-semibold">${avgData.nShapes}</td>
-                <td class="px-4 py-3 text-sm font-mono text-amber-600">${avgData.outliersRemoved}</td>
-                <td class="px-4 py-3 text-sm font-mono">${avgData.meanRadius.toFixed(3)}</td>
-                <td class="px-4 py-3 text-sm font-mono">${avgData.sdRadius.toFixed(3)}</td>
-                <td class="px-4 py-3 text-sm font-mono">${avgData.meanArea.toFixed(3)}</td>
-                <td class="px-4 py-3">${validationBadge}</td>
-            `;
-            
-            return row;
-        }
-        
-        function getValidationBadge(validationStatus) {
-            if (!sheetsValidationEnabled) {
-                return '<span class="validation-badge bg-gray-100 text-gray-600">N/A</span>';
-            }
-            
-            const { validated, total, percentage } = validationStatus;
-            
-            if (percentage >= 90) {
-                return `<span class="validation-badge validation-pass">✓ ${validated}/${total}</span>`;
-            } else if (percentage >= 70) {
-                return `<span class="validation-badge validation-warn">⚠ ${validated}/${total}</span>`;
-            } else {
-                return `<span class="validation-badge validation-fail">✗ ${validated}/${total}</span>`;
-            }
-        }
-        
-        function showValidationSummary() {
-            const content = document.getElementById('validation-content');
-            content.innerHTML = `
-                <div class="bg-green-50 p-4 rounded-lg border-2 border-green-200">
-                    <div class="text-3xl font-bold text-green-700">${processingStats.validatedCount}</div>
-                    <div class="text-sm text-gray-600 font-semibold">Shapes Validated</div>
-                </div>
-                <div class="bg-amber-50 p-4 rounded-lg border-2 border-amber-200">
-                    <div class="text-3xl font-bold text-amber-700">${processingStats.outliersFiltered}</div>
-                    <div class="text-sm text-gray-600 font-semibold">Outliers Filtered (MAD)</div>
-                </div>
-                <div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
-                    <div class="text-3xl font-bold text-blue-700">${sheetsValidationEnabled ? 'Enabled' : 'Disabled'}</div>
-                    <div class="text-sm text-gray-600 font-semibold">Google Sheets Validation</div>
-                </div>
-            `;
-        }
-        
-        // ============================================
-        // EVENT LISTENERS
-        // ============================================
-        
-        document.getElementById('image-upload').addEventListener('change', function(e) {
-            const files = Array.from(e.target.files);
-            const fileList = document.getElementById('file-list');
-            const analyzeBtn = document.getElementById('analyze-btn');
-            
-            if (files.length > 0) {
-                const pngCount = files.filter(f => f.name.toLowerCase().endsWith('.png')).length;
-                const zipCount = files.filter(f => f.name.toLowerCase().endsWith('.zip')).length;
-                
-                fileList.innerHTML = `
-                    <div class="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                        <p class="font-semibold text-blue-800">
-                            ✅ ${files.length} file(s) selected
-                            ${pngCount > 0 ? `(${pngCount} PNG${pngCount > 1 ? 's' : ''})` : ''}
-                            ${zipCount > 0 ? `(${zipCount} ZIP${zipCount > 1 ? 's' : ''})` : ''}
-                        </p>
-                        <p class="text-sm text-blue-600 mt-1">Click "Analyze & Generate Visualizations" to process!</p>
-                    </div>
-                `;
-                
-                analyzeBtn.disabled = false;
-            } else {
-                fileList.innerHTML = '';
-                analyzeBtn.disabled = true;
-            }
-        });
-        
-        document.getElementById('analyze-btn').addEventListener('click', async function() {
-            const files = Array.from(document.getElementById('image-upload').files);
-            
-            if (files.length === 0) {
-                showError('Please select at least one file');
-                return;
-            }
-            
-            await analyzeData(files);
-        });
-        
-        document.getElementById('cancel-btn').addEventListener('click', function() {
-            processingCancelled = true;
-            activeWorkers.forEach(worker => worker.terminate());
-            activeWorkers.clear();
-            this.disabled = true;
-            this.innerHTML = '⏳ Cancelling...';
-        });
-        
-        document.getElementById('validate-sheets-btn').addEventListener('click', async function() {
-            await connectToGoogleSheets();
-        });
-        
-        document.getElementById('test-sheets-btn').addEventListener('click', async function() {
-            const sheetsUrl = document.getElementById('sheets-url').value.trim();
-            const apiKey = document.getElementById('api-key').value.trim();
-            
-            if (!sheetsUrl || !apiKey) {
-                showSheetsStatus('error', 'Please enter both URL and API key');
-                return;
-            }
-            
-            showSheetsStatus('loading', 'Testing connection...');
-            
-            const success = await connectToGoogleSheets();
-            
-            if (success) {
-                showSheetsStatus('success', `✓ Test successful! Found ${googleSheetsData.length} records`);
-                console.log('[Test] Sample records:', googleSheetsData.slice(0, 3));
-            }
-        });
-        
-        document.getElementById('toggle-metrics').addEventListener('click', function() {
-            const dropdown = document.getElementById('metrics-dropdown');
-            const arrow = document.getElementById('metrics-arrow');
-            
-            if (dropdown.classList.contains('open')) {
-                dropdown.classList.remove('open');
-                arrow.style.transform = 'rotate(0deg)';
-            } else {
-                dropdown.classList.add('open');
-                arrow.style.transform = 'rotate(180deg)';
-            }
-        });
-        
-        window.addEventListener('beforeunload', () => {
-            activeWorkers.forEach(worker => worker.terminate());
-            URL.revokeObjectURL(workerBlobUrl);
-        });
-        
-        // Generate timestamp automatically
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const timestamp = `${year}-${month}-${day} ${hours}:${minutes} PST`;
-        
-        console.log('%c═══════════════════════════════════════════════════════════', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
-        console.log('%c🎵 Sound Object Analyzer v5.0 - ROBUST EDITION - BUILD 5', 'color: #8B5CF6; font-size: 18px; font-weight: bold');
-        console.log('%c═══════════════════════════════════════════════════════════', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
-        console.log(`%c📅 Last Updated: ${timestamp}`, 'color: #6B7280; font-size: 12px; font-style: italic');
-        console.log(`%c🔧 BUILD 5: ON-SCREEN diagnostic panel (won't be lost!)`, 'color: #F59E0B; font-size: 13px; font-weight: bold');
-        console.log(`%c✅ v2.1.1 PROVEN color detection (collect ALL colors, search flexibly)`, 'color: #10B981; font-size: 12px; font-weight: bold');
-        console.log(`%c✅ ROBUST radial scanning (proven shape extraction method)`, 'color: #10B981; font-size: 12px; font-weight: bold');
-        console.log(`%c✓ ${CPU_CORES} cores, ${MAX_PARALLEL_WORKERS} workers - parallel processing`, 'color: #10B981');
-        console.log('%c✓ ZIP folder trial mapping', 'color: #10B981');
-        console.log('%c✓ MAD outlier filtering (optional)', 'color: #10B981');
-        console.log('%c✓ Google Sheets validation (optional)', 'color: #10B981');
-        console.log('%c═══════════════════════════════════════════════════════════', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
-        console.log('%c📋 CONSOLE BUFFER TIPS:', 'color: #3B82F6; font-size: 13px; font-weight: bold');
-        console.log('%c  • Chrome: F12 → Console → Settings (gear) → "Preserve log" ✓', 'color: #6B7280; font-size: 11px');
-        console.log('%c  • Firefox: F12 → Console → Settings (gear) → Increase "Max logged messages"', 'color: #6B7280; font-size: 11px');
-        console.log('%c  • Safari: Develop → Show Web Inspector → Console → Preserve Log', 'color: #6B7280; font-size: 11px');
-        console.log('%c═══════════════════════════════════════════════════════════', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
-        console.log('%c💡 TIP: When you analyze, a YELLOW DIAGNOSTIC BOX will appear on screen!', 'color: #F59E0B; font-size: 13px; font-weight: bold; background: yellow; padding: 5px');
-        console.log('%c    Screenshot it before closing - it shows what the worker returned!', 'color: #F59E0B; font-size: 12px; font-weight: bold');
-        console.log('%c═══════════════════════════════════════════════════════════', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
-        console.log('%c⚠️  IF YOU DON\'T SEE "BUILD 5" ABOVE, HARD REFRESH (Ctrl+Shift+R)', 'color: #EF4444; font-size: 14px; font-weight: bold; background: yellow; padding: 5px');
-        console.log('%c═══════════════════════════════════════════════════════════', 'color: #8B5CF6; font-size: 14px; font-weight: bold');
     </script>
 </body>
 </html>
