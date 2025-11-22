@@ -825,6 +825,115 @@
             return sortedEdges;
         }
         
+        // ============================================
+        // ROBUST RADIAL SHAPE EXTRACTION (v2.1.1 PROVEN METHOD)
+        // ============================================
+        
+        function extractShapeRadial(imageData, targetColorKey, participantName) {
+            try {
+                const centerX = 500;
+                const centerY = 500;
+                const numAngles = 360;
+                const radialData = [];
+                
+                // Parse target color
+                const [targetR, targetG, targetB] = targetColorKey.split(',').map(Number);
+                
+                // For each angle, scan outward from center to find the shape boundary
+                for (let angle = 0; angle < numAngles; angle++) {
+                    const rad = (angle * Math.PI) / 180;
+                    const cos = Math.cos(rad);
+                    const sin = Math.sin(rad);
+                    
+                    let maxDist = 0;
+                    
+                    // Scan from center outward
+                    for (let r = 0; r < 500; r += 1) { // Step by 1 pixel for accuracy
+                        const x = Math.round(centerX + r * cos);
+                        const y = Math.round(centerY + r * sin);
+                        
+                        // Boundary check
+                        if (x < 0 || x >= imageData.width || y < 0 || y >= imageData.height) {
+                            break;
+                        }
+                        
+                        const pixelIndex = (y * imageData.width + x) * 4;
+                        const r_val = imageData.data[pixelIndex];
+                        const g_val = imageData.data[pixelIndex + 1];
+                        const b_val = imageData.data[pixelIndex + 2];
+                        const a_val = imageData.data[pixelIndex + 3];
+                        
+                        // Skip transparent pixels
+                        if (a_val < 128) continue;
+                        
+                        // Check if pixel matches target color (with small tolerance)
+                        if (Math.abs(r_val - targetR) <= 3 && 
+                            Math.abs(g_val - targetG) <= 3 && 
+                            Math.abs(b_val - targetB) <= 3) {
+                            maxDist = r;
+                        }
+                    }
+                    
+                    radialData.push(maxDist);
+                }
+                
+                return radialData;
+                
+            } catch (err) {
+                console.error(`[Shape] Error in radial extraction for ${participantName}:`, err);
+                // Return zero array as fallback
+                return Array(360).fill(0);
+            }
+        }
+        
+        function calculateCentroidFromRadial(radialData) {
+            // Calculate centroid from radial data
+            // Convert radial coordinates to cartesian and average
+            let sumX = 0;
+            let sumY = 0;
+            let count = 0;
+            
+            const centerX = 500;
+            const centerY = 500;
+            
+            for (let angle = 0; angle < radialData.length; angle++) {
+                const radius = radialData[angle];
+                if (radius > 0) {
+                    const rad = (angle * Math.PI) / 180;
+                    const x = centerX + radius * Math.cos(rad);
+                    const y = centerY + radius * Math.sin(rad);
+                    sumX += x;
+                    sumY += y;
+                    count++;
+                }
+            }
+            
+            if (count === 0) return { x: centerX, y: centerY };
+            
+            return {
+                x: sumX / count,
+                y: sumY / count
+            };
+        }
+        
+        function calculateAreaFromRadial(radialData) {
+            // Calculate area using trapezoidal rule in polar coordinates
+            // Area = 0.5 * sum(r_i^2 * dθ) where dθ = 2π/n
+            let area = 0;
+            const dTheta = (2 * Math.PI) / radialData.length;
+            
+            for (let i = 0; i < radialData.length; i++) {
+                const r = radialData[i];
+                area += 0.5 * r * r * dTheta;
+            }
+            
+            return area;
+        }
+        
+        // ============================================
+        // COMPLEX CONTOUR EXTRACTION (OPTIONAL FALLBACK)
+        // ============================================
+        
         function extractCompleteShapeContour(imageData, targetColorString) {
             // Detect edges
             const edges = detectEdges(imageData, targetColorString);
@@ -1267,42 +1376,44 @@ self.onmessage = function(e) {
         const width = imageData.width;
         const height = imageData.height;
         const pixelData = imageData.data;
+        const pixelCount = width * height;
         
-        // Detect colors - simplified logic
-        const redPixels = [];
-        const bluePixels = [];
+        // PROVEN v2.1.1 APPROACH: Collect ALL colors, don't filter!
+        const colors = new Map();
         
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
-                const idx = (y * width + x) * 4;
-                const r = pixelData[idx];
-                const g = pixelData[idx + 1];
-                const b = pixelData[idx + 2];
-                const a = pixelData[idx + 3];
-                
-                // Skip transparent pixels
-                if (a < 128) continue;
-                
-                // Red detection (strict thresholds)
-                if (r > 240 && g < 20 && b < 20) {
-                    redPixels.push({ x: x, y: y });
-                }
-                
-                // Blue detection (strict thresholds)
-                if (b > 240 && r < 20 && g < 20) {
-                    bluePixels.push({ x: x, y: y });
-                }
+        for (let i = 0; i < pixelData.length; i += 4) {
+            const r = pixelData[i];
+            const g = pixelData[i + 1];
+            const b = pixelData[i + 2];
+            const a = pixelData[i + 3];
+            
+            // Skip transparent or white pixels only
+            if (a < 10 || (r > 250 && g > 250 && b > 250)) {
+                continue;
             }
+            
+            // Store ALL colors found (key format: "r,g,b")
+            const colorKey = r + ',' + g + ',' + b;
+            colors.set(colorKey, (colors.get(colorKey) || 0) + 1);
         }
         
-        // Send success response
+        // Convert to array with percentages
+        const colorData = Array.from(colors.entries()).map(([color, count]) => {
+            const [r, g, b] = color.split(',').map(Number);
+            return {
+                color: 'rgb(' + r + ',' + g + ',' + b + ')',
+                colorKey: color,  // Keep the "r,g,b" format for easy matching
+                count: count,
+                percentage: (count / pixelCount) * 100
+            };
+        });
+        
+        // Send ALL colors found - main thread will search for red/blue
         self.postMessage({
             success: true,
             filename: filename,
-            redPixels: redPixels,
-            bluePixels: bluePixels,
-            hasRed: redPixels.length > 0,
-            hasBlue: bluePixels.length > 0
+            colors: colorData,
+            totalPixels: pixelCount
         });
         
     } catch (error) {
@@ -1879,17 +1990,36 @@ self.onmessage = function(e) {
                         continue;
                     }
                     
-                    // CRITICAL: Explicitly preserve color detection flags from workers
+                    // v2.1.1 PROVEN APPROACH: Search for red/blue in color results
+                    // Flexible matching accepts variations like (255,0,0), (254,0,0), (253,0,0), etc.
+                    const redColor = data.colors.find(c => 
+                        c.colorKey.includes('255,0,0') || 
+                        c.colorKey.includes('254,0,0') ||
+                        c.colorKey.includes('253,0,0') ||
+                        c.colorKey.includes('252,0,0') ||
+                        (c.colorKey.startsWith('25') && c.colorKey.includes(',0,') && c.colorKey.endsWith(',0'))
+                    );
+                    
+                    const blueColor = data.colors.find(c => 
+                        c.colorKey.includes('0,0,255') || 
+                        c.colorKey.includes('0,0,254') ||
+                        c.colorKey.includes('0,0,253') ||
+                        c.colorKey.includes('0,0,252') ||
+                        (c.colorKey.includes(',0,25') && c.colorKey.startsWith('0,'))
+                    );
+                    
+                    // CRITICAL: Explicitly preserve color detection results
                     parsedData.push({
                         filename: data.filename,
                         imageData: data.imageData,
                         sourceZip: data.sourceZip,
                         zipOrderNumber: data.zipOrderNumber,
                         zipParticipant: data.zipParticipant,
-                        hasRed: data.hasRed,           // ← Explicitly preserve
-                        hasBlue: data.hasBlue,         // ← Explicitly preserve
-                        redPixels: data.redPixels,     // ← Explicitly preserve
-                        bluePixels: data.bluePixels,   // ← Explicitly preserve
+                        hasRed: !!redColor,              // ← Derived from color search
+                        hasBlue: !!blueColor,            // ← Derived from color search
+                        redColorKey: redColor ? redColor.colorKey : null,   // ← Store the actual color found
+                        blueColorKey: blueColor ? blueColor.colorKey : null, // ← Store the actual color found
+                        colors: data.colors,             // ← Keep all colors for reference
                         participant: parsed.participant,
                         frequency: parsed.frequency,
                         frequencyNumber: parsed.frequencyNumber,
@@ -1902,8 +2032,8 @@ self.onmessage = function(e) {
                     console.warn(`[Parse] ⚠ Failed to parse ${parseFailures} filenames`);
                 }
                 
-                // DIAGNOSTIC: Check if hasRed/hasBlue are preserved
-                console.log(`[Parse] Checking color flags after merge...`);
+                // DIAGNOSTIC: Check color detection results
+                console.log(`[Parse] Checking color detection results...`);
                 const sampleParsed = parsedData[0];
                 console.log(`[Parse] Sample parsed data:`, {
                     filename: sampleParsed.filename,
@@ -1911,12 +2041,28 @@ self.onmessage = function(e) {
                     frequency: sampleParsed.frequency,
                     hasRed: sampleParsed.hasRed,
                     hasBlue: sampleParsed.hasBlue,
+                    redColorKey: sampleParsed.redColorKey,
+                    blueColorKey: sampleParsed.blueColorKey,
+                    totalColors: sampleParsed.colors ? sampleParsed.colors.length : 0,
                     normalizedTrial: sampleParsed.normalizedTrial
                 });
+                
+                // Show sample of colors found in first 3 files
+                console.log(`[Parse] 🎨 Colors found in first 3 files:`);
+                for (let i = 0; i < Math.min(3, parsedData.length); i++) {
+                    const file = parsedData[i];
+                    if (file.colors && file.colors.length > 0) {
+                        const topColors = file.colors.slice(0, 5).map(c => 
+                            `${c.colorKey} (${c.percentage.toFixed(1)}%)`
+                        ).join(', ');
+                        console.log(`[Parse]   ${file.filename}: ${topColors}`);
+                    }
+                }
+                
                 const hasRedInParsed = parsedData.filter(d => d.hasRed === true).length;
                 const hasBlueInParsed = parsedData.filter(d => d.hasBlue === true).length;
-                console.log(`[Parse] Files with hasRed=true: ${hasRedInParsed}`);
-                console.log(`[Parse] Files with hasBlue=true: ${hasBlueInParsed}`);
+                console.log(`[Parse] Files with RED detected: ${hasRedInParsed}`);
+                console.log(`[Parse] Files with BLUE detected: ${hasBlueInParsed}`);
                 
                 // Normalize trial numbers
                 console.log('[Trial] Starting trial number normalization...');
@@ -1933,14 +2079,13 @@ self.onmessage = function(e) {
                 console.log(`[Shapes] Starting contour extraction for ${parsedData.length} files...`);
                 
                 // CRITICAL DIAGNOSTIC - Check first 3 files
-                console.log(`[Shapes] 🔍 CRITICAL: Checking first 3 files for hasRed/hasBlue flags:`);
+                console.log(`[Shapes] 🔍 Checking first 3 files for color detection:`);
                 for (let i = 0; i < Math.min(3, parsedData.length); i++) {
                     const sample = parsedData[i];
                     console.log(`[Shapes]   File ${i+1}: ${sample.filename}`);
-                    console.log(`[Shapes]     hasRed: ${sample.hasRed} (type: ${typeof sample.hasRed})`);
-                    console.log(`[Shapes]     hasBlue: ${sample.hasBlue} (type: ${typeof sample.hasBlue})`);
-                    console.log(`[Shapes]     redPixels: ${sample.redPixels ? sample.redPixels.length : 'undefined'}`);
-                    console.log(`[Shapes]     bluePixels: ${sample.bluePixels ? sample.bluePixels.length : 'undefined'}`);
+                    console.log(`[Shapes]     hasRed: ${sample.hasRed}, colorKey: ${sample.redColorKey}`);
+                    console.log(`[Shapes]     hasBlue: ${sample.hasBlue}, colorKey: ${sample.blueColorKey}`);
+                    console.log(`[Shapes]     participant: ${sample.participant}, frequency: ${sample.frequency}`);
                 }
                 
                 let skippedExtraTrials = 0;
@@ -1967,68 +2112,83 @@ self.onmessage = function(e) {
                     if (data.hasRed === true) filesWithHasRedTrue++;
                     if (data.hasBlue === true) filesWithHasBlueTrue++;
                     
-                    // Extract red shape
-                    if (data.hasRed) {
-                        const redContour = extractCompleteShapeContour(data.imageData, '255,0,0');
-                        if (redContour.length > 0) {
-                            redContoursFound++;
-                            const radialData = contourToRadialData(redContour);
-                            const centroid = calculateCentroid(redContour);
-                            const area = calculateAreaFromContour(redContour);
+                    // Extract red shape using ROBUST RADIAL METHOD
+                    if (data.hasRed && data.redColorKey) {
+                        try {
+                            const radialData = extractShapeRadial(data.imageData, data.redColorKey, data.participant);
                             
-                            // Validate against Google Sheets
-                            const validation = validateShapeAgainstSheets(
-                                data.participant,
-                                data.frequencyNumber,
-                                'red',
-                                data.normalizedTrial || data.trialNumber,
-                                centroid,
-                                area
-                            );
-                            
-                            participantShapes[data.frequency].red.push({
-                                participant: data.participant,
-                                trial: data.normalizedTrial || data.trialNumber,
-                                radialData,
-                                centroid,
-                                area,
-                                validation,
-                                contour: redContour
-                            });
-                        } else {
+                            if (radialData && radialData.length > 0 && radialData.some(r => r > 0)) {
+                                redContoursFound++;
+                                
+                                // Calculate centroid from radial data
+                                const centroid = calculateCentroidFromRadial(radialData);
+                                
+                                // Calculate area from radial data
+                                const area = calculateAreaFromRadial(radialData);
+                                
+                                // Validate against Google Sheets
+                                const validation = validateShapeAgainstSheets(
+                                    data.participant,
+                                    data.frequencyNumber,
+                                    'red',
+                                    data.normalizedTrial || data.trialNumber,
+                                    centroid,
+                                    area
+                                );
+                                
+                                participantShapes[data.frequency].red.push({
+                                    participant: data.participant,
+                                    trial: data.normalizedTrial || data.trialNumber,
+                                    radialData,
+                                    centroid,
+                                    area,
+                                    validation
+                                });
+                            } else {
+                                redContoursEmpty++;
+                                console.warn(`[Shapes] Empty radial data for RED in ${data.filename}`);
+                            }
+                        } catch (err) {
                             redContoursEmpty++;
+                            console.error(`[Shapes] Error extracting RED shape from ${data.filename}:`, err);
                         }
                     }
                     
-                    // Extract blue shape
-                    if (data.hasBlue) {
-                        const blueContour = extractCompleteShapeContour(data.imageData, '0,0,255');
-                        if (blueContour.length > 0) {
-                            blueContoursFound++;
-                            const radialData = contourToRadialData(blueContour);
-                            const centroid = calculateCentroid(blueContour);
-                            const area = calculateAreaFromContour(blueContour);
+                    // Extract blue shape using ROBUST RADIAL METHOD
+                    if (data.hasBlue && data.blueColorKey) {
+                        try {
+                            const radialData = extractShapeRadial(data.imageData, data.blueColorKey, data.participant);
                             
-                            const validation = validateShapeAgainstSheets(
-                                data.participant,
-                                data.frequencyNumber,
-                                'blue',
-                                data.normalizedTrial || data.trialNumber,
-                                centroid,
-                                area
-                            );
-                            
-                            participantShapes[data.frequency].blue.push({
-                                participant: data.participant,
-                                trial: data.normalizedTrial || data.trialNumber,
-                                radialData,
-                                centroid,
-                                area,
-                                validation,
-                                contour: blueContour
-                            });
-                        } else {
+                            if (radialData && radialData.length > 0 && radialData.some(r => r > 0)) {
+                                blueContoursFound++;
+                                
+                                const centroid = calculateCentroidFromRadial(radialData);
+                                const area = calculateAreaFromRadial(radialData);
+                                
+                                const validation = validateShapeAgainstSheets(
+                                    data.participant,
+                                    data.frequencyNumber,
+                                    'blue',
+                                    data.normalizedTrial || data.trialNumber,
+                                    centroid,
+                                    area
+                                );
+                                
+                                participantShapes[data.frequency].blue.push({
+                                    participant: data.participant,
+                                    trial: data.normalizedTrial || data.trialNumber,
+                                    radialData,
+                                    centroid,
+                                    area,
+                                    validation
+                                });
+                            } else {
+                                blueContoursEmpty++;
+                                console.warn(`[Shapes] Empty radial data for BLUE in ${data.filename}`);
+                            }
+                        } catch (err) {
                             blueContoursEmpty++;
+                            console.error(`[Shapes] Error extracting BLUE shape from ${data.filename}:`, err);
                         }
                     }
                 }
@@ -2329,14 +2489,14 @@ self.onmessage = function(e) {
         const minutes = String(now.getMinutes()).padStart(2, '0');
         const timestamp = `${year}-${month}-${day} ${hours}:${minutes} PST`;
         
-        console.log('%c🎵 Sound Object Analyzer v5.0 Complete', 'color: #8B5CF6; font-size: 16px; font-weight: bold');
+        console.log('%c🎵 Sound Object Analyzer v5.0 - ROBUST EDITION', 'color: #8B5CF6; font-size: 16px; font-weight: bold');
         console.log(`%c📅 Last Updated: ${timestamp}`, 'color: #6B7280; font-size: 12px; font-style: italic');
-        console.log(`%c⚠️ CRITICAL FIX: Color flags explicitly preserved + Added shape-level diagnostic`, 'color: #F59E0B; font-size: 11px; font-weight: bold');
-        console.log(`%c✓ ${CPU_CORES} cores, ${MAX_PARALLEL_WORKERS} workers`, 'color: #10B981');
-        console.log('%c✓ Advanced contour detection', 'color: #10B981');
-        console.log('%c✓ MAD outlier filtering', 'color: #10B981');
-        console.log('%c✓ Google Sheets validation ready', 'color: #10B981');
-        console.log('%c✓ Trial number normalization', 'color: #10B981');
+        console.log(`%c✅ v2.1.1 PROVEN color detection (collect ALL colors, search flexibly)`, 'color: #10B981; font-size: 12px; font-weight: bold');
+        console.log(`%c✅ ROBUST radial scanning (proven shape extraction method)`, 'color: #10B981; font-size: 12px; font-weight: bold');
+        console.log(`%c✓ ${CPU_CORES} cores, ${MAX_PARALLEL_WORKERS} workers - parallel processing`, 'color: #10B981');
+        console.log('%c✓ ZIP folder trial mapping', 'color: #10B981');
+        console.log('%c✓ MAD outlier filtering (optional)', 'color: #10B981');
+        console.log('%c✓ Google Sheets validation (optional)', 'color: #10B981');
     </script>
 </body>
 </html>
