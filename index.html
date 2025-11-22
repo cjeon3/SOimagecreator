@@ -1953,30 +1953,33 @@ self.onmessage = function(e) {
                 
                 console.log(`[Main] ✓ Processed ${processedData.length} images with workers`);
                 
-                // Diagnostic: Check how many have colors detected
-                const hasRedCount = processedData.filter(d => d.hasRed).length;
-                const hasBlueCount = processedData.filter(d => d.hasBlue).length;
-                const hasBothCount = processedData.filter(d => d.hasRed && d.hasBlue).length;
-                const hasNeitherCount = processedData.filter(d => !d.hasRed && !d.hasBlue).length;
-                console.log(`[Workers] Color detection results:`);
-                console.log(`[Workers]   Files with RED detected: ${hasRedCount}`);
-                console.log(`[Workers]   Files with BLUE detected: ${hasBlueCount}`);
-                console.log(`[Workers]   Files with BOTH colors: ${hasBothCount}`);
-                console.log(`[Workers]   Files with NO colors: ${hasNeitherCount}`);
-                
-                if (hasNeitherCount > 0) {
-                    console.warn(`[Workers] ⚠ ${hasNeitherCount} files have no colors detected!`);
-                    console.warn(`[Workers] This could mean:`);
-                    console.warn(`[Workers]   - Color thresholds too strict (r>240, g<20, b<20)`);
-                    console.warn(`[Workers]   - Images are grayscale or wrong format`);
-                    console.warn(`[Workers]   - Images need different color detection`);
+                // CRITICAL DIAGNOSTIC: Check what workers returned
+                console.log(`[Worker] 🔍 DIAGNOSTIC: First 3 worker results`);
+                for (let i = 0; i < Math.min(3, processedData.length); i++) {
+                    const sample = processedData[i];
+                    console.log(`[Worker]   File ${i+1}: ${sample.filename}`);
+                    console.log(`[Worker]     Has 'colors' property: ${!!sample.colors}`);
+                    if (sample.colors) {
+                        console.log(`[Worker]     Colors array length: ${sample.colors.length}`);
+                        if (sample.colors.length > 0) {
+                            const top3 = sample.colors.slice(0, 3).map(c => 
+                                `${c.colorKey || 'undefined'} (${c.count || 0}px)`
+                            ).join(', ');
+                            console.log(`[Worker]     Top 3 colors: ${top3}`);
+                        } else {
+                            console.log(`[Worker]     ⚠️ Colors array is EMPTY`);
+                        }
+                    } else {
+                        console.log(`[Worker]     ⚠️ NO 'colors' property!`);
+                        console.log(`[Worker]     Available properties: ${Object.keys(sample).join(', ')}`);
+                    }
                 }
                 
                 if (processedData.length === 0) {
                     throw new Error('No valid data extracted');
                 }
                 
-                updateProgress(50, 'Extracting contours and analyzing shapes...');
+                updateProgress(50, 'Parsing filenames and detecting colors...');
                 
                 // Parse filenames and normalize trial numbers
                 const parsedData = [];
@@ -1992,21 +1995,34 @@ self.onmessage = function(e) {
                     
                     // v2.1.1 PROVEN APPROACH: Search for red/blue in color results
                     // Flexible matching accepts variations like (255,0,0), (254,0,0), (253,0,0), etc.
-                    const redColor = data.colors.find(c => 
-                        c.colorKey.includes('255,0,0') || 
-                        c.colorKey.includes('254,0,0') ||
-                        c.colorKey.includes('253,0,0') ||
-                        c.colorKey.includes('252,0,0') ||
-                        (c.colorKey.startsWith('25') && c.colorKey.includes(',0,') && c.colorKey.endsWith(',0'))
-                    );
                     
-                    const blueColor = data.colors.find(c => 
-                        c.colorKey.includes('0,0,255') || 
-                        c.colorKey.includes('0,0,254') ||
-                        c.colorKey.includes('0,0,253') ||
-                        c.colorKey.includes('0,0,252') ||
-                        (c.colorKey.includes(',0,25') && c.colorKey.startsWith('0,'))
-                    );
+                    let redColor = null;
+                    let blueColor = null;
+                    
+                    // Defensive check: make sure colors array exists
+                    if (data.colors && Array.isArray(data.colors) && data.colors.length > 0) {
+                        redColor = data.colors.find(c => 
+                            c.colorKey && (
+                                c.colorKey.includes('255,0,0') || 
+                                c.colorKey.includes('254,0,0') ||
+                                c.colorKey.includes('253,0,0') ||
+                                c.colorKey.includes('252,0,0') ||
+                                (c.colorKey.startsWith('25') && c.colorKey.includes(',0,') && c.colorKey.endsWith(',0'))
+                            )
+                        );
+                        
+                        blueColor = data.colors.find(c => 
+                            c.colorKey && (
+                                c.colorKey.includes('0,0,255') || 
+                                c.colorKey.includes('0,0,254') ||
+                                c.colorKey.includes('0,0,253') ||
+                                c.colorKey.includes('0,0,252') ||
+                                (c.colorKey.includes(',0,25') && c.colorKey.startsWith('0,'))
+                            )
+                        );
+                    } else {
+                        console.warn(`[Parse] ⚠️ ${data.filename} has no colors array or it's empty!`);
+                    }
                     
                     // CRITICAL: Explicitly preserve color detection results
                     parsedData.push({
