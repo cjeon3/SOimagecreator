@@ -1931,6 +1931,18 @@ self.onmessage = function(e) {
                 });
                 
                 console.log(`[Shapes] Starting contour extraction for ${parsedData.length} files...`);
+                
+                // CRITICAL DIAGNOSTIC - Check first 3 files
+                console.log(`[Shapes] 🔍 CRITICAL: Checking first 3 files for hasRed/hasBlue flags:`);
+                for (let i = 0; i < Math.min(3, parsedData.length); i++) {
+                    const sample = parsedData[i];
+                    console.log(`[Shapes]   File ${i+1}: ${sample.filename}`);
+                    console.log(`[Shapes]     hasRed: ${sample.hasRed} (type: ${typeof sample.hasRed})`);
+                    console.log(`[Shapes]     hasBlue: ${sample.hasBlue} (type: ${typeof sample.hasBlue})`);
+                    console.log(`[Shapes]     redPixels: ${sample.redPixels ? sample.redPixels.length : 'undefined'}`);
+                    console.log(`[Shapes]     bluePixels: ${sample.bluePixels ? sample.bluePixels.length : 'undefined'}`);
+                }
+                
                 let skippedExtraTrials = 0;
                 let processedFiles = 0;
                 let redContoursFound = 0;
@@ -2319,7 +2331,7 @@ self.onmessage = function(e) {
         
         console.log('%c🎵 Sound Object Analyzer v5.0 Complete', 'color: #8B5CF6; font-size: 16px; font-weight: bold');
         console.log(`%c📅 Last Updated: ${timestamp}`, 'color: #6B7280; font-size: 12px; font-style: italic');
-        console.log(`%c⚠️ CRITICAL FIX: Color flags explicitly preserved`, 'color: #F59E0B; font-size: 11px; font-weight: bold');
+        console.log(`%c⚠️ CRITICAL FIX: Color flags explicitly preserved + Added shape-level diagnostic`, 'color: #F59E0B; font-size: 11px; font-weight: bold');
         console.log(`%c✓ ${CPU_CORES} cores, ${MAX_PARALLEL_WORKERS} workers`, 'color: #10B981');
         console.log('%c✓ Advanced contour detection', 'color: #10B981');
         console.log('%c✓ MAD outlier filtering', 'color: #10B981');
